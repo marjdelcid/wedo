@@ -1,5 +1,8 @@
 "use client";
 import { useState } from "react";
+import { supabase } from "../lib/supabase";
+import { useRouter } from "next/navigation";
+
 
 const funds = [
   { name: "Luna de miel", raised: 1860, goal: 3000, pct: 62, contributors: 12, img: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=200&q=80" },
@@ -17,6 +20,12 @@ const transactions = [
 
 export default function Dashboard() {
   const [transferDone, setTransferDone] = useState(false);
+  const router = useRouter();
+
+async function handleLogout() {
+  await supabase.auth.signOut();
+  router.push("/");
+}
 
   function handleTransfer() {
     setTransferDone(true);
@@ -27,10 +36,15 @@ export default function Dashboard() {
     <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh", padding: "24px 28px" }}>
 
       {/* HEADER */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 4 }}>Tu panel · Wedo</div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 300, color: "#1A1714" }}>Andrea <em>& </em>Diego</div>
-      </div>
+      <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+  <div>
+    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 4 }}>Tu panel · Wedo</div>
+    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 300, color: "#1A1714" }}>Andrea <em>& </em>Diego</div>
+  </div>
+  <button onClick={handleLogout} style={{ padding: "7px 16px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#A89C90", fontFamily: "'Jost', sans-serif" }}>
+    Cerrar sesión
+  </button>
+</div>
 
       {/* HERO CARD */}
       <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 22, marginBottom: 14, position: "relative", overflow: "hidden" }}>
