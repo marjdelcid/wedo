@@ -5,10 +5,6 @@ export default function Homepage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  function handleSubmit() {
-    if (email) { setSubmitted(true); }
-  }
-
   return (
     <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh" }}>
 
@@ -18,12 +14,12 @@ export default function Homepage() {
           WE<em style={{ color: "#8C6D4F", fontStyle: "italic", letterSpacing: 0 }}>do</em>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button style={{ padding: "8px 20px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#5A524A", fontFamily: "'Jost', sans-serif" }}>
+          <a href="/login" style={{ padding: "8px 20px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#5A524A", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
             Iniciar sesión
-          </button>
-          <button style={{ padding: "8px 20px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "none", background: "#8C6D4F", color: "#fff", cursor: "pointer", borderRadius: 3, fontFamily: "'Jost', sans-serif" }}>
+          </a>
+          <a href="/registro" style={{ padding: "8px 20px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "none", background: "#8C6D4F", color: "#fff", cursor: "pointer", borderRadius: 3, fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
             Crear mi lista
-          </button>
+          </a>
         </div>
       </nav>
 
@@ -36,16 +32,16 @@ export default function Homepage() {
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 64, fontWeight: 300, color: "#fff", lineHeight: 1.0, marginBottom: 16, letterSpacing: 0.5 }}>
             Regala momentos,<br /><em style={{ color: "#F0D8BC" }}>no cosas</em>
           </div>
-          <div style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, marginBottom: 36, fontWeight: 300, maxWidth: 500, margin: "0 auto 36px" }}>
+          <div style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, fontWeight: 300, maxWidth: 500, margin: "0 auto 36px" }}>
             Crea tu lista de regalos de boda en minutos. Tus invitados contribuyen en quetzales y tú recibes el dinero directo en tu cuenta bancaria guatemalteca.
           </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" as const, alignItems: "center" }}>
             {!submitted ? (
               <>
                 <input value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" style={{ padding: "13px 18px", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 3, fontSize: 14, fontFamily: "'Jost', sans-serif", background: "rgba(255,255,255,0.12)", color: "#fff", backdropFilter: "blur(8px)", width: 240, outline: "none" }} />
-                <button onClick={handleSubmit} style={{ padding: "13px 28px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
+                <a href="/registro" style={{ padding: "13px 28px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
                   Comenzar gratis
-                </button>
+                </a>
               </>
             ) : (
               <div style={{ background: "rgba(107,140,118,0.9)", backdropFilter: "blur(8px)", padding: "13px 28px", borderRadius: 3, fontSize: 13, color: "#fff", fontWeight: 500 }}>
@@ -111,15 +107,15 @@ export default function Homepage() {
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 64, fontWeight: 300, color: "#1A1714", lineHeight: 1 }}>3.5<span style={{ fontSize: 32 }}>%</span></div>
           <div style={{ fontSize: 13, color: "#5A524A", marginTop: 8, marginBottom: 24, fontWeight: 300 }}>Sin costo fijo mensual. Solo pagas cuando recibes.</div>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, textAlign: "left" as const, marginBottom: 28 }}>
-            {["Página de invitación personalizada", "Fondos ilimitados", "Dashboard en tiempo real", "Transferencias a cualquier banco GT", "Soporte en español"].map((f, i) => (
+            {["Página de invitación personalizada", "Fondos ilimitados", "Dashboard en tiempo real", "Transferencias a cualquier banco GT", "Soporte en español"].map((item, i) => (
               <div key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "#5A524A", fontWeight: 300 }}>
-                <span style={{ color: "#8C6D4F", fontWeight: 600 }}>✦</span> {f}
+                <span style={{ color: "#8C6D4F", fontWeight: 600 }}>✦</span> {item}
               </div>
             ))}
           </div>
-          <button style={{ width: "100%", padding: 14, background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
+          <a href="/registro" style={{ display: "block", padding: 14, background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif", textDecoration: "none", textAlign: "center" as const }}>
             Crear mi lista gratis
-          </button>
+          </a>
         </div>
       </div>
 
