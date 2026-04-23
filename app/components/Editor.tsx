@@ -79,11 +79,9 @@ export default function Editor() {
     paleta: form.paleta, hero_oscuridad: form.hero_oscuridad,
     invitacion_url: form.invitacion_url,
   }).eq("id", pareja.id);
-  if (error) {
-    alert("Error: " + error.message);
-  } else {
-    alert("Guardado exitosamente");
-  }
+ if (error) {
+  console.error("Error al guardar:", error.message);
+}
   setSaving(false);
   setSaved(true);
   setTimeout(() => setSaved(false), 2500);
