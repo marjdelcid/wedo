@@ -17,11 +17,13 @@ export default function BodaClient({ slug }: { slug: string }) {
   }, [slug]);
 
   async function loadData() {
-    const { data: parejaData } = await supabase
-      .from("parejas")
-      .select("*")
-      .eq("slug", slug)
-      .single();
+  console.log("Buscando slug:", slug);
+const { data: parejaData, error: parejaError } = await supabase
+  .from("parejas")
+  .select("*")
+  .eq("slug", slug)
+  .single();
+console.log("Resultado:", parejaData, "Error:", parejaError);
 
     if (!parejaData) { setLoading(false); return; }
     setPareja(parejaData);
