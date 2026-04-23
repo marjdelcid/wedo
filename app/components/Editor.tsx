@@ -67,22 +67,27 @@ export default function Editor() {
     setLoading(false);
   }
 
-  async function handleSaveForm() {
-    setSaving(true);
-    await supabase.from("parejas").update({
-      nombre1: form.nombre1, nombre2: form.nombre2,
-      fecha: form.fecha || null, lugar: form.lugar, hora: form.hora,
-      ceremonia: form.ceremonia, recepcion: form.recepcion,
-      dresscode: form.dresscode, historia: form.historia,
-      musica: form.musica, hashtag: form.hashtag,
-      foto_hero: form.foto_hero, tipografia: form.tipografia,
-      paleta: form.paleta, hero_oscuridad: form.hero_oscuridad,
-      invitacion_url: form.invitacion_url,
-    }).eq("id", pareja.id);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+ async function handleSaveForm() {
+  setSaving(true);
+  const { error } = await supabase.from("parejas").update({
+    nombre1: form.nombre1, nombre2: form.nombre2,
+    fecha: form.fecha || null, lugar: form.lugar, hora: form.hora,
+    ceremonia: form.ceremonia, recepcion: form.recepcion,
+    dresscode: form.dresscode, historia: form.historia,
+    musica: form.musica, hashtag: form.hashtag,
+    foto_hero: form.foto_hero, tipografia: form.tipografia,
+    paleta: form.paleta, hero_oscuridad: form.hero_oscuridad,
+    invitacion_url: form.invitacion_url,
+  }).eq("id", pareja.id);
+  if (error) {
+    alert("Error: " + error.message);
+  } else {
+    alert("Guardado exitosamente");
   }
+  setSaving(false);
+  setSaved(true);
+  setTimeout(() => setSaved(false), 2500);
+}
 
   async function handleFotoHero(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return;
