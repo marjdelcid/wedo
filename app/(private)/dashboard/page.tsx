@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import Dashboard from "../../components/Dashboard";
 
-export default function EditorRedirect() {
-  redirect("/editor");
+export default function DashboardPage() {
+  return <Dashboard />;
 }
