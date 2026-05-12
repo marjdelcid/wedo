@@ -70,6 +70,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
   const f = fondos[selected];
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
+  const secs = pareja.secciones || { historia: true, detalles: true, invitacion: true, regalos: true, countdown: true };
 
   const navBtnStyle = (active: boolean) => ({
     padding: "8px 16px", fontSize: 10, fontWeight: 600 as const, letterSpacing: 1,
@@ -84,7 +85,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       {/* HERO */}
       <div style={{ position: "relative", height: 340, overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: `url('${heroImg}')`, backgroundSize: "cover", backgroundPosition: "center" }} />
-        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, rgba(26,23,20,${overlayOpacity * 0.1}), rgba(26,23,20,${overlayOpacity}))` }} />
+        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, rgba(26,23,20,${(overlayOpacity * 0.1).toFixed(2)}), rgba(26,23,20,${overlayOpacity.toFixed(2)}))` }} />
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px 32px", textAlign: "center", zIndex: 2 }}>
           <div style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>
             {pareja.hashtag || "Wedo · Lista de Regalos"}
@@ -100,14 +101,14 @@ export default function BodaClient({ slug }: { slug: string }) {
 
       {/* NAV SECTIONS */}
       <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: "16px 24px", borderBottom: `1px solid rgba(26,23,20,0.08)`, flexWrap: "wrap" as const }}>
-        <button onClick={() => setActiveSection("regalos")} style={navBtnStyle(activeSection === "regalos")}>Regalos</button>
-        {pareja.historia && <button onClick={() => setActiveSection("historia")} style={navBtnStyle(activeSection === "historia")}>Nuestra historia</button>}
-        {(pareja.ceremonia || pareja.recepcion) && <button onClick={() => setActiveSection("detalles")} style={navBtnStyle(activeSection === "detalles")}>Detalles</button>}
-        {pareja.invitacion_url && <button onClick={() => setActiveSection("invitacion")} style={navBtnStyle(activeSection === "invitacion")}>Invitación</button>}
+        {secs.regalos && <button onClick={() => setActiveSection("regalos")} style={navBtnStyle(activeSection === "regalos")}>Regalos</button>}
+        {secs.historia && pareja.historia && <button onClick={() => setActiveSection("historia")} style={navBtnStyle(activeSection === "historia")}>Nuestra historia</button>}
+        {secs.detalles && (pareja.ceremonia || pareja.recepcion) && <button onClick={() => setActiveSection("detalles")} style={navBtnStyle(activeSection === "detalles")}>Detalles</button>}
+        {secs.invitacion && pareja.invitacion_url && <button onClick={() => setActiveSection("invitacion")} style={navBtnStyle(activeSection === "invitacion")}>Invitación</button>}
       </div>
 
       {/* SECCIÓN REGALOS */}
-      {activeSection === "regalos" && (
+      {secs.regalos && activeSection === "regalos" && (
         <>
           <div style={{ textAlign: "center", padding: "28px 24px 8px" }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Para los novios</div>
@@ -153,7 +154,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       )}
 
       {/* SECCIÓN HISTORIA */}
-      {activeSection === "historia" && pareja.historia && (
+      {secs.historia && activeSection === "historia" && pareja.historia && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nosotros</div>
@@ -171,7 +172,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       )}
 
       {/* SECCIÓN DETALLES */}
-      {activeSection === "detalles" && (
+      {secs.detalles && activeSection === "detalles" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>El gran día</div>
@@ -203,7 +204,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       )}
 
       {/* SECCIÓN INVITACIÓN */}
-      {activeSection === "invitacion" && pareja.invitacion_url && (
+      {secs.invitacion && activeSection === "invitacion" && pareja.invitacion_url && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px", textAlign: "center" }}>
           <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Invitación</div>
           <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary, marginBottom: 20 }}>Nuestra Invitación</div>
