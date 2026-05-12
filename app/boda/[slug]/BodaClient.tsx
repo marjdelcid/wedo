@@ -40,13 +40,17 @@ export default function BodaClient({ slug }: { slug: string }) {
     setLoading(false);
   }
 
-  async function handlePay() {
-    const f = fondos[selected];
-    setPaid(true);
-    await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: nombre || "Anónimo", monto: amount });
-    await supabase.from("fondos").update({ recaudado: (f.recaudado || 0) + amount }).eq("id", f.id);
-    setTimeout(() => { setPaid(false); setOpen(false); loadData(); }, 2500);
-  }
+async function handlePay() {
+  const f = fondos[selected];
+  const montoFinal = f.modo === "completo" ? f.meta : amount;
+  setPaid(true);
+  await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal });
+  await supabase.from("fondos").update({
+    recaudado: (f.recaudado || 0) + montoFinal,
+    ...(f.modo === "completo" ? { tomado: true } : {})
+  }).eq("id", f.id);
+  setTimeout(() => { setPaid(false); setOpen(false); loadData(); }, 2500);
+}
 
   if (loading) return (
     <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -237,14 +241,35 @@ export default function BodaClient({ slug }: { slug: string }) {
                 <label style={{ fontSize: 10, fontWeight: 600, color: "#5A524A", display: "block", marginBottom: 6, letterSpacing: 0.5 }}>Tu nombre</label>
                 <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="María García" style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }} />
               </div>
-              <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" as const }}>
-                {[100, 200, 500, 1000].map(a => (
-                  <button key={a} onClick={() => setAmount(a)} style={{ padding: "9px 18px", border: `1px solid ${amount === a ? "#1A1714" : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 12, fontWeight: 500, cursor: "pointer", background: amount === a ? "#1A1714" : "transparent", color: amount === a ? "#fff" : "#5A524A", fontFamily: "'Jost', sans-serif" }}>Q{a.toLocaleString()}</button>
-                ))}
-              </div>
-              <button onClick={handlePay} disabled={paid} style={{ width: "100%", padding: 15, background: paid ? "#6B8C76" : pal.accent, color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
-                {paid ? "¡Regalo enviado! Gracias ✦" : `Regalar Q${amount.toLocaleString()} con tarjeta`}
-              </button>
+
+         {f.tomado ? (
+  <div style={{ width: "100%", padding: 15, background: "#F5F2ED", borderRadius: 3, textAlign: "center" as const, fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#8C6D4F", letterSpacing: 1 }}>
+    ✦ Este regalo ya fue tomado
+  </div>
+) : f.modo === "completo" ? (
+  <button onClick={handlePay} disabled={paid} style={{ width: "100%", padding: 15, background: paid ? "#6B8C76" : pal.accent, color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
+    {paid ? "¡Regalo enviado! Gracias ✦" : `Regalar Q${(f.meta || 0).toLocaleString()} — Regalo completo`}
+  </button>
+) : (
+  <>
+    <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" as const }}>
+      {(f.chips || [100, 200, 500, 1000]).map((a: number) => (
+        <button key={a} onClick={() => setAmount(a)} style={{ padding: "9px 18px", border: `1px solid ${amount === a ? "#1A1714" : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 12, fontWeight: 500, cursor: "pointer", background: amount === a ? "#1A1714" : "transparent", color: amount === a ? "#fff" : "#5A524A", fontFamily: "'Jost', sans-serif" }}>Q{a.toLocaleString()}</button>
+      ))}
+      <button onClick={() => setAmount(0)} style={{ padding: "9px 18px", border: `1px solid ${amount === 0 ? "#1A1714" : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 12, fontWeight: 500, cursor: "pointer", background: amount === 0 ? "#1A1714" : "transparent", color: amount === 0 ? "#fff" : "#5A524A", fontFamily: "'Jost', sans-serif", fontStyle: "italic" }}>Otro</button>
+    </div>
+    {amount === 0 && (
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <span style={{ fontSize: 14, fontWeight: 500, color: "#5A524A" }}>Q</span>
+        <input type="number" placeholder="Escribe tu monto" onChange={e => setAmount(parseInt(e.target.value) || 0)} style={{ flex: 1, padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }} />
+      </div>
+    )}
+    <button onClick={handlePay} disabled={paid || amount <= 0} style={{ width: "100%", padding: 15, background: paid ? "#6B8C76" : amount <= 0 ? "#E0DAD4" : pal.accent, color: amount <= 0 ? "#A89C90" : "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: amount <= 0 ? "default" : "pointer", fontFamily: "'Jost', sans-serif" }}>
+      {paid ? "¡Regalo enviado! Gracias ✦" : amount > 0 ? `Regalar Q${amount.toLocaleString()} con tarjeta` : "Selecciona un monto"}
+    </button>
+  </>
+)}
+    
             </div>
           </div>
         </div>
