@@ -67,7 +67,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   const pal = PALETAS[pid] || PALETAS.champagne;
   const txt = TEXT[pid] || TEXT.champagne;
   const font = pareja.tipografia || "Cormorant Garamond";
-  const overlayOpacity = (pareja.hero_oscuridad || 45) / 100;
+  const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
   const f = fondos[selected];
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
 

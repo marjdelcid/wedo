@@ -114,8 +114,7 @@ export default function EditorDiseno() {
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 12 }}>Oscuridad de la portada</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 11, color: "#A89C90" }}>Claro</span>
-          <input type="range" min={0} max={80} value={form.hero_oscuridad} onChange={e => setForm(f => ({ ...f, hero_oscuridad: parseInt(e.target.value) }))} style={{ flex: 1 }} />
-          <span style={{ fontSize: 11, color: "#A89C90" }}>Oscuro</span>
+         <input type="range" min={0} max={95} value={form.hero_oscuridad} <span style={{ fontSize: 11, color: "#A89C90" }}>Oscuro</span>
         </div>
       </div>
 
