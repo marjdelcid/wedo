@@ -138,13 +138,25 @@ async function handlePay() {
                     <div style={{ padding: "14px 16px 16px" }}>
                       <div style={{ fontFamily: `'${font}', serif`, fontSize: 20, fontWeight: 400, color: txt.primary, marginBottom: 4 }}>{fondo.nombre}</div>
                       <div style={{ fontSize: 12, color: txt.secondary, lineHeight: 1.65, marginBottom: 9, fontWeight: 300 }}>{fondo.descripcion}</div>
-                      <div style={{ height: 1, background: "rgba(26,23,20,0.1)", marginBottom: 5 }}>
-                        <div style={{ height: 1, background: pal.accent, width: `${pct}%` }} />
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: txt.muted }}>
-                        <strong style={{ color: txt.primary }}>Q{(fondo.recaudado || 0).toLocaleString()}</strong>
-                        <span>{fondo.meta > 0 ? `${pct}% · Q${fondo.meta.toLocaleString()}` : "Sin meta"}</span>
-                      </div>
+
+                     {fondo.modo !== "completo" && (
+  <>
+    <div style={{ height: 1, background: "rgba(26,23,20,0.1)", marginBottom: 5 }}>
+      <div style={{ height: 1, background: pal.accent, width: `${pct}%` }} />
+    </div>
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: txt.muted }}>
+      <strong style={{ color: txt.primary }}>Q{(fondo.recaudado || 0).toLocaleString()}</strong>
+      <span>{fondo.meta > 0 ? `${pct}% · Q${fondo.meta.toLocaleString()}` : "Sin meta"}</span>
+    </div>
+  </>
+)}
+{fondo.modo === "completo" && (
+  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: txt.muted }}>
+    <strong style={{ color: txt.primary }}>Q{(fondo.meta || 0).toLocaleString()}</strong>
+    {fondo.tomado && <span style={{ color: "#6B8C76", fontWeight: 600 }}>✦ Ya regalado</span>}
+  </div>
+)}
+
                     </div>
                   </div>
                 );
