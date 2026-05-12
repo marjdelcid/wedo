@@ -48,12 +48,12 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
             WE<em style={{ color: "#8C6D4F", fontStyle: "italic", letterSpacing: 0 }}>do</em>
           </div>
           <div style={{ display: "flex", gap: 3, background: "rgba(0,0,0,0.05)", padding: 3, borderRadius: 8 }}>
-            <button onClick={() => router.push("/dashboard")} style={{ padding: "6px 18px", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" as const, border: "none", background: !isEditor ? "#fff" : "transparent", cursor: "pointer", borderRadius: 6, color: !isEditor ? "#1A1714" : "#A89C90", fontFamily: "'Jost', sans-serif", boxShadow: !isEditor ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
-              Dashboard
-            </button>
-            <button onClick={() => router.push("/editor")} style={{ padding: "6px 18px", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" as const, border: "none", background: isEditor ? "#fff" : "transparent", cursor: "pointer", borderRadius: 6, color: isEditor ? "#1A1714" : "#A89C90", fontFamily: "'Jost', sans-serif", boxShadow: isEditor ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
-              Editor
-            </button>
+<a href="/dashboard" style={{ padding: "6px 18px", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" as const, border: "none", background: !isEditor ? "#fff" : "transparent", cursor: "pointer", borderRadius: 6, color: !isEditor ? "#1A1714" : "#A89C90", fontFamily: "'Jost', sans-serif", boxShadow: !isEditor ? "0 1px 3px rgba(0,0,0,0.08)" : "none", textDecoration: "none", display: "inline-block" }}>
+  Dashboard
+</a>
+<a href="/editor" style={{ padding: "6px 18px", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" as const, border: "none", background: isEditor ? "#fff" : "transparent", cursor: "pointer", borderRadius: 6, color: isEditor ? "#1A1714" : "#A89C90", fontFamily: "'Jost', sans-serif", boxShadow: isEditor ? "0 1px 3px rgba(0,0,0,0.08)" : "none", textDecoration: "none", display: "inline-block" }}>
+  Editor
+</a>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             <a href={`/boda/${pareja?.slug}`} target="_blank" style={{ padding: "6px 14px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid #8C6D4F", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#8C6D4F", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
@@ -66,11 +66,11 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         </div>
         {isEditor && (
           <div style={{ display: "flex", gap: 2, padding: "0 24px 10px", overflowX: "auto" as const }}>
-            {editorTabs.map(t => (
-              <button key={t.path} onClick={() => router.push(t.path)} style={{ padding: "5px 14px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: pathname === t.path ? "#1A1714" : "transparent", cursor: "pointer", borderRadius: 3, color: pathname === t.path ? "#fff" : "#A89C90", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const }}>
-                {t.label}
-              </button>
-            ))}
+{editorTabs.map(t => (
+  <a key={t.path} href={t.path} style={{ padding: "5px 14px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: pathname === t.path ? "#1A1714" : "transparent", cursor: "pointer", borderRadius: 3, color: pathname === t.path ? "#fff" : "#A89C90", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const, textDecoration: "none", display: "inline-block" }}>
+    {t.label}
+  </a>
+))}
           </div>
         )}
       </div>
