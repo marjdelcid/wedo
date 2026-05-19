@@ -29,6 +29,15 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [nombre, setNombre] = useState("");
   const [activeSection, setActiveSection] = useState("regalos");
 
+  // RSVP state
+  const [rsvpQuery, setRsvpQuery] = useState("");
+  const [rsvpResults, setRsvpResults] = useState<any[]>([]);
+  const [rsvpSelected, setRsvpSelected] = useState<any>(null);
+  const [rsvpSearched, setRsvpSearched] = useState(false);
+  const [rsvpForm, setRsvpForm] = useState({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
+  const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
+  const [rsvpDone, setRsvpDone] = useState(false);
+
   useEffect(() => { loadData(); }, [slug]);
 
   async function loadData() {
@@ -39,6 +48,32 @@ export default function BodaClient({ slug }: { slug: string }) {
     setFondos(f || []);
     setLoading(false);
   }
+
+async function searchRsvp() {
+  if (!rsvpQuery.trim()) return;
+  setRsvpSearched(true);
+  setRsvpSelected(null);
+  const { data } = await supabase.from("invitados").select("*").eq("pareja_id", pareja.id).ilike("nombre", `%${rsvpQuery.trim()}%`);
+  setRsvpResults(data || []);
+}
+
+async function handleRsvpSubmit() {
+  if (!rsvpSelected || !rsvpForm.asistencia) return;
+  setRsvpSubmitting(true);
+  await supabase.from("rsvp").insert({
+    invitado_id: rsvpSelected.id,
+    pareja_id: pareja.id,
+    nombre: rsvpSelected.nombre,
+    telefono: rsvpForm.telefono,
+    asistencia: rsvpForm.asistencia,
+    acompanantes: parseInt(rsvpForm.acompanantes) || 0,
+    restricciones: rsvpForm.restricciones,
+    mensaje: rsvpForm.mensaje,
+  });
+  await supabase.from("invitados").update({ confirmado: true }).eq("id", rsvpSelected.id);
+  setRsvpSubmitting(false);
+  setRsvpDone(true);
+}
 
 async function handlePay() {
   const f = fondos[selected];
@@ -109,6 +144,7 @@ async function handlePay() {
         {secs.historia && pareja.historia && <button onClick={() => setActiveSection("historia")} style={navBtnStyle(activeSection === "historia")}>Nuestra historia</button>}
         {secs.detalles && (pareja.ceremonia || pareja.recepcion) && <button onClick={() => setActiveSection("detalles")} style={navBtnStyle(activeSection === "detalles")}>Detalles</button>}
         {secs.invitacion && pareja.invitacion_url && <button onClick={() => setActiveSection("invitacion")} style={navBtnStyle(activeSection === "invitacion")}>Invitación</button>}
+        {secs.rsvp && <button onClick={() => setActiveSection("rsvp")} style={navBtnStyle(activeSection === "rsvp")}>Confirmar asistencia</button>}
       </div>
 
       {/* SECCIÓN REGALOS */}
@@ -231,6 +267,124 @@ async function handlePay() {
             </a>
           ) : (
             <img src={pareja.invitacion_url} alt="Invitación" style={{ width: "100%", borderRadius: 4, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }} />
+          )}
+        </div>
+      )}
+
+      {/* SECCIÓN RSVP */}
+      {secs.rsvp && activeSection === "rsvp" && (
+        <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Confirma tu lugar</div>
+            <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>¿Asistirás?</div>
+            <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
+          </div>
+
+          {rsvpDone ? (
+            <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 32, textAlign: "center" as const }}>
+              <div style={{ fontFamily: `'${font}', serif`, fontSize: 28, fontWeight: 300, color: pal.accent, marginBottom: 8 }}>
+                {rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : "Gracias por avisarnos"}
+              </div>
+              <div style={{ fontSize: 13, color: txt.secondary, fontWeight: 300 }}>
+                {rsvpForm.asistencia === "si"
+                  ? "Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!"
+                  : "Lamentamos que no puedas acompañarnos, pero gracias por responder."}
+              </div>
+            </div>
+          ) : !rsvpSelected ? (
+            <>
+              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24, marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 12 }}>Busca tu nombre</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    value={rsvpQuery}
+                    onChange={e => setRsvpQuery(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && searchRsvp()}
+                    placeholder="Escribe tu nombre o apellido..."
+                    style={{ flex: 1, padding: "10px 14px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }}
+                  />
+                  <button onClick={searchRsvp} style={{ padding: "10px 20px", background: pal.accent, color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
+                    Buscar
+                  </button>
+                </div>
+              </div>
+
+              {rsvpSearched && rsvpResults.length === 0 && (
+                <div style={{ textAlign: "center", padding: "20px 0", color: txt.muted, fontSize: 13, fontWeight: 300 }}>
+                  No encontramos tu nombre. Intenta con otro término o contacta a los novios.
+                </div>
+              )}
+
+              {rsvpResults.map((inv, i) => (
+                <div key={i} onClick={() => {
+                  setRsvpSelected(inv);
+                  setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
+                }} style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "16px 20px", marginBottom: 8, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = pal.accent}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(26,23,20,0.08)"}
+                >
+                  <div>
+                    <div style={{ fontFamily: `'${font}', serif`, fontSize: 20, fontWeight: 400, color: txt.primary }}>{inv.nombre}</div>
+                    <div style={{ fontSize: 11, color: txt.muted, marginTop: 2 }}>{inv.asientos} {inv.asientos === 1 ? "lugar reservado" : "lugares reservados"}</div>
+                    {inv.confirmado && <div style={{ fontSize: 10, color: "#6B8C76", fontWeight: 600, marginTop: 4, letterSpacing: 0.5 }}>✓ Ya confirmaste</div>}
+                  </div>
+                  <div style={{ fontSize: 18, color: txt.muted }}>→</div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24 }}>
+              <button onClick={() => setRsvpSelected(null)} style={{ fontSize: 11, color: txt.muted, background: "none", border: "none", cursor: "pointer", fontFamily: "'Jost', sans-serif", marginBottom: 16, padding: 0 }}>← Volver</button>
+              <div style={{ fontFamily: `'${font}', serif`, fontSize: 24, fontWeight: 300, color: txt.primary, marginBottom: 4 }}>{rsvpSelected.nombre}</div>
+              <div style={{ fontSize: 12, color: txt.muted, marginBottom: 20 }}>{rsvpSelected.asientos} {rsvpSelected.asientos === 1 ? "lugar reservado para ti" : "lugares reservados para ti"}</div>
+
+              {rsvpSelected.confirmado ? (
+                <div style={{ textAlign: "center", padding: 16, background: "#EDF4EF", borderRadius: 4 }}>
+                  <div style={{ fontSize: 13, color: "#6B8C76", fontWeight: 600 }}>✓ Ya confirmaste tu asistencia</div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 10 }}>¿Asistirás?</div>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+                    <button onClick={() => setRsvpForm(f => ({ ...f, asistencia: "si" }))} style={{ flex: 1, padding: "12px", border: `1.5px solid ${rsvpForm.asistencia === "si" ? "#6B8C76" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, background: rsvpForm.asistencia === "si" ? "#EDF4EF" : "transparent", color: rsvpForm.asistencia === "si" ? "#6B8C76" : txt.secondary, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.15s" }}>
+                      ✓ Sí, asistiré
+                    </button>
+                    <button onClick={() => setRsvpForm(f => ({ ...f, asistencia: "no", acompanantes: "0" }))} style={{ flex: 1, padding: "12px", border: `1.5px solid ${rsvpForm.asistencia === "no" ? "#A07070" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, background: rsvpForm.asistencia === "no" ? "#F5F0F0" : "transparent", color: rsvpForm.asistencia === "no" ? "#A07070" : txt.secondary, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.15s" }}>
+                      ✕ No podré ir
+                    </button>
+                  </div>
+
+                  {rsvpForm.asistencia === "si" && rsvpSelected.asientos > 1 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 8 }}>¿Cuántos asisten? (incluyéndote)</div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const }}>
+                        {Array.from({ length: rsvpSelected.asientos }, (_, i) => i + 1).map(n => (
+                          <button key={n} onClick={() => setRsvpForm(f => ({ ...f, acompanantes: String(n - 1) }))} style={{ padding: "8px 16px", border: `1px solid ${parseInt(rsvpForm.acompanantes) + 1 === n ? txt.primary : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 13, fontWeight: 500, cursor: "pointer", background: parseInt(rsvpForm.acompanantes) + 1 === n ? txt.primary : "transparent", color: parseInt(rsvpForm.acompanantes) + 1 === n ? "#fff" : txt.secondary, fontFamily: "'Jost', sans-serif" }}>
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {rsvpForm.asistencia === "si" && (
+                    <div style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 10, fontWeight: 600, color: txt.secondary, display: "block", marginBottom: 5, letterSpacing: 0.5 }}>Restricciones alimentarias (opcional)</label>
+                      <input value={rsvpForm.restricciones} onChange={e => setRsvpForm(f => ({ ...f, restricciones: e.target.value }))} placeholder="Vegetariano, alérgico a mariscos..." style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", boxSizing: "border-box" as const }} />
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: 18 }}>
+                    <label style={{ fontSize: 10, fontWeight: 600, color: txt.secondary, display: "block", marginBottom: 5, letterSpacing: 0.5 }}>Mensaje para los novios (opcional)</label>
+                    <textarea value={rsvpForm.mensaje} onChange={e => setRsvpForm(f => ({ ...f, mensaje: e.target.value }))} placeholder="¡Felicidades! Los queremos mucho..." style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", resize: "vertical" as const, minHeight: 70, boxSizing: "border-box" as const }} />
+                  </div>
+
+                  <button onClick={handleRsvpSubmit} disabled={!rsvpForm.asistencia || rsvpSubmitting} style={{ width: "100%", padding: 14, background: !rsvpForm.asistencia ? "#E0DAD4" : rsvpSubmitting ? "#A89C90" : pal.accent, color: !rsvpForm.asistencia ? "#A89C90" : "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: !rsvpForm.asistencia ? "default" : "pointer", fontFamily: "'Jost', sans-serif", transition: "background 0.2s" }}>
+                    {rsvpSubmitting ? "Enviando..." : "Confirmar asistencia"}
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
       )}
