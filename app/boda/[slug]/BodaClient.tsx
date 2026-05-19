@@ -268,14 +268,22 @@ async function handlePay() {
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Ceremonia</div>
               <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", borderBottom: pareja.ceremonia_maps ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.ceremonia}</div>
+                <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.ceremonia}</div>
+                    {pareja.hora && <div style={{ fontSize: 11, color: txt.muted, marginTop: 3, letterSpacing: 1 }}>{pareja.hora}</div>}
+                  </div>
+                  {pareja.ceremonia_maps && (
+                    <a href={pareja.ceremonia_maps} target="_blank" rel="noreferrer" style={{ flexShrink: 0, fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: pal.accent, textDecoration: "none", border: `1px solid ${pal.accent}`, borderRadius: 3, padding: "6px 12px", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const }}>
+                      Ver mapa
+                    </a>
+                  )}
                 </div>
-                {pareja.ceremonia_maps && (
+                {pareja.ceremonia_maps && pareja.ceremonia_maps.includes("/maps/embed") && (
                   <iframe
                     src={pareja.ceremonia_maps}
-                    width="100%" height="200"
-                    style={{ border: "none", display: "block" }}
+                    width="100%" height="220"
+                    style={{ border: "none", display: "block", borderTop: "1px solid rgba(26,23,20,0.06)" }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
@@ -289,14 +297,22 @@ async function handlePay() {
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Recepción</div>
               <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", borderBottom: pareja.recepcion_maps ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.recepcion}</div>
+                <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.recepcion}</div>
+                    {pareja.hora && <div style={{ fontSize: 11, color: txt.muted, marginTop: 3, letterSpacing: 1 }}>{pareja.hora}</div>}
+                  </div>
+                  {pareja.recepcion_maps && (
+                    <a href={pareja.recepcion_maps} target="_blank" rel="noreferrer" style={{ flexShrink: 0, fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: pal.accent, textDecoration: "none", border: `1px solid ${pal.accent}`, borderRadius: 3, padding: "6px 12px", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const }}>
+                      Ver mapa
+                    </a>
+                  )}
                 </div>
-                {pareja.recepcion_maps && (
+                {pareja.recepcion_maps && pareja.recepcion_maps.includes("/maps/embed") && (
                   <iframe
                     src={pareja.recepcion_maps}
-                    width="100%" height="200"
-                    style={{ border: "none", display: "block" }}
+                    width="100%" height="220"
+                    style={{ border: "none", display: "block", borderTop: "1px solid rgba(26,23,20,0.06)" }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />

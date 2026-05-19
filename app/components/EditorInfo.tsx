@@ -101,16 +101,16 @@ export default function EditorInfo() {
         <label style={labelStyle}>Ceremonia</label>
         <input value={form.ceremonia} onChange={e => setForm(f => ({ ...f, ceremonia: e.target.value }))} placeholder="Catedral Metropolitana" style={inputStyle} />
         <label style={labelStyle}>Link de Google Maps — Ceremonia</label>
-        <p style={hintStyle}>En Google Maps: Compartir → Incorporar mapa → copia el link del atributo <em>src</em> del iframe.</p>
-        <input value={form.ceremonia_maps} onChange={e => setForm(f => ({ ...f, ceremonia_maps: e.target.value }))} placeholder="https://www.google.com/maps/embed?pb=..." style={inputStyle} />
+        <p style={hintStyle}>Pega cualquier link de Google Maps (el que copias al compartir una ubicación).</p>
+        <input value={form.ceremonia_maps} onChange={e => setForm(f => ({ ...f, ceremonia_maps: e.target.value }))} placeholder="https://maps.app.goo.gl/..." style={inputStyle} />
 
         <div style={{ height: 1, background: "rgba(26,23,20,0.06)", margin: "8px 0 16px" }} />
 
         <label style={labelStyle}>Recepción</label>
         <input value={form.recepcion} onChange={e => setForm(f => ({ ...f, recepcion: e.target.value }))} placeholder="Casa Santo Domingo, Antigua" style={inputStyle} />
         <label style={labelStyle}>Link de Google Maps — Recepción</label>
-        <p style={hintStyle}>Mismo proceso: Compartir → Incorporar mapa → atributo <em>src</em>.</p>
-        <input value={form.recepcion_maps} onChange={e => setForm(f => ({ ...f, recepcion_maps: e.target.value }))} placeholder="https://www.google.com/maps/embed?pb=..." style={{ ...inputStyle, marginBottom: 0 }} />
+        <p style={hintStyle}>Pega cualquier link de Google Maps (el que copias al compartir una ubicación).</p>
+        <input value={form.recepcion_maps} onChange={e => setForm(f => ({ ...f, recepcion_maps: e.target.value }))} placeholder="https://maps.app.goo.gl/..." style={{ ...inputStyle, marginBottom: 0 }} />
       </div>
 
       {/* Dress code */}
