@@ -157,7 +157,7 @@ async function handlePay() {
       <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: "16px 24px", borderBottom: `1px solid rgba(26,23,20,0.08)`, flexWrap: "wrap" as const }}>
         {secs.regalos && <button onClick={() => setActiveSection("regalos")} style={navBtnStyle(activeSection === "regalos")}>Regalos</button>}
         {secs.historia && pareja.historia && <button onClick={() => setActiveSection("historia")} style={navBtnStyle(activeSection === "historia")}>Nuestra historia</button>}
-        {secs.detalles && (pareja.ceremonia || pareja.recepcion) && <button onClick={() => setActiveSection("detalles")} style={navBtnStyle(activeSection === "detalles")}>Detalles</button>}
+        {secs.detalles && (pareja.ceremonia || pareja.recepcion || pareja.fecha || pareja.dresscode) && <button onClick={() => setActiveSection("detalles")} style={navBtnStyle(activeSection === "detalles")}>Detalles</button>}
         {secs.invitacion && pareja.invitacion_url && <button onClick={() => setActiveSection("invitacion")} style={navBtnStyle(activeSection === "invitacion")}>Invitación</button>}
         {secs.rsvp && <button onClick={() => setActiveSection("rsvp")} style={navBtnStyle(activeSection === "rsvp")}>Confirmar asistencia</button>}
       </div>
@@ -240,30 +240,109 @@ async function handlePay() {
 
       {/* SECCIÓN DETALLES */}
       {secs.detalles && activeSection === "detalles" && (
-        <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 24px" }}>
+
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>El gran día</div>
-            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Detalles</div>
+            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 34, fontWeight: 300, color: txt.primary }}>Detalles</div>
             <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {[
-              { icon: "📅", label: "Fecha", value: pareja.fecha ? new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : null },
-              { icon: "🕐", label: "Hora", value: pareja.hora },
-              { icon: "⛪", label: "Ceremonia", value: pareja.ceremonia },
-              { icon: "🥂", label: "Recepción", value: pareja.recepcion },
-              { icon: "📍", label: "Ciudad", value: pareja.lugar },
-              { icon: "🎽", label: "Dress code", value: pareja.dresscode },
-            ].filter(d => d.value).map((d, i) => (
-              <div key={i} style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "16px", textAlign: "center" }}>
-                <div style={{ fontSize: 24, marginBottom: 8 }}>{d.icon}</div>
-                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 4 }}>{d.label}</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: txt.primary }}>{d.value}</div>
+
+          {/* Fecha & hora */}
+          {(pareja.fecha || pareja.hora) && (
+            <div style={{ textAlign: "center", marginBottom: 32, padding: "20px 24px", background: pal.surface, border: `1px solid ${pal.accent}22`, borderRadius: 4 }}>
+              {pareja.fecha && (
+                <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 26, fontWeight: 300, color: txt.primary, marginBottom: pareja.hora ? 6 : 0 }}>
+                  {new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                </div>
+              )}
+              {pareja.hora && (
+                <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: txt.muted }}>{pareja.hora}{pareja.lugar ? ` · ${pareja.lugar}` : ""}</div>
+              )}
+            </div>
+          )}
+
+          {/* Ceremonia */}
+          {pareja.ceremonia && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Ceremonia</div>
+              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ padding: "16px 20px", borderBottom: pareja.ceremonia_maps ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.ceremonia}</div>
+                </div>
+                {pareja.ceremonia_maps && (
+                  <iframe
+                    src={pareja.ceremonia_maps}
+                    width="100%" height="200"
+                    style={{ border: "none", display: "block" }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Recepción */}
+          {pareja.recepcion && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Recepción</div>
+              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ padding: "16px 20px", borderBottom: pareja.recepcion_maps ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.recepcion}</div>
+                </div>
+                {pareja.recepcion_maps && (
+                  <iframe
+                    src={pareja.recepcion_maps}
+                    width="100%" height="200"
+                    style={{ border: "none", display: "block" }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Dress code */}
+          {(pareja.dresscode || pareja.dresscode_notas || (Array.isArray(pareja.dresscode_fotos) && pareja.dresscode_fotos.length > 0)) && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Dress Code</div>
+              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "20px 24px" }}>
+                {pareja.dresscode && (
+                  <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 22, fontWeight: 300, color: txt.primary, marginBottom: pareja.dresscode_notas ? 14 : 0 }}>
+                    {pareja.dresscode}
+                  </div>
+                )}
+                {pareja.dresscode_notas && (
+                  <>
+                    <div style={{ width: 24, height: 1, background: pal.accent, marginBottom: 14 }} />
+                    <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 10 }}>Cómo nos gustaría que te vistieras</div>
+                    <div style={{ fontSize: 13, color: txt.secondary, lineHeight: 1.8, fontWeight: 300, whiteSpace: "pre-line" as const }}>
+                      {pareja.dresscode_notas}
+                    </div>
+                  </>
+                )}
+                {Array.isArray(pareja.dresscode_fotos) && pareja.dresscode_fotos.length > 0 && (
+                  <div style={{ marginTop: 20 }}>
+                    <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 12 }}>Inspiración</div>
+                    <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(pareja.dresscode_fotos.length, 3)}, 1fr)`, gap: 8 }}>
+                      {pareja.dresscode_fotos.map((url: string, i: number) => (
+                        <div key={i} style={{ aspectRatio: "3/4", borderRadius: 3, overflow: "hidden", background: "#F5F2ED" }}>
+                          <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Hashtag */}
           {pareja.hashtag && (
-            <div style={{ marginTop: 20, textAlign: "center", padding: "14px", background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4 }}>
+            <div style={{ textAlign: "center", padding: "16px", border: `1px solid ${pal.accent}33`, borderRadius: 4 }}>
               <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 22, fontWeight: 300, color: pal.accent }}>{pareja.hashtag}</div>
             </div>
           )}
