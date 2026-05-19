@@ -39,7 +39,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [open, setOpen] = useState(false);
   const [paid, setPaid] = useState(false);
   const [nombre, setNombre] = useState("");
-  const [activeSection, setActiveSection] = useState("regalos");
+  const [activeSection, setActiveSection] = useState("");
 
   // RSVP state
   const [rsvpQuery, setRsvpQuery] = useState("");
@@ -58,6 +58,11 @@ export default function BodaClient({ slug }: { slug: string }) {
     setPareja(p);
     const { data: f } = await supabase.from("fondos").select("*").eq("pareja_id", p.id).order("orden");
     setFondos(f || []);
+    // Set initial active section to first enabled section in saved order
+    const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, ...(p.secciones || {}) };
+    const order: string[] = Array.isArray(p.secciones_orden) && p.secciones_orden.length > 0 ? p.secciones_orden : ["regalos", "historia", "detalles", "invitacion", "rsvp"];
+    const first = order.find(id => !!(secs as any)[id] && id !== "countdown") || "regalos";
+    setActiveSection(first);
     setLoading(false);
   }
 
@@ -130,9 +135,9 @@ async function handlePay() {
   const secOrder = [...savedOrder, ...DEFAULT_SEC_ORDER.filter(id => !savedOrder.includes(id))];
   const NAV_DEF: Record<string, { label: string; visible: boolean }> = {
     regalos:    { label: "Regalos",               visible: !!secs.regalos },
-    historia:   { label: "Nuestra historia",       visible: !!secs.historia && !!pareja.historia },
-    detalles:   { label: "Detalles",               visible: !!secs.detalles && !!(pareja.ceremonia || pareja.recepcion || pareja.fecha || pareja.dresscode) },
-    invitacion: { label: "Invitación",             visible: !!secs.invitacion && !!pareja.invitacion_url },
+    historia:   { label: "Nuestra historia",       visible: !!secs.historia },
+    detalles:   { label: "Detalles",               visible: !!secs.detalles },
+    invitacion: { label: "Invitación",             visible: !!secs.invitacion },
     rsvp:       { label: "Confirmar asistencia",   visible: !!secs.rsvp },
     countdown:  { label: "Cuenta regresiva",       visible: false },
   };
@@ -259,18 +264,25 @@ async function handlePay() {
       )}
 
       {/* SECCIÓN HISTORIA */}
-      {secs.historia && activeSection === "historia" && pareja.historia && (
+      {secs.historia && activeSection === "historia" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nosotros</div>
             <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestra Historia</div>
             <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
           </div>
-          <div style={{ fontSize: 15, color: txt.secondary, lineHeight: 1.85, fontWeight: 300, textAlign: "center" as const }}>{pareja.historia}</div>
+          {pareja.historia ? (
+            <div style={{ fontSize: 15, color: txt.secondary, lineHeight: 1.85, fontWeight: 300, textAlign: "center" as const }}>{pareja.historia}</div>
+          ) : (
+            <div style={{ textAlign: "center", padding: "32px 0", color: txt.muted }}>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, marginBottom: 8 }}>Próximamente</div>
+              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase" as const }}>Los novios pronto compartirán su historia</div>
+            </div>
+          )}
           {pareja.musica && (
             <div style={{ marginTop: 32, textAlign: "center", padding: "16px", background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nuestra canción</div>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.primary }}>🎵 {pareja.musica}</div>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.primary }}>♪ {pareja.musica}</div>
             </div>
           )}
         </div>
@@ -404,17 +416,38 @@ async function handlePay() {
       )}
 
       {/* SECCIÓN INVITACIÓN */}
-      {secs.invitacion && activeSection === "invitacion" && pareja.invitacion_url && (
+      {secs.invitacion && activeSection === "invitacion" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px", textAlign: "center" }}>
           <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Invitación</div>
           <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary, marginBottom: 20 }}>Nuestra Invitación</div>
           <div style={{ width: 36, height: 1, background: pal.accent, margin: "0 auto 24px" }} />
-          {pareja.invitacion_url.includes(".pdf") ? (
-            <a href={pareja.invitacion_url} target="_blank" style={{ display: "inline-block", padding: "14px 28px", background: pal.accent, color: "#fff", textDecoration: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, fontFamily: "'Jost', sans-serif" }}>
-              Ver invitación PDF →
-            </a>
+
+          {pareja.invitacion_url ? (
+            pareja.invitacion_url.includes(".pdf") ? (
+              <a href={pareja.invitacion_url} target="_blank" style={{ display: "inline-block", padding: "14px 28px", background: pal.accent, color: "#fff", textDecoration: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, fontFamily: "'Jost', sans-serif" }}>
+                Ver invitación PDF →
+              </a>
+            ) : (
+              <img src={pareja.invitacion_url} alt="Invitación" style={{ width: "100%", borderRadius: 4, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }} />
+            )
           ) : (
-            <img src={pareja.invitacion_url} alt="Invitación" style={{ width: "100%", borderRadius: 4, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }} />
+            <div style={{ padding: "32px 0", color: txt.muted }}>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, marginBottom: 8 }}>Próximamente</div>
+              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase" as const }}>La invitación digital estará disponible aquí</div>
+            </div>
+          )}
+
+          {secs.detalles && (
+            <div style={{ marginTop: 32 }}>
+              <button
+                onClick={() => setActiveSection("detalles")}
+                style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${pal.accent}`, borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, color: pal.accent, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.2s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = pal.accent; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = pal.accent; }}
+              >
+                Ver detalles del evento →
+              </button>
+            </div>
           )}
         </div>
       )}
