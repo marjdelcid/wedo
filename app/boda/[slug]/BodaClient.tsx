@@ -116,6 +116,7 @@ async function handlePay() {
   const pal = PALETAS[pid] || PALETAS.champagne;
   const txt = TEXT[pid] || TEXT.champagne;
   const font = pareja.tipografia || "Cormorant Garamond";
+  const fontTitulos = pareja.tipografia_titulos || font;
   const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
   const f = fondos[selected];
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
@@ -162,13 +163,13 @@ async function handlePay() {
         <>
           <div style={{ textAlign: "center", padding: "28px 24px 8px" }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Para los novios</div>
-            <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestros Regalos</div>
+            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestros Regalos</div>
             <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
           </div>
 
           {fondos.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 24px" }}>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 20, fontWeight: 300, color: txt.muted }}>Los novios aún no han agregado regalos</div>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.muted }}>Los novios aún no han agregado regalos</div>
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 20, padding: "24px 24px 8px" }}>
@@ -182,7 +183,7 @@ async function handlePay() {
                       {fondo.foto && <img src={fondo.foto} alt={fondo.nombre} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
                     </div>
                     <div style={{ padding: "14px 16px 16px" }}>
-                      <div style={{ fontFamily: `'${font}', serif`, fontSize: 20, fontWeight: 400, color: txt.primary, marginBottom: 4 }}>{fondo.nombre}</div>
+                      <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 400, color: txt.primary, marginBottom: 4 }}>{fondo.nombre}</div>
                       <div style={{ fontSize: 12, color: txt.secondary, lineHeight: 1.65, marginBottom: 9, fontWeight: 300 }}>{fondo.descripcion}</div>
 
                      {fondo.modo !== "completo" && (
@@ -220,14 +221,14 @@ async function handlePay() {
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nosotros</div>
-            <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestra Historia</div>
+            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestra Historia</div>
             <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
           </div>
           <div style={{ fontSize: 15, color: txt.secondary, lineHeight: 1.85, fontWeight: 300, textAlign: "center" as const }}>{pareja.historia}</div>
           {pareja.musica && (
             <div style={{ marginTop: 32, textAlign: "center", padding: "16px", background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nuestra canción</div>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 20, fontWeight: 300, color: txt.primary }}>🎵 {pareja.musica}</div>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.primary }}>🎵 {pareja.musica}</div>
             </div>
           )}
         </div>
@@ -238,7 +239,7 @@ async function handlePay() {
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>El gran día</div>
-            <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Detalles</div>
+            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Detalles</div>
             <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -259,7 +260,7 @@ async function handlePay() {
           </div>
           {pareja.hashtag && (
             <div style={{ marginTop: 20, textAlign: "center", padding: "14px", background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4 }}>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 22, fontWeight: 300, color: pal.accent }}>{pareja.hashtag}</div>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 22, fontWeight: 300, color: pal.accent }}>{pareja.hashtag}</div>
             </div>
           )}
         </div>
@@ -269,7 +270,7 @@ async function handlePay() {
       {secs.invitacion && activeSection === "invitacion" && pareja.invitacion_url && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px", textAlign: "center" }}>
           <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Invitación</div>
-          <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary, marginBottom: 20 }}>Nuestra Invitación</div>
+          <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary, marginBottom: 20 }}>Nuestra Invitación</div>
           <div style={{ width: 36, height: 1, background: pal.accent, margin: "0 auto 24px" }} />
           {pareja.invitacion_url.includes(".pdf") ? (
             <a href={pareja.invitacion_url} target="_blank" style={{ display: "inline-block", padding: "14px 28px", background: pal.accent, color: "#fff", textDecoration: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, fontFamily: "'Jost', sans-serif" }}>
@@ -286,13 +287,13 @@ async function handlePay() {
         <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Confirma tu lugar</div>
-            <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>¿Asistirás?</div>
+            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>¿Asistirás?</div>
             <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
           </div>
 
           {rsvpDone ? (
             <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 32, textAlign: "center" as const }}>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 28, fontWeight: 300, color: pal.accent, marginBottom: 8 }}>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 28, fontWeight: 300, color: pal.accent, marginBottom: 8 }}>
                 {rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : "Gracias por avisarnos"}
               </div>
               <div style={{ fontSize: 13, color: txt.secondary, fontWeight: 300 }}>
@@ -410,9 +411,9 @@ async function handlePay() {
             </div>
             <div style={{ width: 32, height: 2, background: "rgba(26,23,20,0.14)", borderRadius: 1, margin: "12px auto 0" }} />
             <div style={{ padding: "16px 26px 26px" }}>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 32, fontWeight: 300, color: "#1A1714", marginBottom: 5 }}>{f.nombre}</div>
+              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: "#1A1714", marginBottom: 5 }}>{f.nombre}</div>
               <div style={{ fontSize: 13, color: "#5A524A", lineHeight: 1.7, marginBottom: 12, fontWeight: 300 }}>{f.descripcion}</div>
-              {f.historia && <div style={{ borderLeft: `1.5px solid ${pal.accent}`, paddingLeft: 16, fontFamily: `'${font}', serif`, fontSize: 17, fontStyle: "italic", color: "#5A524A", lineHeight: 1.75, marginBottom: 18, fontWeight: 300 }}>{f.historia}</div>}
+              {f.historia && <div style={{ borderLeft: `1.5px solid ${pal.accent}`, paddingLeft: 16, fontFamily: `'${fontTitulos}', serif`, fontSize: 17, fontStyle: "italic", color: "#5A524A", lineHeight: 1.75, marginBottom: 18, fontWeight: 300 }}>{f.historia}</div>}
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 10, fontWeight: 600, color: "#5A524A", display: "block", marginBottom: 6, letterSpacing: 0.5 }}>Tu nombre</label>
                 <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="María García" style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }} />

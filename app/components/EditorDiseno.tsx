@@ -22,11 +22,43 @@ const TIPOGRAFIAS = [
   { id: "DM Serif Display",   muestra: "Andrea & Diego", estilo: "Geométrica · Limpia" },
   { id: "Bodoni Moda",        muestra: "Andrea & Diego", estilo: "Alta moda · Dramática" },
   { id: "Great Vibes",        muestra: "Andrea & Diego", estilo: "Script · Romántica" },
-  { id: "Cinzel",             muestra: "ANDREA & DIEGO", estilo: "Romana · Majestuosa" },
+  { id: "Cinzel",             muestra: "Andrea & Diego", estilo: "Romana · Majestuosa" },
   { id: "Lora",               muestra: "Andrea & Diego", estilo: "Tradicional · Cálida" },
   { id: "Gilda Display",      muestra: "Andrea & Diego", estilo: "Fina · Editorial" },
   { id: "Libre Baskerville",  muestra: "Andrea & Diego", estilo: "Clásica · Legible" },
+  { id: "Sacramento",         muestra: "Andrea & Diego", estilo: "Caligráfica · Fluida" },
+  { id: "Abril Fatface",      muestra: "Andrea & Diego", estilo: "Display · Impactante" },
+  { id: "EB Garamond",        muestra: "Andrea & Diego", estilo: "Literaria · Refinada" },
+  { id: "Josefin Serif",      muestra: "Andrea & Diego", estilo: "Geométrica · Delicada" },
+  { id: "Italiana",           muestra: "Andrea & Diego", estilo: "Italiana · Estilizada" },
+  { id: "Marcellus",          muestra: "Andrea & Diego", estilo: "Romana · Inscripcional" },
+  { id: "Yeseva One",         muestra: "Andrea & Diego", estilo: "Display · Retro" },
+  { id: "Cardo",              muestra: "Andrea & Diego", estilo: "Académica · Seria" },
+  { id: "Tenor Sans",         muestra: "Andrea & Diego", estilo: "Sans · Minimalista" },
+  { id: "Crimson Pro",        muestra: "Andrea & Diego", estilo: "Literaria · Moderna" },
 ];
+
+function FontSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const selected = TIPOGRAFIAS.find(t => t.id === value) || TIPOGRAFIAS[0];
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 8 }}>{label}</div>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 12, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", cursor: "pointer", appearance: "auto" }}
+      >
+        {TIPOGRAFIAS.map(t => (
+          <option key={t.id} value={t.id}>{t.id} — {t.estilo}</option>
+        ))}
+      </select>
+      <div style={{ marginTop: 10, padding: "14px 16px", background: "#FAF8F5", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 3, textAlign: "center" as const }}>
+        <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 6 }}>{selected.estilo}</div>
+        <div style={{ fontFamily: `'${selected.id}', serif`, fontSize: 28, color: "#1A1714", lineHeight: 1.2 }}>{selected.muestra}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function EditorDiseno() {
   const router = useRouter();
@@ -35,7 +67,13 @@ export default function EditorDiseno() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploadingFoto, setUploadingFoto] = useState(false);
-  const [form, setForm] = useState({ foto_hero: "", tipografia: "Cormorant Garamond", paleta: "champagne", hero_oscuridad: 45 });
+  const [form, setForm] = useState({
+    foto_hero: "",
+    tipografia: "Cormorant Garamond",
+    tipografia_titulos: "Cormorant Garamond",
+    paleta: "champagne",
+    hero_oscuridad: 45,
+  });
 
   useEffect(() => { loadData(); }, []);
 
@@ -45,7 +83,13 @@ export default function EditorDiseno() {
     const { data: p } = await supabase.from("parejas").select("*").eq("user_id", user.id).single();
     if (!p) { router.push("/onboarding"); return; }
     setPareja(p);
-    setForm({ foto_hero: p.foto_hero || "", tipografia: p.tipografia || "Cormorant Garamond", paleta: p.paleta || "champagne", hero_oscuridad: p.hero_oscuridad || 45 });
+    setForm({
+      foto_hero: p.foto_hero || "",
+      tipografia: p.tipografia || "Cormorant Garamond",
+      tipografia_titulos: p.tipografia_titulos || p.tipografia || "Cormorant Garamond",
+      paleta: p.paleta || "champagne",
+      hero_oscuridad: p.hero_oscuridad || 45,
+    });
     setLoading(false);
   }
 
@@ -106,20 +150,19 @@ export default function EditorDiseno() {
         </div>
       </div>
 
-      {/* TIPOGRAFIA */}
+      {/* TIPOGRAFÍAS */}
       <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 20, marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 12 }}>Tipografía</div>
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
-          {TIPOGRAFIAS.map(t => (
-            <div key={t.id} onClick={() => setForm(f => ({ ...f, tipografia: t.id }))} style={{ padding: "10px 14px", border: `1px solid ${form.tipografia === t.id ? "#8C6D4F" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, cursor: "pointer", background: form.tipografia === t.id ? "#EDE0D4" : "#FAF8F5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontSize: 9, fontWeight: 600, color: "#A89C90", marginBottom: 3, letterSpacing: 0.5 }}>{t.estilo}</div>
-                <div style={{ fontFamily: `'${t.id}', serif`, fontSize: 20, color: "#1A1714" }}>{t.muestra}</div>
-              </div>
-              {form.tipografia === t.id && <div style={{ color: "#8C6D4F", fontSize: 14 }}>✓</div>}
-            </div>
-          ))}
-        </div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 16 }}>Tipografía</div>
+        <FontSelect
+          label="Título principal (tus nombres)"
+          value={form.tipografia}
+          onChange={v => setForm(f => ({ ...f, tipografia: v }))}
+        />
+        <FontSelect
+          label="Títulos de secciones y regalos"
+          value={form.tipografia_titulos}
+          onChange={v => setForm(f => ({ ...f, tipografia_titulos: v }))}
+        />
       </div>
 
       {/* OSCURIDAD */}
@@ -128,6 +171,7 @@ export default function EditorDiseno() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 11, color: "#A89C90" }}>Claro</span>
           <input type="range" min={0} max={95} value={form.hero_oscuridad} onChange={e => setForm(f => ({ ...f, hero_oscuridad: parseInt(e.target.value) }))} style={{ flex: 1 }} />
+          <span style={{ fontSize: 11, color: "#A89C90" }}>Oscuro</span>
         </div>
       </div>
 
