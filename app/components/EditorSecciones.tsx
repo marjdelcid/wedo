@@ -8,6 +8,7 @@ const SECCIONES = [
   { id: "detalles", label: "Detalles del evento", desc: "Hora, ceremonia, recepción, dress code" },
   { id: "invitacion", label: "Invitación digital", desc: "Imagen o PDF de su invitación" },
   { id: "regalos", label: "Lista de regalos", desc: "Fondos para contribuir" },
+  { id: "rsvp", label: "Confirmación de asistencia", desc: "Los invitados buscan su nombre y confirman" },
   { id: "countdown", label: "Cuenta regresiva", desc: "Días que faltan para la boda" },
 ];
 
@@ -18,7 +19,7 @@ export default function EditorSecciones() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [secciones, setSecciones] = useState<Record<string, boolean>>({
-    historia: true, detalles: true, invitacion: true, regalos: true, countdown: true,
+    historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true,
   });
 
   useEffect(() => { loadData(); }, []);

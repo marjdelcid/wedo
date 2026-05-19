@@ -37,6 +37,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
     { path: "/editor/info", label: "Información" },
     { path: "/editor/invitacion", label: "Invitación" },
     { path: "/editor/fondos", label: "Fondos" },
+    { path: "/editor/invitados", label: "Invitados" },
     { path: "/editor/secciones", label: "Secciones" },
   ];
 

@@ -8,6 +8,8 @@ export default function Dashboard() {
   const [pareja, setPareja] = useState<any>(null);
   const [fondos, setFondos] = useState<any[]>([]);
   const [contribuciones, setContribuciones] = useState<any[]>([]);
+  const [invitados, setInvitados] = useState<any[]>([]);
+  const [rsvps, setRsvps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [transferDone, setTransferDone] = useState(false);
 
@@ -47,6 +49,12 @@ export default function Dashboard() {
       setContribuciones(contribData || []);
     }
 
+    const { data: invData } = await supabase.from("invitados").select("*").eq("pareja_id", parejaData.id);
+    setInvitados(invData || []);
+
+    const { data: rsvpData } = await supabase.from("rsvp").select("*").eq("pareja_id", parejaData.id).order("created_at", { ascending: false });
+    setRsvps(rsvpData || []);
+
     setLoading(false);
   }
 
@@ -64,6 +72,11 @@ export default function Dashboard() {
   const totalMeta = fondos.reduce((sum, f) => sum + (f.meta || 0), 0);
   const pct = totalMeta > 0 ? Math.round((totalRecaudado / totalMeta) * 100) : 0;
   const disponible = Math.round(totalRecaudado * 0.965);
+
+  const totalAsientos = invitados.reduce((sum, inv) => sum + (inv.asientos || 1), 0);
+  const rsvpSi = rsvps.filter(r => r.asistencia === "si");
+  const rsvpNo = rsvps.filter(r => r.asistencia === "no");
+  const asientosConfirmados = rsvpSi.reduce((sum, r) => sum + (r.acompanantes || 0) + 1, 0);
 
   if (loading) return (
     <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -151,6 +164,60 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* RSVP */}
+      {invitados.length > 0 && (
+        <>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#A89C90", textTransform: "uppercase" as const, letterSpacing: 2.5, marginBottom: 10 }}>Asistencia</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
+            {[
+              { label: "Invitaciones", value: invitados.length, color: "#1A1714" },
+              { label: "Asientos", value: totalAsientos, color: "#1A1714" },
+              { label: "Asisten", value: `${rsvpSi.length} (${asientosConfirmados})`, color: "#6B8C76" },
+              { label: "No asisten", value: rsvpNo.length, color: "#A89C90" },
+            ].map((m, i) => (
+              <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 12, textAlign: "center" as const }}>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 4 }}>{m.label}</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, color: m.color }}>{m.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {rsvps.length > 0 && (
+            <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "4px 16px", marginBottom: 14 }}>
+              {rsvps.slice(0, 8).map((r, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < Math.min(rsvps.length, 8) - 1 ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: r.asistencia === "si" ? "#EDF4EF" : "#F5F0F0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: r.asistencia === "si" ? "#6B8C76" : "#A07070", flexShrink: 0 }}>
+                    {r.nombre?.charAt(0)?.toUpperCase() || "?"}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 400, color: "#1A1714" }}>{r.nombre}</div>
+                    <div style={{ fontSize: 10, color: "#A89C90" }}>
+                      {r.asistencia === "si" ? `${(r.acompanantes || 0) + 1} personas` : "No asiste"} · {new Date(r.created_at).toLocaleDateString("es-GT")}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: r.asistencia === "si" ? "#6B8C76" : "#A07070" }}>
+                    {r.asistencia === "si" ? "✓ Asiste" : "✕ No asiste"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ marginBottom: 14 }}>
+            <a href="/editor/invitados" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: "#8C6D4F", textDecoration: "none" }}>
+              Gestionar lista de invitados →
+            </a>
+          </div>
+        </>
+      )}
+
+      {invitados.length === 0 && (
+        <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 20, marginBottom: 14, textAlign: "center" as const }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 300, color: "#A89C90", marginBottom: 6 }}>RSVP · Sin invitados</div>
+          <a href="/editor/invitados" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: "#8C6D4F", textDecoration: "none" }}>Agregar invitados →</a>
         </div>
       )}
 
