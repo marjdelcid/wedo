@@ -4,7 +4,8 @@ import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 
 const SECCIONES_META: Record<string, { label: string; desc: string }> = {
-  regalos:    { label: "Lista de regalos",           desc: "Fondos para contribuir" },
+  galeria:    { label: "Galería de fotos",            desc: "Carrusel animado debajo de la foto principal" },
+  regalos:    { label: "Lista de regalos",            desc: "Fondos para contribuir" },
   historia:   { label: "Historia de amor",            desc: "Cuéntales cómo se conocieron" },
   detalles:   { label: "Detalles del evento",         desc: "Hora, ceremonia, recepción, dress code" },
   invitacion: { label: "Invitación digital",          desc: "Imagen o PDF de su invitación" },
@@ -12,7 +13,7 @@ const SECCIONES_META: Record<string, { label: string; desc: string }> = {
   countdown:  { label: "Cuenta regresiva",            desc: "Días que faltan para la boda" },
 };
 
-const DEFAULT_ORDER = ["regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
+const DEFAULT_ORDER = ["galeria", "regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
 
 export default function EditorSecciones() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function EditorSecciones() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [secciones, setSecciones] = useState<Record<string, boolean>>({
-    historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true,
+    galeria: true, historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true,
   });
   const [orden, setOrden] = useState<string[]>(DEFAULT_ORDER);
   const [dragIndex, setDragIndex] = useState<number | null>(null);

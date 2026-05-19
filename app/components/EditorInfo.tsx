@@ -10,11 +10,13 @@ export default function EditorInfo() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploadingDC, setUploadingDC] = useState(false);
+  const [uploadingGaleria, setUploadingGaleria] = useState(false);
   const [form, setForm] = useState({
     nombre1: "", nombre2: "", fecha: "", lugar: "", hora: "",
     ceremonia: "", ceremonia_maps: "",
     recepcion: "", recepcion_maps: "",
     dresscode: "", dresscode_notas: "", dresscode_fotos: [] as string[],
+    galeria_fotos: [] as string[],
     historia: "", musica: "", hashtag: "", mensaje_gracias: "",
   });
 
@@ -33,6 +35,7 @@ export default function EditorInfo() {
       recepcion: p.recepcion || "", recepcion_maps: p.recepcion_maps || "",
       dresscode: p.dresscode || "", dresscode_notas: p.dresscode_notas || "",
       dresscode_fotos: Array.isArray(p.dresscode_fotos) ? p.dresscode_fotos : [],
+      galeria_fotos: Array.isArray(p.galeria_fotos) ? p.galeria_fotos : [],
       historia: p.historia || "", musica: p.musica || "", hashtag: p.hashtag || "",
       mensaje_gracias: p.mensaje_gracias || "",
     });
@@ -64,6 +67,27 @@ export default function EditorInfo() {
     setForm(f => ({ ...f, dresscode_fotos: f.dresscode_fotos.filter((_, i) => i !== idx) }));
   }
 
+  async function handleGaleriaPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploadingGaleria(true);
+    for (const file of files) {
+      if (form.galeria_fotos.length >= 30) break;
+      const fileName = `galeria-${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+      const { error } = await supabase.storage.from("bodas").upload(fileName, file);
+      if (!error) {
+        const { data } = supabase.storage.from("bodas").getPublicUrl(fileName);
+        setForm(f => ({ ...f, galeria_fotos: [...f.galeria_fotos, data.publicUrl] }));
+      }
+    }
+    setUploadingGaleria(false);
+    e.target.value = "";
+  }
+
+  function removeGaleriaPhoto(idx: number) {
+    setForm(f => ({ ...f, galeria_fotos: f.galeria_fotos.filter((_, i) => i !== idx) }));
+  }
+
   const inputStyle = { width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", marginBottom: 12, boxSizing: "border-box" as const };
   const labelStyle = { fontSize: 10, fontWeight: 600 as const, color: "#5A524A", display: "block" as const, marginBottom: 5, letterSpacing: 0.5 };
   const hintStyle = { fontSize: 10, color: "#A89C90", marginBottom: 10, lineHeight: 1.5 };
@@ -82,6 +106,35 @@ export default function EditorInfo() {
           <div><label style={labelStyle}>Nombre 1</label><input value={form.nombre1} onChange={e => setForm(f => ({ ...f, nombre1: e.target.value }))} placeholder="Andrea" style={{ ...inputStyle, marginBottom: 0 }} /></div>
           <div><label style={labelStyle}>Nombre 2</label><input value={form.nombre2} onChange={e => setForm(f => ({ ...f, nombre2: e.target.value }))} placeholder="Diego" style={{ ...inputStyle, marginBottom: 0 }} /></div>
         </div>
+      </div>
+
+      {/* Galería */}
+      <div style={card}>
+        <div style={sectionTitle}>Galería de fotos</div>
+        <p style={hintStyle}>Aparece como un carrusel animado justo debajo de la foto principal. Puedes subir hasta 30 fotos. Actívala o desactívala en Editor → Secciones.</p>
+
+        {form.galeria_fotos.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 12 }}>
+            {form.galeria_fotos.map((url, i) => (
+              <div key={i} style={{ position: "relative", aspectRatio: "4/3", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(26,23,20,0.1)" }}>
+                <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <button onClick={() => removeGaleriaPhoto(i)} style={{ position: "absolute", top: 3, right: 3, width: 20, height: 20, borderRadius: "50%", background: "rgba(26,23,20,0.65)", border: "none", color: "#fff", fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Jost', sans-serif", lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {form.galeria_fotos.length < 30 && (
+          <>
+            <input type="file" accept="image/*" multiple id="galeria-foto" onChange={handleGaleriaPhoto} style={{ display: "none" }} />
+            <div onClick={() => document.getElementById("galeria-foto")?.click()} style={{ border: "1.5px dashed rgba(26,23,20,0.14)", borderRadius: 3, padding: "14px", textAlign: "center" as const, cursor: "pointer", background: "#FAF8F5" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: uploadingGaleria ? "#8C6D4F" : "#A89C90" }}>
+                {uploadingGaleria ? "Subiendo..." : `+ Agregar fotos ${form.galeria_fotos.length > 0 ? `(${form.galeria_fotos.length}/30)` : ""}`}
+              </div>
+              <div style={{ fontSize: 10, color: "#C8BEB4", marginTop: 3 }}>Puedes seleccionar varias a la vez</div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* El gran día */}

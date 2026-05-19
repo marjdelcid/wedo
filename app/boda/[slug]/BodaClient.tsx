@@ -130,7 +130,8 @@ async function handlePay() {
   const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
   const f = fondos[selected];
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
-  const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, ...(pareja.secciones || {}) };
+  const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
+  const galeriaFotos: string[] = Array.isArray(pareja.galeria_fotos) ? pareja.galeria_fotos : [];
   const DEFAULT_SEC_ORDER = ["regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
   const savedOrder: string[] = Array.isArray(pareja.secciones_orden) && pareja.secciones_orden.length > 0 ? pareja.secciones_orden : DEFAULT_SEC_ORDER;
   const secOrder = [...savedOrder, ...DEFAULT_SEC_ORDER.filter(id => !savedOrder.includes(id))];
@@ -216,6 +217,26 @@ async function handlePay() {
           </div>
         </div>
       </div>
+
+      {/* CARRUSEL GALERÍA */}
+      {secs.galeria && galeriaFotos.length > 0 && (
+        <>
+          <style>{`@keyframes wedo-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
+          <div style={{ overflow: "hidden", width: "100%", background: pal.bg, padding: "14px 0", borderBottom: `1px solid rgba(26,23,20,0.06)` }}>
+            <div style={{
+              display: "flex", gap: 10,
+              width: "max-content",
+              animation: `wedo-scroll ${Math.max(galeriaFotos.length * 3, 18)}s linear infinite`,
+            }}>
+              {[...galeriaFotos, ...galeriaFotos].map((url, i) => (
+                <div key={i} style={{ flexShrink: 0, width: 180, height: 120, borderRadius: 3, overflow: "hidden", background: "#F5F2ED" }}>
+                  <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* NAV SECTIONS */}
       <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: "16px 24px", borderBottom: `1px solid rgba(26,23,20,0.08)`, flexWrap: "wrap" as const }}>
