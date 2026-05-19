@@ -124,7 +124,7 @@ export default function Dashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 14 }}>
         {[
           { label: "Contribuciones", value: contribuciones.length.toString(), sub: "total" },
-          { label: "Fondos", value: fondos.length.toString(), sub: "activos", accent: true },
+          { label: "Regalos", value: fondos.length.toString(), sub: "activos", accent: true },
           { label: "Disponible", value: `Q${disponible.toLocaleString()}`, sub: "sin comisión" },
         ].map((m, i) => (
           <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 14 }}>
@@ -136,11 +136,11 @@ export default function Dashboard() {
       </div>
 
       {/* FONDOS */}
-      <div style={{ fontSize: 9, fontWeight: 700, color: "#A89C90", textTransform: "uppercase" as const, letterSpacing: 2.5, marginBottom: 10 }}>Fondos</div>
+      <div style={{ fontSize: 9, fontWeight: 700, color: "#A89C90", textTransform: "uppercase" as const, letterSpacing: 2.5, marginBottom: 10 }}>Regalos</div>
       {fondos.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24, textAlign: "center", marginBottom: 14 }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#A89C90", marginBottom: 8 }}>No tienes fondos todavía</div>
-          <a href="/editor" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: "#8C6D4F", textDecoration: "none" }}>Crear fondos en el editor →</a>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#A89C90", marginBottom: 8 }}>No tienes regalos todavía</div>
+          <a href="/editor" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: "#8C6D4F", textDecoration: "none" }}>Crear regalos en el editor →</a>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginBottom: 14 }}>
@@ -225,7 +225,7 @@ export default function Dashboard() {
       )}
 
       {/* TRANSFER */}
-      <div style={{ fontSize: 9, fontWeight: 700, color: "#A89C90", textTransform: "uppercase" as const, letterSpacing: 2.5, marginBottom: 10 }}>Transferir fondos</div>
+      <div style={{ fontSize: 9, fontWeight: 700, color: "#A89C90", textTransform: "uppercase" as const, letterSpacing: 2.5, marginBottom: 10 }}>Transferir regalos</div>
       <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div>
