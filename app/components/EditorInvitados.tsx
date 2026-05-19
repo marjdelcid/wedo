@@ -12,6 +12,12 @@ export default function EditorInvitados() {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ nombre: "", asientos: "1", grupo: "" });
+  const [rsvpCodigoRequerido, setRsvpCodigoRequerido] = useState(false);
+  const [togglingRsvp, setTogglingRsvp] = useState(false);
+  const [generatingAll, setGeneratingAll] = useState(false);
+  const [editingCodeId, setEditingCodeId] = useState<string | null>(null);
+  const [codeInputValue, setCodeInputValue] = useState("");
+  const [savingCodeId, setSavingCodeId] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -21,6 +27,7 @@ export default function EditorInvitados() {
     const { data: p } = await supabase.from("parejas").select("*").eq("user_id", user.id).single();
     if (!p) { router.push("/onboarding"); return; }
     setPareja(p);
+    setRsvpCodigoRequerido(p.rsvp_codigo_requerido || false);
     const { data: inv } = await supabase.from("invitados").select("*").eq("pareja_id", p.id).order("grupo").order("nombre");
     setInvitados(inv || []);
     const { data: r } = await supabase.from("rsvp").select("*").eq("pareja_id", p.id).order("created_at", { ascending: false });
@@ -41,6 +48,38 @@ export default function EditorInvitados() {
     setShowForm(false);
     setSaving(false);
     loadData();
+  }
+
+  function generateCode() {
+    return Math.random().toString(36).slice(2, 8).toUpperCase();
+  }
+
+  async function handleToggleRsvpCodigo() {
+    setTogglingRsvp(true);
+    const newVal = !rsvpCodigoRequerido;
+    await supabase.from("parejas").update({ rsvp_codigo_requerido: newVal }).eq("id", pareja.id);
+    setRsvpCodigoRequerido(newVal);
+    setTogglingRsvp(false);
+  }
+
+  async function handleSaveCode(invId: string) {
+    setSavingCodeId(invId);
+    const code = codeInputValue.trim().toUpperCase() || null;
+    await supabase.from("invitados").update({ codigo: code }).eq("id", invId);
+    setSavingCodeId(null);
+    setEditingCodeId(null);
+    loadData();
+  }
+
+  async function handleGenerateAll() {
+    setGeneratingAll(true);
+    for (const inv of invitados) {
+      if (!inv.codigo) {
+        await supabase.from("invitados").update({ codigo: generateCode() }).eq("id", inv.id);
+      }
+    }
+    await loadData();
+    setGeneratingAll(false);
   }
 
   async function handleDelete(id: string) {
@@ -79,6 +118,41 @@ export default function EditorInvitados() {
           <button onClick={() => setShowForm(true)} style={{ padding: "9px 20px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif", flexShrink: 0 }}>
             + Agregar
           </button>
+        )}
+      </div>
+
+      {/* Seguridad RSVP */}
+      <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "16px 20px", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "#1A1714", marginBottom: 2 }}>Código de acceso para RSVP</div>
+            <div style={{ fontSize: 11, color: "#A89C90", fontWeight: 300, lineHeight: 1.5 }}>
+              {rsvpCodigoRequerido
+                ? "Activo · Los invitados necesitarán su código para confirmar asistencia."
+                : "Opcional · Los invitados confirman sin código."}
+            </div>
+          </div>
+          <button
+            onClick={handleToggleRsvpCodigo}
+            disabled={togglingRsvp}
+            style={{ width: 44, height: 24, borderRadius: 12, background: rsvpCodigoRequerido ? "#8C6D4F" : "rgba(26,23,20,0.14)", border: "none", cursor: "pointer", position: "relative" as const, transition: "background 0.2s", flexShrink: 0 }}
+          >
+            <div style={{ position: "absolute", top: 2, left: rsvpCodigoRequerido ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
+          </button>
+        </div>
+        {rsvpCodigoRequerido && invitados.length > 0 && (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(26,23,20,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 11, color: "#A89C90" }}>
+              {invitados.filter(i => i.codigo).length} de {invitados.length} {invitados.filter(i => i.codigo).length === 1 ? "invitado con código" : "invitados con código"}
+            </div>
+            <button
+              onClick={handleGenerateAll}
+              disabled={generatingAll || invitados.every(i => i.codigo)}
+              style={{ padding: "6px 14px", background: "transparent", border: "1px solid #8C6D4F", borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: invitados.every(i => i.codigo) ? "#C8BEB4" : "#8C6D4F", borderColor: invitados.every(i => i.codigo) ? "rgba(26,23,20,0.14)" : "#8C6D4F", cursor: invitados.every(i => i.codigo) ? "default" : "pointer", fontFamily: "'Jost', sans-serif" }}
+            >
+              {generatingAll ? "Generando..." : "Generar para todos"}
+            </button>
+          </div>
         )}
       </div>
 
@@ -144,25 +218,58 @@ export default function EditorInvitados() {
                 {invs.map((inv: any, i: number) => {
                   const rsvp = rsvps.find(r => r.invitado_id === inv.id);
                   return (
-                    <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: rsvp?.asistencia === "si" ? "#EDF4EF" : rsvp?.asistencia === "no" ? "#F5F0F0" : "#F5F2ED", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: rsvp?.asistencia === "si" ? "#6B8C76" : rsvp?.asistencia === "no" ? "#A07070" : "#8C6D4F", flexShrink: 0 }}>
-                        {inv.nombre.charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500, color: "#1A1714" }}>{inv.nombre}</div>
-                        <div style={{ fontSize: 11, color: "#A89C90", marginTop: 1 }}>
-                          {inv.asientos} {inv.asientos === 1 ? "asiento" : "asientos"}
-                          {rsvp && ` · ${rsvp.acompanantes > 0 ? rsvp.acompanantes + 1 : 1} confirman`}
+                    <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: rsvp?.asistencia === "si" ? "#EDF4EF" : rsvp?.asistencia === "no" ? "#F5F0F0" : "#F5F2ED", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: rsvp?.asistencia === "si" ? "#6B8C76" : rsvp?.asistencia === "no" ? "#A07070" : "#8C6D4F", flexShrink: 0 }}>
+                          {inv.nombre.charAt(0).toUpperCase()}
                         </div>
-                      </div>
-                      {rsvp ? (
-                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" as const, color: rsvp.asistencia === "si" ? "#6B8C76" : "#A07070", flexShrink: 0 }}>
-                          {rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste"}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: "#1A1714" }}>{inv.nombre}</div>
+                          <div style={{ fontSize: 11, color: "#A89C90", marginTop: 1 }}>
+                            {inv.asientos} {inv.asientos === 1 ? "asiento" : "asientos"}
+                            {rsvp && ` · ${rsvp.acompanantes > 0 ? rsvp.acompanantes + 1 : 1} confirman`}
+                          </div>
                         </div>
-                      ) : (
-                        <div style={{ fontSize: 10, color: "#A89C90", flexShrink: 0 }}>Pendiente</div>
+                        {rsvp ? (
+                          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" as const, color: rsvp.asistencia === "si" ? "#6B8C76" : "#A07070", flexShrink: 0 }}>
+                            {rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste"}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: 10, color: "#A89C90", flexShrink: 0 }}>Pendiente</div>
+                        )}
+                        <button onClick={() => handleDelete(inv.id)} style={{ padding: "4px 8px", background: "transparent", color: "#C4B5A8", border: "1px solid rgba(26,23,20,0.10)", borderRadius: 3, fontSize: 10, cursor: "pointer", fontFamily: "'Jost', sans-serif", flexShrink: 0 }}>✕</button>
+                      </div>
+
+                      {rsvpCodigoRequerido && (
+                        <div style={{ borderTop: "1px solid rgba(26,23,20,0.06)", padding: "8px 16px", background: "#FAF8F5", display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ fontSize: 9, color: "#A89C90", letterSpacing: 1, textTransform: "uppercase" as const, flexShrink: 0 }}>Código</div>
+                          {editingCodeId === inv.id ? (
+                            <>
+                              <input
+                                value={codeInputValue}
+                                onChange={e => setCodeInputValue(e.target.value.toUpperCase().slice(0, 8))}
+                                placeholder="Ej: ABC123"
+                                style={{ flex: 1, padding: "4px 8px", border: "1px solid rgba(26,23,20,0.2)", borderRadius: 2, fontSize: 12, fontFamily: "monospace", background: "#fff", color: "#1A1714", outline: "none", letterSpacing: 1.5 }}
+                              />
+                              <button onClick={() => setCodeInputValue(generateCode())} style={{ padding: "3px 8px", background: "transparent", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 2, fontSize: 9, cursor: "pointer", color: "#A89C90", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const }}>Generar</button>
+                              <button onClick={() => handleSaveCode(inv.id)} disabled={savingCodeId === inv.id} style={{ padding: "3px 10px", background: "#8C6D4F", border: "none", borderRadius: 2, fontSize: 9, cursor: "pointer", color: "#fff", fontFamily: "'Jost', sans-serif", fontWeight: 600 }}>
+                                {savingCodeId === inv.id ? "..." : "Guardar"}
+                              </button>
+                              <button onClick={() => setEditingCodeId(null)} style={{ padding: "3px 6px", background: "transparent", border: "none", fontSize: 10, cursor: "pointer", color: "#A89C90" }}>✕</button>
+                            </>
+                          ) : (
+                            <>
+                              {inv.codigo
+                                ? <div style={{ flex: 1, fontFamily: "monospace", fontSize: 13, fontWeight: 600, color: "#1A1714", letterSpacing: 2 }}>{inv.codigo}</div>
+                                : <div style={{ flex: 1, fontSize: 11, color: "#C8BEB4", fontStyle: "italic" }}>Sin código</div>
+                              }
+                              <button onClick={() => { setEditingCodeId(inv.id); setCodeInputValue(inv.codigo || ""); }} style={{ padding: "3px 8px", background: "transparent", border: "1px solid rgba(26,23,20,0.12)", borderRadius: 2, fontSize: 9, cursor: "pointer", color: "#8C6D4F", fontFamily: "'Jost', sans-serif", letterSpacing: 0.5 }}>
+                                {inv.codigo ? "Editar" : "+ Asignar"}
+                              </button>
+                            </>
+                          )}
+                        </div>
                       )}
-                      <button onClick={() => handleDelete(inv.id)} style={{ padding: "4px 8px", background: "transparent", color: "#C4B5A8", border: "1px solid rgba(26,23,20,0.10)", borderRadius: 3, fontSize: 10, cursor: "pointer", fontFamily: "'Jost', sans-serif", flexShrink: 0 }}>✕</button>
                     </div>
                   );
                 })}

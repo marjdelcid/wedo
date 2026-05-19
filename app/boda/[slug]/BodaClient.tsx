@@ -50,6 +50,10 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [rsvpForm, setRsvpForm] = useState({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpDone, setRsvpDone] = useState(false);
+  const [rsvpCodigoStep, setRsvpCodigoStep] = useState(false);
+  const [rsvpCodigoInput, setRsvpCodigoInput] = useState("");
+  const [rsvpCodigoError, setRsvpCodigoError] = useState(false);
+  const [rsvpCodigoLoading, setRsvpCodigoLoading] = useState(false);
 
   useEffect(() => { loadData(); }, [slug]);
 
@@ -71,8 +75,29 @@ async function searchRsvp() {
   if (!rsvpQuery.trim()) return;
   setRsvpSearched(true);
   setRsvpSelected(null);
-  const { data } = await supabase.from("invitados").select("*").eq("pareja_id", pareja.id).ilike("nombre", `%${rsvpQuery.trim()}%`);
+  const { data } = await supabase.from("invitados")
+    .select("id,nombre,asientos,confirmado,pareja_id,tiene_codigo")
+    .eq("pareja_id", pareja.id)
+    .ilike("nombre", `%${rsvpQuery.trim()}%`);
   setRsvpResults(data || []);
+}
+
+async function handleVerifyCodigo() {
+  if (!rsvpSelected) return;
+  setRsvpCodigoLoading(true);
+  setRsvpCodigoError(false);
+  const { data } = await supabase.from("invitados")
+    .select("id")
+    .eq("id", rsvpSelected.id)
+    .eq("codigo", rsvpCodigoInput.trim().toUpperCase())
+    .single();
+  setRsvpCodigoLoading(false);
+  if (data) {
+    setRsvpCodigoStep(false);
+    setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
+  } else {
+    setRsvpCodigoError(true);
+  }
 }
 
 async function handleRsvpSubmit() {
@@ -524,6 +549,30 @@ async function handlePay() {
                   : "Lamentamos que no puedas acompañarnos, pero gracias por responder."}
               </div>
             </div>
+          ) : rsvpCodigoStep ? (
+            <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24 }}>
+              <button onClick={() => { setRsvpSelected(null); setRsvpCodigoStep(false); }} style={{ fontSize: 11, color: txt.muted, background: "none", border: "none", cursor: "pointer", fontFamily: "'Jost', sans-serif", marginBottom: 16, padding: 0 }}>← Volver</button>
+              <div style={{ fontFamily: `'${font}', serif`, fontSize: 22, fontWeight: 300, color: txt.primary, marginBottom: 4 }}>{rsvpSelected.nombre}</div>
+              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 24 }}>Ingresa tu código de acceso</div>
+              <input
+                value={rsvpCodigoInput}
+                onChange={e => { setRsvpCodigoInput(e.target.value.toUpperCase()); setRsvpCodigoError(false); }}
+                onKeyDown={e => e.key === "Enter" && handleVerifyCodigo()}
+                placeholder="Ej: ABC123"
+                maxLength={8}
+                style={{ width: "100%", padding: "12px 16px", border: `1.5px solid ${rsvpCodigoError ? "#A07070" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, fontSize: 18, fontFamily: "monospace", background: "#FAF8F5", color: txt.primary, outline: "none", letterSpacing: 3, textAlign: "center" as const, boxSizing: "border-box" as const, marginBottom: 8 }}
+              />
+              {rsvpCodigoError && (
+                <div style={{ fontSize: 12, color: "#A07070", textAlign: "center" as const, marginBottom: 12 }}>Código incorrecto. Revisa tu invitación.</div>
+              )}
+              <button
+                onClick={handleVerifyCodigo}
+                disabled={!rsvpCodigoInput.trim() || rsvpCodigoLoading}
+                style={{ width: "100%", padding: 13, background: !rsvpCodigoInput.trim() ? "#E0DAD4" : rsvpCodigoLoading ? "#A89C90" : pal.accent, color: !rsvpCodigoInput.trim() ? "#A89C90" : "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: !rsvpCodigoInput.trim() ? "default" : "pointer", fontFamily: "'Jost', sans-serif", marginTop: 4 }}
+              >
+                {rsvpCodigoLoading ? "Verificando..." : "Continuar"}
+              </button>
+            </div>
           ) : !rsvpSelected ? (
             <>
               <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24, marginBottom: 16 }}>
@@ -551,7 +600,14 @@ async function handlePay() {
               {rsvpResults.map((inv, i) => (
                 <div key={i} onClick={() => {
                   setRsvpSelected(inv);
-                  setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
+                  setRsvpCodigoInput("");
+                  setRsvpCodigoError(false);
+                  if (pareja.rsvp_codigo_requerido && inv.tiene_codigo) {
+                    setRsvpCodigoStep(true);
+                  } else {
+                    setRsvpCodigoStep(false);
+                    setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
+                  }
                 }} style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "16px 20px", marginBottom: 8, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                   onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = pal.accent}
                   onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(26,23,20,0.08)"}
