@@ -47,6 +47,17 @@ const TIPOGRAFIAS = [
   { id: "Work Sans",          estilo: "Funcional · Moderna" },
   { id: "Plus Jakarta Sans",  estilo: "Contemporánea · Sharp" },
   { id: "Epilogue",           estilo: "Minimalista · Bold" },
+  // Wedding scripts
+  { id: "Pinyon Script",      estilo: "Boda · Caligrafía fina" },
+  { id: "Allura",             estilo: "Boda · Script elegante" },
+  { id: "Alex Brush",         estilo: "Boda · Pincel delicado" },
+  { id: "Tangerine",          estilo: "Boda · Cursiva clásica" },
+  { id: "Parisienne",         estilo: "Boda · Francesa vintage" },
+  { id: "Euphoria Script",    estilo: "Boda · Caligrafía moderna" },
+  { id: "Clicker Script",     estilo: "Boda · Plumilla formal" },
+  { id: "Mr De Haviland",     estilo: "Boda · Copperplate" },
+  { id: "The Nautigal",       estilo: "Boda · Fluida & trendy" },
+  { id: "Italianno",          estilo: "Boda · Italiana clásica" },
 ];
 
 function FontSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
