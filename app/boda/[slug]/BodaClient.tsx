@@ -115,8 +115,10 @@ async function handlePay() {
   );
 
   const pid = pareja.paleta || "champagne";
-  const pal = PALETAS[pid] || PALETAS.champagne;
-  const txt = TEXT[pid] || TEXT.champagne;
+  const pal = pid === "personalizado"
+    ? { accent: pareja.color_acento || "#8C6D4F", bg: pareja.color_fondo || "#FAF8F5", surface: pareja.color_superficie || "#FFFFFF" }
+    : (PALETAS[pid] || PALETAS.champagne);
+  const txt = (pid === "personalizado" || !TEXT[pid]) ? TEXT.champagne : TEXT[pid];
   const font = pareja.tipografia || "Cormorant Garamond";
   const fontTitulos = pareja.tipografia_titulos || font;
   const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
@@ -142,7 +144,7 @@ async function handlePay() {
           <div style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>
             {pareja.hashtag || "Wedo · Lista de Regalos"}
           </div>
-          <div style={{ fontFamily: `'${font}', serif`, fontSize: 52, fontWeight: 300, color: "#fff", fontStyle: "italic", marginBottom: 6, lineHeight: 1 }}>
+          <div style={{ fontFamily: `'${font}', serif`, fontSize: 52, fontWeight: 300, color: "#fff", marginBottom: 6, lineHeight: 1 }}>
             {pareja.nombre1} & {pareja.nombre2}
           </div>
           <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.65)" }}>
