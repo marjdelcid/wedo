@@ -197,6 +197,9 @@ export default function Dashboard() {
                     <div style={{ fontSize: 10, color: "#A89C90" }}>
                       {r.asistencia === "si" ? `${(r.acompanantes || 0) + 1} personas` : "No asiste"} · {new Date(r.created_at).toLocaleDateString("es-GT")}
                     </div>
+                    {r.mensaje && (
+                      <div style={{ fontSize: 12, color: "#5A524A", fontStyle: "italic", marginTop: 3, fontWeight: 300 }}>"{r.mensaje}"</div>
+                    )}
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: r.asistencia === "si" ? "#6B8C76" : "#A07070" }}>
                     {r.asistencia === "si" ? "✓ Asiste" : "✕ No asiste"}
