@@ -109,7 +109,7 @@ async function handlePay() {
   const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
   const f = fondos[selected];
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
-  const secs = pareja.secciones || { historia: true, detalles: true, invitacion: true, regalos: true, countdown: true };
+  const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, ...(pareja.secciones || {}) };
 
   const navBtnStyle = (active: boolean) => ({
     padding: "8px 16px", fontSize: 10, fontWeight: 600 as const, letterSpacing: 1,
