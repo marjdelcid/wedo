@@ -126,6 +126,33 @@ async function handlePay() {
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
   const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, ...(pareja.secciones || {}) };
 
+  function renderInline(text: string): React.ReactNode[] {
+    return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+      part.startsWith("**") && part.endsWith("**")
+        ? <strong key={i} style={{ fontWeight: 600, color: txt.primary }}>{part.slice(2, -2)}</strong>
+        : <span key={i}>{part}</span>
+    );
+  }
+
+  function renderDresscode(text: string) {
+    return text.split("\n").map((line, i) => {
+      const t = line.trim();
+      if (!t) return <div key={i} style={{ height: 6 }} />;
+      if (t.startsWith("## ")) return (
+        <div key={i} style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6, marginTop: i > 0 ? 10 : 0 }}>
+          {renderInline(t.slice(3))}
+        </div>
+      );
+      if (t.startsWith("* ")) return (
+        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 5, alignItems: "flex-start" }}>
+          <span style={{ color: pal.accent, flexShrink: 0, lineHeight: 1.7 }}>·</span>
+          <span>{renderInline(t.slice(2))}</span>
+        </div>
+      );
+      return <div key={i} style={{ marginBottom: 5 }}>{renderInline(t)}</div>;
+    });
+  }
+
   const navBtnStyle = (active: boolean) => ({
     padding: "8px 16px", fontSize: 10, fontWeight: 600 as const, letterSpacing: 1,
     textTransform: "uppercase" as const, border: `1px solid ${active ? pal.accent : "rgba(26,23,20,0.14)"}`,
@@ -334,9 +361,9 @@ async function handlePay() {
                 {pareja.dresscode_notas && (
                   <>
                     <div style={{ width: 24, height: 1, background: pal.accent, marginBottom: 14 }} />
-                    <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 10 }}>Cómo nos gustaría que te vistieras</div>
-                    <div style={{ fontSize: 13, color: txt.secondary, lineHeight: 1.8, fontWeight: 300, whiteSpace: "pre-line" as const }}>
-                      {pareja.dresscode_notas}
+                    <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 12 }}>Cómo nos gustaría que te vistieras</div>
+                    <div style={{ fontSize: 12, color: txt.secondary, lineHeight: 1.75, fontWeight: 300 }}>
+                      {renderDresscode(pareja.dresscode_notas)}
                     </div>
                   </>
                 )}
