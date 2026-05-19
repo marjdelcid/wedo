@@ -15,7 +15,7 @@ export default function EditorInfo() {
     ceremonia: "", ceremonia_maps: "",
     recepcion: "", recepcion_maps: "",
     dresscode: "", dresscode_notas: "", dresscode_fotos: [] as string[],
-    historia: "", musica: "", hashtag: "",
+    historia: "", musica: "", hashtag: "", mensaje_gracias: "",
   });
 
   useEffect(() => { loadData(); }, []);
@@ -34,6 +34,7 @@ export default function EditorInfo() {
       dresscode: p.dresscode || "", dresscode_notas: p.dresscode_notas || "",
       dresscode_fotos: Array.isArray(p.dresscode_fotos) ? p.dresscode_fotos : [],
       historia: p.historia || "", musica: p.musica || "", hashtag: p.hashtag || "",
+      mensaje_gracias: p.mensaje_gracias || "",
     });
     setLoading(false);
   }
@@ -166,7 +167,10 @@ export default function EditorInfo() {
         <label style={labelStyle}>Canción favorita</label>
         <input value={form.musica} onChange={e => setForm(f => ({ ...f, musica: e.target.value }))} placeholder="Perfect - Ed Sheeran" style={inputStyle} />
         <label style={labelStyle}>Hashtag de la boda</label>
-        <input value={form.hashtag} onChange={e => setForm(f => ({ ...f, hashtag: e.target.value }))} placeholder="#AndreayDiego2025" style={{ ...inputStyle, marginBottom: 0 }} />
+        <input value={form.hashtag} onChange={e => setForm(f => ({ ...f, hashtag: e.target.value }))} placeholder="#AndreayDiego2025" style={inputStyle} />
+        <label style={labelStyle}>Mensaje de agradecimiento a invitados que regalan</label>
+        <p style={hintStyle}>Aparece en la pantalla de confirmación después de que alguien hace un regalo. Si lo dejas vacío, se usa un mensaje por defecto.</p>
+        <textarea value={form.mensaje_gracias} onChange={e => setForm(f => ({ ...f, mensaje_gracias: e.target.value }))} placeholder="Con todo nuestro amor, gracias por ser parte de este momento tan especial para nosotros." style={{ ...inputStyle, minHeight: 80, resize: "vertical" as const, lineHeight: 1.65, marginBottom: 0 }} />
       </div>
 
       <button onClick={handleSave} style={{ width: "100%", padding: 13, background: saved ? "#6B8C76" : saving ? "#A89C90" : "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "background 0.3s" }}>

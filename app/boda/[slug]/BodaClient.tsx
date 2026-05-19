@@ -39,6 +39,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [open, setOpen] = useState(false);
   const [paid, setPaid] = useState(false);
   const [nombre, setNombre] = useState("");
+  const [mensajeRegalo, setMensajeRegalo] = useState("");
   const [activeSection, setActiveSection] = useState("");
 
   // RSVP state
@@ -96,12 +97,12 @@ async function handlePay() {
   const f = fondos[selected];
   const montoFinal = f.modo === "completo" ? f.meta : amount;
   setPaid(true);
-  await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal });
+  await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
   await supabase.from("fondos").update({
     recaudado: (f.recaudado || 0) + montoFinal,
     ...(f.modo === "completo" ? { tomado: true } : {})
   }).eq("id", f.id);
-  setTimeout(() => { setPaid(false); setOpen(false); loadData(); }, 2500);
+  loadData();
 }
 
   if (loading) return (
@@ -213,6 +214,15 @@ async function handlePay() {
           <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.65)" }}>
             {pareja.fecha ? new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : ""}{pareja.lugar ? ` · ${pareja.lugar}` : ""}
           </div>
+          {pareja.fecha && (() => {
+            const dias = Math.ceil((new Date(pareja.fecha + "T12:00:00").getTime() - new Date().getTime()) / 86400000);
+            if (dias <= 0) return null;
+            return (
+              <div style={{ marginTop: 10, display: "inline-block", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 2, padding: "5px 14px" }}>
+                <span style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.85)" }}>{dias} días</span>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -610,6 +620,27 @@ async function handlePay() {
               <button onClick={() => setOpen(false)} style={{ position: "absolute", top: 12, right: 14, width: 30, height: 30, borderRadius: "50%", background: "rgba(250,248,245,0.9)", border: "1px solid rgba(26,23,20,0.14)", cursor: "pointer", fontSize: 13, color: "#5A524A" }}>✕</button>
             </div>
             <div style={{ width: 32, height: 2, background: "rgba(26,23,20,0.14)", borderRadius: 1, margin: "12px auto 0" }} />
+
+            {/* THANK YOU CARD */}
+            {paid ? (
+              <div style={{ padding: "32px 26px 36px", textAlign: "center" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#EDF4EF", margin: "0 auto 18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 20, color: "#6B8C76" }}>✦</span>
+                </div>
+                <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 28, fontWeight: 300, color: "#1A1714", marginBottom: 6 }}>
+                  {nombre ? `¡Gracias, ${nombre.split(" ")[0]}!` : "¡Muchas gracias!"}
+                </div>
+                <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 20 }}>Tu regalo fue enviado</div>
+                <div style={{ width: 32, height: 1, background: pal.accent, margin: "0 auto 20px" }} />
+                <div style={{ fontSize: 14, color: "#5A524A", lineHeight: 1.8, fontWeight: 300, fontStyle: "italic", fontFamily: `'${fontTitulos}', serif` }}>
+                  {pareja.mensaje_gracias || `Con todo nuestro amor, gracias por ser parte de este momento tan especial para nosotros.`}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "#A89C90", fontWeight: 300 }}>— {pareja.nombre1} & {pareja.nombre2}</div>
+                <button onClick={() => { setPaid(false); setOpen(false); setNombre(""); setMensajeRegalo(""); }} style={{ marginTop: 24, padding: "10px 28px", background: "transparent", border: `1px solid ${pal.accent}`, borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, color: pal.accent, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
+                  Cerrar
+                </button>
+              </div>
+            ) : (
             <div style={{ padding: "16px 26px 26px" }}>
               <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: "#1A1714", marginBottom: 5 }}>{f.nombre}</div>
               <div style={{ fontSize: 13, color: "#5A524A", lineHeight: 1.7, marginBottom: 12, fontWeight: 300 }}>{f.descripcion}</div>
@@ -617,6 +648,10 @@ async function handlePay() {
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 10, fontWeight: 600, color: "#5A524A", display: "block", marginBottom: 6, letterSpacing: 0.5 }}>Tu nombre</label>
                 <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="María García" style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 10, fontWeight: 600, color: "#5A524A", display: "block", marginBottom: 6, letterSpacing: 0.5 }}>Mensaje para los novios <span style={{ fontWeight: 400, color: "#A89C90" }}>(opcional)</span></label>
+                <textarea value={mensajeRegalo} onChange={e => setMensajeRegalo(e.target.value)} placeholder="¡Felicidades! Los queremos muchísimo..." style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", resize: "none" as const, minHeight: 68, boxSizing: "border-box" as const }} />
               </div>
 
          {f.tomado ? (
@@ -648,6 +683,7 @@ async function handlePay() {
 )}
 
             </div>
+            )}
           </div>
           <SectionLinks links={[
             { id: "detalles",   label: "Ver detalles" },

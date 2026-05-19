@@ -249,11 +249,12 @@ export default function Dashboard() {
                 <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EDE0D4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "#8C6D4F", flexShrink: 0 }}>
                   {c.nombre_invitado ? c.nombre_invitado.charAt(0).toUpperCase() : "?"}
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 400, color: "#1A1714" }}>{c.nombre_invitado || "Anónimo"}</div>
-                  <div style={{ fontSize: 10, color: "#A89C90" }}>{new Date(c.created_at).toLocaleDateString("es-GT")}</div>
+                  <div style={{ fontSize: 10, color: "#A89C90" }}>{new Date(c.created_at).toLocaleDateString("es-GT")} · {fondos.find((f: any) => f.id === c.fondo_id)?.nombre || ""}</div>
+                  {c.mensaje && <div style={{ fontSize: 12, color: "#5A524A", fontStyle: "italic", marginTop: 3, fontWeight: 300 }}>"{c.mensaje}"</div>}
                 </div>
-                <div style={{ textAlign: "right" as const }}>
+                <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#6B8C76" }}>+Q{c.monto.toLocaleString()}</div>
                 </div>
               </div>
