@@ -185,25 +185,38 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {rsvps.length > 0 && (
+          {rsvpSi.length > 0 && (
+            <>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#6B8C76", textTransform: "uppercase" as const, letterSpacing: 2.5, marginBottom: 8 }}>Confirmados · {asientosConfirmados} asientos</div>
+              <div style={{ background: "#fff", border: "1px solid rgba(107,140,118,0.2)", borderRadius: 4, padding: "4px 16px", marginBottom: 10 }}>
+                {rsvpSi.map((r, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < rsvpSi.length - 1 ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EDF4EF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "#6B8C76", flexShrink: 0 }}>
+                      {r.nombre?.charAt(0)?.toUpperCase() || "?"}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 400, color: "#1A1714" }}>{r.nombre}</div>
+                      <div style={{ fontSize: 10, color: "#A89C90" }}>{(r.acompanantes || 0) + 1} {(r.acompanantes || 0) + 1 === 1 ? "persona" : "personas"} · {new Date(r.created_at).toLocaleDateString("es-GT")}</div>
+                    </div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 300, color: "#6B8C76", flexShrink: 0 }}>{(r.acompanantes || 0) + 1}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {rsvpNo.length > 0 && (
             <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "4px 16px", marginBottom: 14 }}>
-              {rsvps.slice(0, 8).map((r, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < Math.min(rsvps.length, 8) - 1 ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: r.asistencia === "si" ? "#EDF4EF" : "#F5F0F0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: r.asistencia === "si" ? "#6B8C76" : "#A07070", flexShrink: 0 }}>
+              {rsvpNo.map((r, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < rsvpNo.length - 1 ? "1px solid rgba(26,23,20,0.06)" : "none" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#F5F0F0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "#A07070", flexShrink: 0 }}>
                     {r.nombre?.charAt(0)?.toUpperCase() || "?"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 400, color: "#1A1714" }}>{r.nombre}</div>
-                    <div style={{ fontSize: 10, color: "#A89C90" }}>
-                      {r.asistencia === "si" ? `${(r.acompanantes || 0) + 1} personas` : "No asiste"} · {new Date(r.created_at).toLocaleDateString("es-GT")}
-                    </div>
-                    {r.mensaje && (
-                      <div style={{ fontSize: 12, color: "#5A524A", fontStyle: "italic", marginTop: 3, fontWeight: 300 }}>"{r.mensaje}"</div>
-                    )}
+                    <div style={{ fontSize: 10, color: "#A89C90" }}>{new Date(r.created_at).toLocaleDateString("es-GT")}</div>
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: r.asistencia === "si" ? "#6B8C76" : "#A07070" }}>
-                    {r.asistencia === "si" ? "✓ Asiste" : "✕ No asiste"}
-                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: "#A07070" }}>No asiste</div>
                 </div>
               ))}
             </div>

@@ -61,15 +61,40 @@ const TIPOGRAFIAS = [
 ];
 
 function FontSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
   const selected = TIPOGRAFIAS.find(t => t.id === value) || TIPOGRAFIAS[0];
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 16, position: "relative" as const }}>
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 8 }}>{label}</div>
-      <select value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 12, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", cursor: "pointer" }}>
-        {TIPOGRAFIAS.map(t => (
-          <option key={t.id} value={t.id}>{t.id} — {t.estilo}</option>
-        ))}
-      </select>
+
+      {/* Trigger */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, background: "#FAF8F5", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", boxSizing: "border-box" as const }}
+      >
+        <span style={{ fontFamily: `'${selected.id}', serif, sans-serif`, fontSize: 18, color: "#1A1714", lineHeight: 1 }}>{selected.id}</span>
+        <span style={{ fontSize: 9, color: "#A89C90", marginLeft: 8 }}>{open ? "▲" : "▼"}</span>
+      </div>
+
+      {/* Dropdown list */}
+      {open && (
+        <div style={{ position: "absolute" as const, top: "calc(100% - 2px)", left: 0, right: 0, background: "#fff", border: "1px solid rgba(26,23,20,0.14)", borderRadius: "0 0 3px 3px", zIndex: 50, maxHeight: 260, overflowY: "auto" as const, boxShadow: "0 8px 24px rgba(0,0,0,0.09)" }}>
+          {TIPOGRAFIAS.map(t => (
+            <div
+              key={t.id}
+              onClick={() => { onChange(t.id); setOpen(false); }}
+              style={{ padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderBottom: "1px solid rgba(26,23,20,0.04)", background: t.id === value ? "#FAF8F5" : "#fff" }}
+              onMouseEnter={e => { if (t.id !== value) (e.currentTarget as HTMLDivElement).style.background = "#F8F5F0"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = t.id === value ? "#FAF8F5" : "#fff"; }}
+            >
+              <span style={{ fontFamily: `'${t.id}', serif, sans-serif`, fontSize: 19, color: "#1A1714", lineHeight: 1.2 }}>{t.id}</span>
+              <span style={{ fontSize: 9, color: "#C8BEB4", letterSpacing: 1, flexShrink: 0, textTransform: "uppercase" as const }}>{t.estilo}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Preview */}
       <div style={{ marginTop: 8, padding: "12px 16px", background: "#FAF8F5", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 3, textAlign: "center" as const }}>
         <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 5 }}>{selected.estilo}</div>
         <div style={{ fontFamily: `'${selected.id}', serif, sans-serif`, fontSize: 26, color: "#1A1714", lineHeight: 1.2 }}>Andrea & Diego</div>

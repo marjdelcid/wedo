@@ -109,6 +109,7 @@ export default function EditorInvitados() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
               <label style={labelStyle}>Asientos permitidos</label>
+              <div style={{ fontSize: 10, color: "#A89C90", marginBottom: 6, lineHeight: 1.5 }}>Contando al invitado principal</div>
               <input type="number" min={1} max={20} value={form.asientos} onChange={e => setForm(f => ({ ...f, asientos: e.target.value }))} style={inputStyle} />
             </div>
             <div>
