@@ -125,6 +125,17 @@ async function handlePay() {
   const f = fondos[selected];
   const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
   const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, ...(pareja.secciones || {}) };
+  const DEFAULT_SEC_ORDER = ["regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
+  const savedOrder: string[] = Array.isArray(pareja.secciones_orden) && pareja.secciones_orden.length > 0 ? pareja.secciones_orden : DEFAULT_SEC_ORDER;
+  const secOrder = [...savedOrder, ...DEFAULT_SEC_ORDER.filter(id => !savedOrder.includes(id))];
+  const NAV_DEF: Record<string, { label: string; visible: boolean }> = {
+    regalos:    { label: "Regalos",               visible: !!secs.regalos },
+    historia:   { label: "Nuestra historia",       visible: !!secs.historia && !!pareja.historia },
+    detalles:   { label: "Detalles",               visible: !!secs.detalles && !!(pareja.ceremonia || pareja.recepcion || pareja.fecha || pareja.dresscode) },
+    invitacion: { label: "Invitación",             visible: !!secs.invitacion && !!pareja.invitacion_url },
+    rsvp:       { label: "Confirmar asistencia",   visible: !!secs.rsvp },
+    countdown:  { label: "Cuenta regresiva",       visible: false },
+  };
 
   function renderInline(text: string): React.ReactNode[] {
     return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
@@ -182,11 +193,11 @@ async function handlePay() {
 
       {/* NAV SECTIONS */}
       <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: "16px 24px", borderBottom: `1px solid rgba(26,23,20,0.08)`, flexWrap: "wrap" as const }}>
-        {secs.regalos && <button onClick={() => setActiveSection("regalos")} style={navBtnStyle(activeSection === "regalos")}>Regalos</button>}
-        {secs.historia && pareja.historia && <button onClick={() => setActiveSection("historia")} style={navBtnStyle(activeSection === "historia")}>Nuestra historia</button>}
-        {secs.detalles && (pareja.ceremonia || pareja.recepcion || pareja.fecha || pareja.dresscode) && <button onClick={() => setActiveSection("detalles")} style={navBtnStyle(activeSection === "detalles")}>Detalles</button>}
-        {secs.invitacion && pareja.invitacion_url && <button onClick={() => setActiveSection("invitacion")} style={navBtnStyle(activeSection === "invitacion")}>Invitación</button>}
-        {secs.rsvp && <button onClick={() => setActiveSection("rsvp")} style={navBtnStyle(activeSection === "rsvp")}>Confirmar asistencia</button>}
+        {secOrder.map(id => {
+          const nav = NAV_DEF[id];
+          if (!nav || !nav.visible) return null;
+          return <button key={id} onClick={() => setActiveSection(id)} style={navBtnStyle(activeSection === id)}>{nav.label}</button>;
+        })}
       </div>
 
       {/* SECCIÓN REGALOS */}
