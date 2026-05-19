@@ -3,11 +3,16 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 
 const PALETAS: Record<string, { accent: string; bg: string; surface: string }> = {
-  champagne: { accent: "#8C6D4F", bg: "#FAF8F5", surface: "#FFFFFF" },
-  jardin:    { accent: "#4A7C59", bg: "#F4F7F4", surface: "#FFFFFF" },
-  rose:      { accent: "#A0556A", bg: "#FDF5F6", surface: "#FFFFFF" },
-  midnight:  { accent: "#C9A84C", bg: "#141210", surface: "#1E1A16" },
-  terracotta:{ accent: "#C4562A", bg: "#FDF8F5", surface: "#FFFFFF" },
+  champagne:  { accent: "#8C6D4F", bg: "#FAF8F5", surface: "#FFFFFF" },
+  jardin:     { accent: "#4A7C59", bg: "#F4F7F4", surface: "#FFFFFF" },
+  rose:       { accent: "#A0556A", bg: "#FDF5F6", surface: "#FFFFFF" },
+  midnight:   { accent: "#C9A84C", bg: "#141210", surface: "#1E1A16" },
+  terracotta: { accent: "#C4562A", bg: "#FDF8F5", surface: "#FFFFFF" },
+  lavanda:    { accent: "#7B6BA8", bg: "#F7F5FF", surface: "#FFFFFF" },
+  azulpolvo:  { accent: "#4A6E8C", bg: "#F3F7FA", surface: "#FFFFFF" },
+  bordeaux:   { accent: "#7A2B3A", bg: "#FDF5F6", surface: "#FFFFFF" },
+  olivo:      { accent: "#5C6E3E", bg: "#F8F6EE", surface: "#FFFFFF" },
+  grisperla:  { accent: "#5A5A5A", bg: "#F8F8F8", surface: "#FFFFFF" },
 };
 
 const TEXT: Record<string, { primary: string; secondary: string; muted: string }> = {
@@ -16,6 +21,11 @@ const TEXT: Record<string, { primary: string; secondary: string; muted: string }
   rose:       { primary: "#1F1214", secondary: "#5A3040", muted: "#A07080" },
   midnight:   { primary: "#F0E8D8", secondary: "#C8B898", muted: "#887868" },
   terracotta: { primary: "#1A1210", secondary: "#5A3820", muted: "#A07858" },
+  lavanda:    { primary: "#1A1628", secondary: "#4A3D6A", muted: "#9A90B8" },
+  azulpolvo:  { primary: "#0F1E28", secondary: "#2A4A60", muted: "#7A9AB0" },
+  bordeaux:   { primary: "#1A0810", secondary: "#5A2030", muted: "#A07080" },
+  olivo:      { primary: "#1A1E10", secondary: "#3A4A28", muted: "#8A9070" },
+  grisperla:  { primary: "#1A1A1A", secondary: "#4A4A4A", muted: "#9A9A9A" },
 };
 
 export default function BodaClient({ slug }: { slug: string }) {

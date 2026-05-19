@@ -4,18 +4,28 @@ import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 
 const PALETAS = [
-  { id: "champagne", nombre: "Champagne", dots: ["#8C6D4F", "#FAF8F5", "#B8964A"] },
-  { id: "jardin", nombre: "Jardín", dots: ["#4A7C59", "#F4F7F4", "#8BB49A"] },
-  { id: "rose", nombre: "Rosa polvos", dots: ["#A0556A", "#FDF5F6", "#D4A0AE"] },
-  { id: "midnight", nombre: "Noche & Oro", dots: ["#141210", "#C9A84C", "#F0E8D8"] },
-  { id: "terracotta", nombre: "Terracotta", dots: ["#C4562A", "#FDF8F5", "#E8B49A"] },
+  { id: "champagne",  nombre: "Champagne",      dots: ["#8C6D4F", "#FAF8F5", "#B8964A"] },
+  { id: "jardin",    nombre: "Jardín",           dots: ["#4A7C59", "#F4F7F4", "#8BB49A"] },
+  { id: "rose",      nombre: "Rosa polvos",      dots: ["#A0556A", "#FDF5F6", "#D4A0AE"] },
+  { id: "midnight",  nombre: "Noche & Oro",      dots: ["#141210", "#C9A84C", "#F0E8D8"] },
+  { id: "terracotta",nombre: "Terracotta",        dots: ["#C4562A", "#FDF8F5", "#E8B49A"] },
+  { id: "lavanda",   nombre: "Lavanda",           dots: ["#7B6BA8", "#F7F5FF", "#C4BCDC"] },
+  { id: "azulpolvo", nombre: "Azul polvos",       dots: ["#4A6E8C", "#F3F7FA", "#8AAEC4"] },
+  { id: "bordeaux",  nombre: "Bordeaux",          dots: ["#7A2B3A", "#FDF5F6", "#C4788A"] },
+  { id: "olivo",     nombre: "Olivo & Marfil",    dots: ["#5C6E3E", "#F8F6EE", "#A0A870"] },
+  { id: "grisperla", nombre: "Gris perla",        dots: ["#5A5A5A", "#F8F8F8", "#A8A8A8"] },
 ];
 
 const TIPOGRAFIAS = [
-  { id: "Cormorant Garamond", muestra: "Andrea & Diego" },
-  { id: "Playfair Display", muestra: "Andrea & Diego" },
-  { id: "DM Serif Display", muestra: "Andrea & Diego" },
-  { id: "Bodoni Moda", muestra: "Andrea & Diego" },
+  { id: "Cormorant Garamond", muestra: "Andrea & Diego", estilo: "Clásica · Elegante" },
+  { id: "Playfair Display",   muestra: "Andrea & Diego", estilo: "Editorial · Moderna" },
+  { id: "DM Serif Display",   muestra: "Andrea & Diego", estilo: "Geométrica · Limpia" },
+  { id: "Bodoni Moda",        muestra: "Andrea & Diego", estilo: "Alta moda · Dramática" },
+  { id: "Great Vibes",        muestra: "Andrea & Diego", estilo: "Script · Romántica" },
+  { id: "Cinzel",             muestra: "ANDREA & DIEGO", estilo: "Romana · Majestuosa" },
+  { id: "Lora",               muestra: "Andrea & Diego", estilo: "Tradicional · Cálida" },
+  { id: "Gilda Display",      muestra: "Andrea & Diego", estilo: "Fina · Editorial" },
+  { id: "Libre Baskerville",  muestra: "Andrea & Diego", estilo: "Clásica · Legible" },
 ];
 
 export default function EditorDiseno() {
@@ -101,9 +111,12 @@ export default function EditorDiseno() {
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 12 }}>Tipografía</div>
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
           {TIPOGRAFIAS.map(t => (
-            <div key={t.id} onClick={() => setForm(f => ({ ...f, tipografia: t.id }))} style={{ padding: "10px 14px", border: `1px solid ${form.tipografia === t.id ? "#8C6D4F" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, cursor: "pointer", background: form.tipografia === t.id ? "#EDE0D4" : "#FAF8F5" }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#A89C90", marginBottom: 3 }}>{t.id}</div>
-              <div style={{ fontFamily: `'${t.id}', serif`, fontSize: 20, color: "#1A1714", fontStyle: "italic" }}>{t.muestra}</div>
+            <div key={t.id} onClick={() => setForm(f => ({ ...f, tipografia: t.id }))} style={{ padding: "10px 14px", border: `1px solid ${form.tipografia === t.id ? "#8C6D4F" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, cursor: "pointer", background: form.tipografia === t.id ? "#EDE0D4" : "#FAF8F5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, color: "#A89C90", marginBottom: 3, letterSpacing: 0.5 }}>{t.estilo}</div>
+                <div style={{ fontFamily: `'${t.id}', serif`, fontSize: 20, color: "#1A1714" }}>{t.muestra}</div>
+              </div>
+              {form.tipografia === t.id && <div style={{ color: "#8C6D4F", fontSize: 14 }}>✓</div>}
             </div>
           ))}
         </div>
