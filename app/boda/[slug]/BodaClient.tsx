@@ -214,15 +214,6 @@ async function handlePay() {
           <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.65)" }}>
             {pareja.fecha ? new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : ""}{pareja.lugar ? ` · ${pareja.lugar}` : ""}
           </div>
-          {pareja.fecha && (() => {
-            const dias = Math.ceil((new Date(pareja.fecha + "T12:00:00").getTime() - new Date().getTime()) / 86400000);
-            if (dias <= 0) return null;
-            return (
-              <div style={{ marginTop: 10, display: "inline-block", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 2, padding: "5px 14px" }}>
-                <span style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.85)" }}>{dias} días</span>
-              </div>
-            );
-          })()}
         </div>
       </div>
 
