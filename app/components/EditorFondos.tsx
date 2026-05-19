@@ -101,7 +101,7 @@ export default function EditorFondos() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 24 }}>
         <div>
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 300, color: "#1A1714" }}>Lista de regalos</div>
-          <div style={{ fontSize: 12, color: "#A89C90", marginTop: 4 }}>Los invitados verán estos fondos en tu página</div>
+          <div style={{ fontSize: 12, color: "#A89C90", marginTop: 4 }}>Los invitados verán estos regalos en tu página</div>
         </div>
         {!showForm && (
           <button onClick={openNew} style={{ padding: "9px 20px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
@@ -113,7 +113,7 @@ export default function EditorFondos() {
       {showForm && (
         <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24, marginBottom: 20, position: "relative" as const, overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #8C6D4F, #B8964A)" }} />
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#1A1714", marginBottom: 16 }}>{editingFondo ? "Editar fondo" : "Nuevo fondo"}</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#1A1714", marginBottom: 16 }}>{editingFondo ? "Editar regalo" : "Nuevo regalo"}</div>
 
           <label style={labelStyle}>Nombre *</label>
           <input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Luna de miel, Noche de bodas..." style={inputStyle} />
@@ -182,7 +182,7 @@ export default function EditorFondos() {
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => { setShowForm(false); setEditingFondo(null); }} style={{ flex: 1, padding: 11, background: "transparent", color: "#5A524A", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>Cancelar</button>
             <button onClick={handleSave} disabled={saving || !form.nombre} style={{ flex: 1, padding: 11, background: saving ? "#A89C90" : "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
-              {saving ? "Guardando..." : editingFondo ? "Guardar cambios" : "Crear fondo"}
+              {saving ? "Guardando..." : editingFondo ? "Guardar cambios" : "Crear regalo"}
             </button>
           </div>
         </div>
@@ -190,8 +190,8 @@ export default function EditorFondos() {
 
       {fondos.length === 0 && !showForm ? (
         <div style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 40, textAlign: "center" }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "#A89C90", marginBottom: 8 }}>Aún no tienes fondos</div>
-          <button onClick={openNew} style={{ padding: "10px 24px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>Crear primer fondo</button>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "#A89C90", marginBottom: 8 }}>Aún no tienes regalos</div>
+          <button onClick={openNew} style={{ padding: "10px 24px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>Crear primer regalo</button>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
