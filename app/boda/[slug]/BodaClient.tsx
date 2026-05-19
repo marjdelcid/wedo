@@ -169,6 +169,26 @@ async function handlePay() {
     });
   }
 
+  function SectionLinks({ links }: { links: { id: string; label: string }[] }) {
+    const visible = links.filter(l => l.id === "regalos" ? !!secs.regalos : !!(secs as any)[l.id]);
+    if (visible.length === 0) return null;
+    return (
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" as const, marginTop: 36, paddingTop: 24, borderTop: "1px solid rgba(26,23,20,0.07)" }}>
+        {visible.map(l => (
+          <button
+            key={l.id}
+            onClick={() => setActiveSection(l.id)}
+            style={{ padding: "10px 20px", background: "transparent", border: `1px solid rgba(26,23,20,0.18)`, borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" as const, color: txt.secondary, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.2s" }}
+            onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.borderColor = pal.accent; b.style.color = pal.accent; }}
+            onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.borderColor = "rgba(26,23,20,0.18)"; b.style.color = txt.secondary; }}
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   const navBtnStyle = (active: boolean) => ({
     padding: "8px 16px", fontSize: 10, fontWeight: 600 as const, letterSpacing: 1,
     textTransform: "uppercase" as const, border: `1px solid ${active ? pal.accent : "rgba(26,23,20,0.14)"}`,
@@ -257,8 +277,15 @@ async function handlePay() {
               })}
             </div>
           )}
-          <div style={{ textAlign: "center", padding: "12px 24px 20px", fontSize: 10, color: txt.muted, letterSpacing: 1.5, textTransform: "uppercase" as const }}>
+          <div style={{ textAlign: "center", padding: "12px 24px 4px", fontSize: 10, color: txt.muted, letterSpacing: 1.5, textTransform: "uppercase" as const }}>
             Pagos via <span style={{ color: pal.accent }}>Recurrente</span> · Guatemala
+          </div>
+          <div style={{ padding: "0 24px 32px" }}>
+            <SectionLinks links={[
+              { id: "detalles",   label: "Ver detalles" },
+              { id: "invitacion", label: "Ver invitación" },
+              { id: "rsvp",       label: "Confirmar asistencia" },
+            ]} />
           </div>
         </>
       )}
@@ -285,6 +312,11 @@ async function handlePay() {
               <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.primary }}>♪ {pareja.musica}</div>
             </div>
           )}
+          <SectionLinks links={[
+            { id: "detalles",   label: "Ver detalles" },
+            { id: "invitacion", label: "Ver invitación" },
+            { id: "rsvp",       label: "Confirmar asistencia" },
+          ]} />
         </div>
       )}
 
@@ -412,6 +444,11 @@ async function handlePay() {
               <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 22, fontWeight: 300, color: pal.accent }}>{pareja.hashtag}</div>
             </div>
           )}
+          <SectionLinks links={[
+            { id: "invitacion", label: "Ver invitación" },
+            { id: "regalos",    label: "Ver lista de regalos" },
+            { id: "rsvp",       label: "Confirmar asistencia" },
+          ]} />
         </div>
       )}
 
@@ -437,18 +474,11 @@ async function handlePay() {
             </div>
           )}
 
-          {secs.detalles && (
-            <div style={{ marginTop: 32 }}>
-              <button
-                onClick={() => setActiveSection("detalles")}
-                style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${pal.accent}`, borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, color: pal.accent, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.2s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = pal.accent; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = pal.accent; }}
-              >
-                Ver detalles del evento →
-              </button>
-            </div>
-          )}
+          <SectionLinks links={[
+            { id: "detalles",   label: "Ver detalles" },
+            { id: "regalos",    label: "Ver lista de regalos" },
+            { id: "rsvp",       label: "Confirmar asistencia" },
+          ]} />
         </div>
       )}
 
@@ -616,9 +646,14 @@ async function handlePay() {
     </button>
   </>
 )}
-    
+
             </div>
           </div>
+          <SectionLinks links={[
+            { id: "detalles",   label: "Ver detalles" },
+            { id: "invitacion", label: "Ver invitación" },
+            { id: "regalos",    label: "Ver lista de regalos" },
+          ]} />
         </div>
       )}
 
