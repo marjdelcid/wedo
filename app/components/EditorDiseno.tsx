@@ -14,6 +14,7 @@ const PALETAS = [
   { id: "bordeaux",  nombre: "Bordeaux",          dots: ["#7A2B3A", "#FDF5F6", "#C4788A"] },
   { id: "olivo",     nombre: "Olivo & Marfil",    dots: ["#5C6E3E", "#F8F6EE", "#A0A870"] },
   { id: "grisperla", nombre: "Gris perla",        dots: ["#5A5A5A", "#F8F8F8", "#A8A8A8"] },
+  { id: "vinedo",    nombre: "Viñedo",             dots: ["#7A2B3A", "#F8F6EE", "#5C6E3E"] },
 ];
 
 const TIPOGRAFIAS = [

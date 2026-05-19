@@ -13,6 +13,7 @@ const PALETAS: Record<string, { accent: string; bg: string; surface: string }> =
   bordeaux:   { accent: "#7A2B3A", bg: "#FDF5F6", surface: "#FFFFFF" },
   olivo:      { accent: "#5C6E3E", bg: "#F8F6EE", surface: "#FFFFFF" },
   grisperla:  { accent: "#5A5A5A", bg: "#F8F8F8", surface: "#FFFFFF" },
+  vinedo:     { accent: "#7A2B3A", bg: "#F8F6EE", surface: "#FFFFFF" },
 };
 
 const TEXT: Record<string, { primary: string; secondary: string; muted: string }> = {
@@ -26,6 +27,7 @@ const TEXT: Record<string, { primary: string; secondary: string; muted: string }
   bordeaux:   { primary: "#1A0810", secondary: "#5A2030", muted: "#A07080" },
   olivo:      { primary: "#1A1E10", secondary: "#3A4A28", muted: "#8A9070" },
   grisperla:  { primary: "#1A1A1A", secondary: "#4A4A4A", muted: "#9A9A9A" },
+  vinedo:     { primary: "#1A100E", secondary: "#4A3028", muted: "#7A6858" },
 };
 
 export default function BodaClient({ slug }: { slug: string }) {
