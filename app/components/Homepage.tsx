@@ -337,10 +337,23 @@ export default function Homepage() {
               Tu próxima celebración empieza aquí. Crea tu evento gratis en un
               minuto.
             </p>
-            <Link className="btn btn-pink" id="cta-close" href="/registro">
-              Crea tu evento
-              <span className="dotmini" />
-            </Link>
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                justifyContent: "center",
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              <Link className="btn btn-pink" id="cta-close" href="/registro">
+                Crea tu evento
+                <span className="dotmini" />
+              </Link>
+              <Link className="btn btn-ghost" href="/login">
+                Iniciar sesión
+              </Link>
+            </div>
 
             <div className="foot">
               <div className="logo">
