@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import EditorSecciones from "../../../components/EditorSecciones";
+import EditorApp from "../../../components/EditorApp";
 
 export default function EditorSeccionesPage() {
-  return <EditorSecciones />;
+  return <EditorApp initialPane="secciones" />;
 }

@@ -31,9 +31,9 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
     </div>
   );
 
-  // The dashboard ships its own wedo. top bar + pill nav (new design),
-  // so it renders without the shared chrome below.
-  if (pathname === "/dashboard") return <>{children}</>;
+  // The dashboard and the editor ship their own wedo. top bar + pill nav
+  // (new design), so they render without the shared chrome below.
+  if (pathname === "/dashboard" || pathname?.startsWith("/editor")) return <>{children}</>;
 
   const isEditor = pathname?.startsWith("/editor");
   const editorTabs = [

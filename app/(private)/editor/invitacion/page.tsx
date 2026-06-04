@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import EditorInvitacion from "../../../components/EditorInvitacion";
+import EditorApp from "../../../components/EditorApp";
 
 export default function EditorInvitacionPage() {
-  return <EditorInvitacion />;
+  return <EditorApp initialPane="invitacion" />;
 }

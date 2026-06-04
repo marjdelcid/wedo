@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import EditorInvitados from "../../../components/EditorInvitados";
+import EditorApp from "../../../components/EditorApp";
 
 export default function InvitadosPage() {
-  return <EditorInvitados />;
+  return <EditorApp initialPane="invitados" />;
 }

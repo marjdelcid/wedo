@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import EditorFondos from "../../../components/EditorFondos";
+import EditorApp from "../../../components/EditorApp";
 
 export default function EditorFondosPage() {
-  return <EditorFondos />;
+  return <EditorApp initialPane="regalos" />;
 }

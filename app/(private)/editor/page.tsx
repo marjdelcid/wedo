@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import EditorDiseno from "../../components/EditorDiseno";
+import EditorApp from "../../components/EditorApp";
 
 export default function EditorPage() {
-  return <EditorDiseno />;
+  return <EditorApp initialPane="diseno" />;
 }

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import EditorInfo from "../../../components/EditorInfo";
+import EditorApp from "../../../components/EditorApp";
 
 export default function EditorInfoPage() {
-  return <EditorInfo />;
+  return <EditorApp initialPane="info" />;
 }
