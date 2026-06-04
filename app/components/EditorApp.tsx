@@ -87,6 +87,21 @@ const SECCIONES_META: Record<string, { label: string; desc: string }> = {
 };
 const DEFAULT_ORDER = ["galeria", "regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
 
+const COVER_STYLES = [
+  { id: "clasica", label: "Clásica" },
+  { id: "minimalista", label: "Minimalista" },
+  { id: "fecha", label: "Fecha" },
+  { id: "apilada", label: "Apilada" },
+  { id: "marco", label: "Marco" },
+  { id: "editorial", label: "Editorial" },
+];
+const ANIM_STYLES = [
+  { id: "elegante", tt: "Elegante", td: "Apariciones suaves y lentas, fundidos finos" },
+  { id: "sutil", tt: "Sutil", td: "Mínima — casi sin movimiento, muy sobria" },
+  { id: "alegre", tt: "Alegre", td: "Rebotes y entradas con energía" },
+  { id: "ninguna", tt: "Sin animación", td: "Todo estático, sin movimiento" },
+];
+
 const RAIL: { id: Pane; n: string; label: string }[] = [
   { id: "info", n: "i", label: "Información" },
   { id: "diseno", n: "ii", label: "Diseño" },
@@ -145,6 +160,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     foto_hero: "", tipografia: "Cormorant Garamond", tipografia_titulos: "Cormorant Garamond",
     paleta: "rosawedo", hero_oscuridad: 45, color_acento: "#E84B8A", color_fondo: "#F7F0E5", color_superficie: "#FFFFFF",
     invitacion_url: "",
+    frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, confeti_regalo: false,
   });
   const setField = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
 
@@ -191,6 +207,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       paleta: p.paleta || "rosawedo", hero_oscuridad: p.hero_oscuridad ?? 45,
       color_acento: p.color_acento || "#E84B8A", color_fondo: p.color_fondo || "#F7F0E5", color_superficie: p.color_superficie || "#FFFFFF",
       invitacion_url: p.invitacion_url || "",
+      frase_portada: p.frase_portada ?? "Nos casamos", estilo_portada: p.estilo_portada || "clasica",
+      animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, confeti_regalo: !!p.confeti_regalo,
     });
     setRsvpCodigo(p.rsvp_codigo_requerido || false);
     if (p.secciones) setSecciones((s) => ({ ...s, ...p.secciones }));
@@ -221,10 +239,12 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     ceremonia: f.ceremonia, ceremonia_maps: f.ceremonia_maps, recepcion: f.recepcion, recepcion_maps: f.recepcion_maps,
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
     galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, mensaje_gracias: f.mensaje_gracias,
+    frase_portada: f.frase_portada,
   }, "info");
   const saveDiseno = () => savePareja({
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie,
+    estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
   }, "diseno");
   const saveInvitacion = () => savePareja({ invitacion_url: f.invitacion_url || null }, "invitacion");
   const saveSecciones = () => savePareja({ secciones, secciones_orden: orden }, "secciones");
@@ -235,6 +255,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, mensaje_gracias: f.mensaje_gracias,
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie,
+    frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
     invitacion_url: f.invitacion_url || null, secciones, secciones_orden: orden,
   }, "all");
 
@@ -419,6 +440,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     <div className="field grow"><label>Nombre 1</label><input className="inp" value={f.nombre1} onChange={(e) => setField("nombre1", e.target.value)} placeholder="Andrea" /></div>
                     <div className="field grow"><label>Nombre 2</label><input className="inp" value={f.nombre2} onChange={(e) => setField("nombre2", e.target.value)} placeholder="Diego" /></div>
                   </div>
+                  <div className="field" style={{ marginBottom: 0 }}><label>Frase de portada</label><input className="inp" value={f.frase_portada} onChange={(e) => setField("frase_portada", e.target.value)} placeholder="Nos casamos" /><p className="hint" style={{ margin: "6px 0 0" }}>El texto pequeño arriba de sus nombres en la invitación (ej. “Nos casamos”, “Nos comprometimos”, “¡Nos vamos!”).</p></div>
                 </div>
 
                 <div className="ecard">
@@ -557,6 +579,35 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                 <div className="ecard">
                   <div className="ecard-h">Oscuridad de la portada</div>
                   <div className="slider-row"><span>Claro</span><input className="slider" type="range" min={0} max={95} value={f.hero_oscuridad} onChange={(e) => setField("hero_oscuridad", parseInt(e.target.value))} /><span>Oscuro</span></div>
+                </div>
+
+                <div className="ecard">
+                  <div className="ecard-h">Estilo de portada</div>
+                  <p className="hint">Cómo se compone la portada con tus nombres, fecha y foto.</p>
+                  <div className="cover-grid">
+                    {COVER_STYLES.map((c) => (
+                      <div key={c.id} className={"cover-opt" + (f.estilo_portada === c.id ? " sel" : "")} onClick={() => setField("estilo_portada", c.id)}>
+                        <span style={{ fontFamily: ff(f.tipografia), fontSize: c.id === "fecha" ? 22 : 24, color: "var(--ink)" }}>
+                          {c.id === "minimalista" ? "M · J" : c.id === "fecha" ? "15·02" : c.id === "editorial" ? <em>{f.frase_portada || "Nos casamos"}</em> : "M & J"}
+                        </span>
+                        <span className="ttl">{c.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="ecard">
+                  <div className="ecard-h">Animaciones</div>
+                  <p className="hint">El estilo de las microanimaciones al abrir y navegar tu invitación.</p>
+                  <div className="gtypes" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {ANIM_STYLES.map((a) => (
+                      <div key={a.id} className={"gtype" + (f.animaciones_estilo === a.id ? " sel" : "")} onClick={() => setField("animaciones_estilo", a.id)}>
+                        <div className="tt">{a.tt}</div><div className="td">{a.td}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="toggle-row" style={{ marginTop: 16 }}><button className={"switch" + (f.petalos ? "" : " off")} onClick={() => setField("petalos", !f.petalos)} />Lluvia de pétalos en la portada</div>
+                  <div className="toggle-row" style={{ marginTop: 10 }}><button className={"switch" + (f.confeti_regalo ? "" : " off")} onClick={() => setField("confeti_regalo", !f.confeti_regalo)} />Confeti al hacer un regalo</div>
                 </div>
 
                 <button className="btn btn-pink btn-sm" onClick={saveDiseno} disabled={savingPane === "diseno"}>{saveLabel("diseno", "Guardar diseño")}</button>
@@ -804,11 +855,45 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   backgroundImage: f.foto_hero ? `linear-gradient(rgba(0,0,0,${f.hero_oscuridad / 100}),rgba(0,0,0,${f.hero_oscuridad / 100})), url(${f.foto_hero})` : `linear-gradient(180deg, ${f.color_fondo}, ${accent}22)`,
                   color: f.foto_hero ? "#fff" : "#3a2e2a",
                 }}>
-                  <div className="pre" style={{ color: f.foto_hero ? "rgba(255,255,255,.85)" : accent }}>Nos casamos</div>
-                  <div className="names" style={{ fontFamily: ff(f.tipografia), color: f.foto_hero ? "#fff" : accent }}>{f.nombre1 || "María"} &amp; {f.nombre2 || "José"}</div>
-                  <div className="date" style={{ color: f.foto_hero ? "rgba(255,255,255,.85)" : "#7a6a5a" }}>
-                    {f.fecha ? new Date(f.fecha).toLocaleDateString("es-GT", { day: "2-digit", month: "2-digit", year: "numeric" }) : "15 · 02 · 2026"}{f.lugar ? ` — ${f.lugar}` : ""}
-                  </div>
+                  {f.petalos && <span aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: `radial-gradient(${accent}55 2px, transparent 3px), radial-gradient(${accent}33 2px, transparent 3px)`, backgroundSize: "26px 26px, 40px 40px", backgroundPosition: "0 0, 12px 8px", opacity: 0.5 }} />}
+                  {(() => {
+                    const est = f.estilo_portada;
+                    const nameColor = f.foto_hero ? "#fff" : accent;
+                    const dateStr = (f.fecha ? new Date(f.fecha).toLocaleDateString("es-GT", { day: "2-digit", month: "2-digit", year: "numeric" }) : "15 · 02 · 2026") + (f.lugar ? ` — ${f.lugar}` : "");
+                    const frase = f.frase_portada || "Nos casamos";
+                    const n1 = f.nombre1 || "María", n2 = f.nombre2 || "José";
+                    const preColor = f.foto_hero ? "rgba(255,255,255,.85)" : accent;
+                    const subColor = f.foto_hero ? "rgba(255,255,255,.85)" : "#7a6a5a";
+                    if (est === "minimalista") return (<>
+                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor, fontSize: 30, letterSpacing: ".15em" }}>{n1[0].toUpperCase()} · {n2[0].toUpperCase()}</div>
+                      <div className="date" style={{ color: subColor }}>{dateStr}</div>
+                    </>);
+                    if (est === "fecha") return (<>
+                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor, fontSize: 34 }}>{dateStr.split(" — ")[0]}</div>
+                      <div className="pre" style={{ color: preColor, marginTop: 8 }}>{n1} &amp; {n2}</div>
+                    </>);
+                    if (est === "apilada") return (<>
+                      <div className="pre" style={{ color: preColor }}>{frase}</div>
+                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor, fontSize: 40 }}>{n1}<br />&amp;<br />{n2}</div>
+                      <div className="date" style={{ color: subColor }}>{dateStr}</div>
+                    </>);
+                    if (est === "marco") return (
+                      <div style={{ border: `1px solid ${f.foto_hero ? "rgba(255,255,255,.6)" : accent}`, padding: "18px 14px", margin: "0 6px" }}>
+                        <div className="pre" style={{ color: preColor }}>{frase}</div>
+                        <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor }}>{n1} &amp; {n2}</div>
+                        <div className="date" style={{ color: subColor }}>{dateStr}</div>
+                      </div>
+                    );
+                    if (est === "editorial") return (<>
+                      <div className="names" style={{ fontFamily: ff(f.tipografia), fontStyle: "italic", color: nameColor, fontSize: 40 }}>{frase}</div>
+                      <div className="date" style={{ color: subColor }}>{n1} &amp; {n2} · {dateStr}</div>
+                    </>);
+                    return (<>
+                      <div className="pre" style={{ color: preColor }}>{frase}</div>
+                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor }}>{n1} &amp; {n2}</div>
+                      <div className="date" style={{ color: subColor }}>{dateStr}</div>
+                    </>);
+                  })()}
                 </div>
                 <div className="body" style={{ background: f.color_superficie }}>
                   <div className="sec-h" style={{ color: accent }}>Nuestra mesa de regalos</div>

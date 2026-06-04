@@ -118,10 +118,37 @@ async function handleRsvpSubmit() {
   setRsvpDone(true);
 }
 
+function fireConfetti() {
+  if (typeof window === "undefined") return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const COLORS = ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28", "#F3C9C2"];
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  for (let i = 0; i < 26; i++) {
+    const c = document.createElement("div");
+    c.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:9999;background:${COLORS[i % COLORS.length]};`;
+    if (i % 3 === 0) { c.style.borderRadius = "50%"; c.style.width = "9px"; c.style.height = "9px"; }
+    document.body.appendChild(c);
+    const ang = Math.PI * (0.15 + Math.random() * 0.7) * -1;
+    const spread = (Math.random() - 0.5) * 2.4;
+    const dist = 120 + Math.random() * 180;
+    const dx = Math.cos(ang) * dist * spread * 1.2;
+    const dy = Math.sin(ang) * dist - (60 + Math.random() * 80);
+    const rot = Math.random() * 720 - 360;
+    const dur = 800 + Math.random() * 700;
+    c.animate([
+      { transform: "translate(0,0) rotate(0deg)", opacity: 1 },
+      { transform: `translate(${dx * 0.6}px,${dy}px) rotate(${rot * 0.6}deg)`, opacity: 1, offset: 0.5 },
+      { transform: `translate(${dx}px,${dy + 320}px) rotate(${rot}deg)`, opacity: 0 },
+    ], { duration: dur, easing: "cubic-bezier(.18,.7,.4,1)", fill: "forwards" });
+    setTimeout(() => c.remove(), dur + 80);
+  }
+}
+
 async function handlePay() {
   const f = fondos[selected];
   const montoFinal = f.modo === "completo" ? f.meta : amount;
   setPaid(true);
+  if (pareja?.confeti_regalo) fireConfetti();
   await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
   await supabase.from("fondos").update({
     recaudado: (f.recaudado || 0) + montoFinal,
@@ -168,6 +195,16 @@ async function handlePay() {
     rsvp:       { label: "Confirmar asistencia",   visible: !!secs.rsvp },
     countdown:  { label: "Cuenta regresiva",       visible: false },
   };
+
+  const frasePortada = pareja.frase_portada || "Nos casamos";
+  const estiloPortada = pareja.estilo_portada || "clasica";
+  const animEstilo = pareja.animaciones_estilo || "elegante";
+  const petalos = !!pareja.petalos;
+  const heroDate = pareja.fecha ? new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : "";
+  const heroDateLine = heroDate + (pareja.lugar ? ` · ${pareja.lugar}` : "");
+  const secAnim: React.CSSProperties = animEstilo === "ninguna"
+    ? {}
+    : { animation: `${animEstilo === "alegre" ? "wedo-pop" : "wedo-fade"} ${animEstilo === "sutil" ? ".3s" : ".6s"} ${animEstilo === "alegre" ? "cubic-bezier(.34,1.56,.64,1)" : "ease"} both` };
 
   function renderInline(text: string): React.ReactNode[] {
     return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
@@ -225,21 +262,62 @@ async function handlePay() {
 
   return (
     <div style={{ fontFamily: "'Jost', sans-serif", background: pal.bg, minHeight: "100vh", color: txt.primary }}>
+      <style>{`
+        @keyframes wedo-fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+        @keyframes wedo-pop{0%{opacity:0;transform:translateY(18px) scale(.97)}70%{opacity:1;transform:translateY(-4px) scale(1.01)}100%{opacity:1;transform:none}}
+        @keyframes wedo-fall{0%{transform:translateY(-12px) translateX(0) rotate(0deg);opacity:0}12%{opacity:.85}100%{transform:translateY(360px) translateX(24px) rotate(240deg);opacity:0}}
+        @media (prefers-reduced-motion:reduce){[data-petal]{display:none!important}}
+      `}</style>
 
       {/* HERO */}
       <div style={{ position: "relative", height: 340, overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: `url('${heroImg}')`, backgroundSize: "cover", backgroundPosition: "center" }} />
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, rgba(26,23,20,${(overlayOpacity * 0.1).toFixed(2)}), rgba(26,23,20,${overlayOpacity.toFixed(2)}))` }} />
+        {petalos && (
+          <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <span key={i} data-petal style={{ position: "absolute", top: -12, left: `${(i * 8 + 5) % 100}%`, width: 8 + (i % 3) * 3, height: 8 + (i % 3) * 3, borderRadius: "60% 0 60% 0", background: i % 2 ? "rgba(243,201,194,0.85)" : `${pal.accent}aa`, animation: `wedo-fall ${5 + (i % 4)}s linear ${i * 0.55}s infinite` }} />
+            ))}
+          </div>
+        )}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px 32px", textAlign: "center", zIndex: 2 }}>
-          <div style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>
-            {pareja.hashtag || "Wedo · Lista de Regalos"}
-          </div>
-          <div style={{ fontFamily: `'${font}', serif`, fontSize: 52, fontWeight: 300, color: "#fff", marginBottom: 6, lineHeight: 1 }}>
-            {pareja.nombre1} & {pareja.nombre2}
-          </div>
-          <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.65)" }}>
-            {pareja.fecha ? new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : ""}{pareja.lugar ? ` · ${pareja.lugar}` : ""}
-          </div>
+          {(() => {
+            const F = `'${font}', serif`;
+            const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
+            const i1 = (n1 || "M").charAt(0).toUpperCase(), i2 = (n2 || "J").charAt(0).toUpperCase();
+            const Pre = ({ children }: { children: React.ReactNode }) => <div style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.78)", marginBottom: 8 }}>{children}</div>;
+            const Date2 = ({ s }: { s?: React.CSSProperties }) => heroDateLine.trim() ? <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.68)", ...s }}>{heroDateLine}</div> : null;
+            if (estiloPortada === "minimalista") return (<>
+              <div style={{ fontFamily: F, fontSize: 46, fontWeight: 300, color: "#fff", letterSpacing: ".12em", marginBottom: 8, lineHeight: 1 }}>{i1} · {i2}</div>
+              <Date2 />
+            </>);
+            if (estiloPortada === "fecha") return (<>
+              <div style={{ fontFamily: F, fontSize: 40, fontWeight: 300, color: "#fff", marginBottom: 8, lineHeight: 1 }}>{heroDate || "El gran día"}</div>
+              <Pre>{n1} &amp; {n2}{pareja.lugar ? ` · ${pareja.lugar}` : ""}</Pre>
+            </>);
+            if (estiloPortada === "apilada") return (<>
+              <Pre>{frasePortada}</Pre>
+              <div style={{ fontFamily: F, fontSize: 40, fontWeight: 300, color: "#fff", lineHeight: 1.06, marginBottom: 8 }}>{n1}<br />&amp;<br />{n2}</div>
+              <Date2 />
+            </>);
+            if (estiloPortada === "marco") return (
+              <div style={{ border: "1px solid rgba(255,255,255,0.55)", padding: "20px 18px", display: "inline-block", minWidth: 220 }}>
+                <Pre>{frasePortada}</Pre>
+                <div style={{ fontFamily: F, fontSize: 44, fontWeight: 300, color: "#fff", marginBottom: 6, lineHeight: 1 }}>{n1} &amp; {n2}</div>
+                <Date2 />
+              </div>
+            );
+            if (estiloPortada === "editorial") return (<>
+              <div style={{ fontFamily: F, fontStyle: "italic", fontSize: 44, fontWeight: 300, color: "#fff", marginBottom: 8, lineHeight: 1.04 }}>{frasePortada}</div>
+              <Date2 s={{ marginBottom: 4 }} />
+              <Pre>{n1} &amp; {n2}</Pre>
+            </>);
+            return (<>
+              <Pre>{frasePortada}</Pre>
+              <div style={{ fontFamily: F, fontSize: 52, fontWeight: 300, color: "#fff", marginBottom: 6, lineHeight: 1 }}>{n1} &amp; {n2}</div>
+              <Date2 />
+            </>);
+          })()}
         </div>
       </div>
 
@@ -271,6 +349,8 @@ async function handlePay() {
           return <button key={id} onClick={() => setActiveSection(id)} style={navBtnStyle(activeSection === id)}>{nav.label}</button>;
         })}
       </div>
+
+      <div key={activeSection} style={secAnim}>
 
       {/* SECCIÓN REGALOS */}
       {secs.regalos && activeSection === "regalos" && (
@@ -677,6 +757,8 @@ async function handlePay() {
           )}
         </div>
       )}
+
+      </div>{/* end animated sections */}
 
       {/* DETAIL OVERLAY */}
       {open && f && (
