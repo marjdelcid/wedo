@@ -1,0 +1,129 @@
+/* auth.css — wedo. login + signup. Scoped under .wedo-app; uses tokens &
+   primitives from app-ui.css (.btn, .logo, .field, .inp, .bdot). */
+
+.wedo-app .auth{
+  min-height:100vh; min-height:100dvh;
+  display:grid; grid-template-columns:1.02fr 1fr;
+  background:var(--cream);
+}
+
+/* ============ LEFT · editorial art panel ============ */
+.wedo-app .auth-art{
+  position:relative; overflow:hidden;
+  background:var(--blush);
+  display:flex; flex-direction:column;
+  padding:42px 46px 40px;
+  color:var(--ink);
+}
+.wedo-app .art-bg{position:absolute; inset:0; z-index:0; overflow:hidden;
+  background:linear-gradient(125deg, #F3C9C2 0%, #F7DFD0 24%, #E7E2F4 52%, #EBF0C9 78%, #F8D8E4 100%);
+  background-size:240% 240%; animation:hueDrift 22s ease-in-out infinite;}
+@keyframes hueDrift{0%{background-position:0% 28%;} 50%{background-position:100% 72%;} 100%{background-position:0% 28%;}}
+
+.wedo-app .art-top, .wedo-app .art-body{position:relative; z-index:3;}
+
+.wedo-app .art-petal{position:absolute; z-index:2; pointer-events:none; border-radius:62% 0 62% 0; opacity:.96;
+  box-shadow:0 10px 26px rgba(35,23,18,.12); will-change:transform;}
+.wedo-app .art-petal.pk{width:92px; height:92px; background:var(--pink); top:16%; right:16%; animation:petalA 12s ease-in-out infinite;}
+.wedo-app .art-petal.pe{width:60px; height:60px; background:var(--peri); top:30%; right:34%; border-radius:50%; animation:petalB 9s ease-in-out infinite;}
+.wedo-app .art-petal.li{width:48px; height:48px; background:var(--lime); top:13%; right:36%; border-radius:50% 50% 50% 0; animation:petalC 8s ease-in-out infinite;}
+.wedo-app .art-petal.co{width:38px; height:38px; background:var(--coral); top:26%; right:12%; border-radius:50% 0 50% 50%; animation:petalD 7s ease-in-out infinite;}
+@keyframes petalA{0%{transform:translate(0,0) rotate(0) scale(1);}25%{transform:translate(-20px,-26px) rotate(-14deg) scale(1.06);}50%{transform:translate(14px,-44px) rotate(16deg) scale(.96);}75%{transform:translate(24px,-16px) rotate(9deg) scale(1.03);}100%{transform:translate(0,0) rotate(0) scale(1);}}
+@keyframes petalB{0%{transform:translate(0,0) rotate(0) scale(1);}33%{transform:translate(26px,18px) rotate(20deg) scale(1.12);}66%{transform:translate(-16px,30px) rotate(-12deg) scale(.92);}100%{transform:translate(0,0) rotate(0) scale(1);}}
+@keyframes petalC{0%{transform:translate(0,0) rotate(0);}30%{transform:translate(18px,-14px) rotate(-22deg);}60%{transform:translate(-22px,-26px) rotate(14deg);}100%{transform:translate(0,0) rotate(0);}}
+@keyframes petalD{0%{transform:translate(0,0) rotate(0) scale(1);}40%{transform:translate(-24px,22px) rotate(28deg) scale(1.18);}70%{transform:translate(12px,34px) rotate(-10deg) scale(.9);}100%{transform:translate(0,0) rotate(0) scale(1);}}
+
+.wedo-app .art-top{display:flex; align-items:center; justify-content:space-between;}
+.wedo-app .art-top .logo{color:var(--ink); font-size:27px;}
+.wedo-app .art-top .logo .dot{color:var(--pink);}
+.wedo-app .art-back{font-size:13px; font-weight:600; color:rgba(35,23,18,.6); display:inline-flex; align-items:center; gap:7px; white-space:nowrap;}
+.wedo-app .art-back:hover{color:var(--ink);}
+
+.wedo-app .art-body{margin-top:auto;}
+.wedo-app .art-h{font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(40px,4.6vw,62px); line-height:.98; letter-spacing:-.01em; margin:0;}
+.wedo-app .art-h .it{font-style:italic;}
+.wedo-app .art-h .dot{color:var(--pink); font-style:normal;}
+.wedo-app .art-sub{font-size:15.5px; line-height:1.55; color:var(--ink-soft); max-width:30ch; margin:20px 0 0;}
+
+.wedo-app .art-proof{margin-top:26px; display:inline-flex; align-items:center; gap:14px;
+  background:rgba(255,253,248,.62); border:1px solid rgba(35,23,18,.12);
+  backdrop-filter:blur(6px); border-radius:16px; padding:13px 18px; width:fit-content;}
+.wedo-app .art-proof .pv{font-family:'Instrument Serif',serif; font-size:30px; line-height:1; white-space:nowrap;}
+.wedo-app .art-proof .pl{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); line-height:1.5;}
+.wedo-app .art-proof .pdiv{width:1px; height:34px; background:rgba(35,23,18,.18);}
+
+/* ============ RIGHT · form panel ============ */
+.wedo-app .auth-form{display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 40px; position:relative;}
+.wedo-app .form-inner{width:100%; max-width:392px;}
+
+.wedo-app .form-logo{display:none; margin-bottom:30px;}
+.wedo-app .form-logo .logo{font-size:28px;}
+
+.wedo-app .seg{display:flex; gap:3px; background:var(--cream-2); border:1px solid var(--line); border-radius:100px; padding:4px; margin-bottom:30px;}
+.wedo-app .seg button{flex:1; border:none; background:transparent; cursor:pointer; font-family:'Archivo',sans-serif; font-weight:600; font-size:14px; color:var(--ink-faint); padding:10px 14px; border-radius:100px; transition:color .2s, background .25s var(--ease), box-shadow .2s;}
+.wedo-app .seg button.on{background:#fffdf8; color:var(--ink); box-shadow:0 2px 8px rgba(35,23,18,.08);}
+
+.wedo-app .view{display:none;}
+.wedo-app .view.on{display:block;}
+
+.wedo-app .form-head{margin-bottom:24px;}
+.wedo-app .form-head h1{font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; line-height:1.02; letter-spacing:-.01em; margin:0;}
+.wedo-app .form-head h1 .it{font-style:italic; color:var(--pink);}
+.wedo-app .form-head p{font-size:14.5px; color:var(--ink-soft); margin:9px 0 0;}
+
+.wedo-app .auth-form .field{margin-bottom:15px;}
+.wedo-app .auth-form .inp{padding:13px 14px; border-radius:12px; font-size:15px; transition:border-color .18s, box-shadow .18s; width:100%;}
+.wedo-app .auth-form .inp:focus{outline:none; border-color:var(--pink); box-shadow:0 0 0 3px rgba(232,75,138,.14);}
+.wedo-app .auth-form .inp::placeholder{color:var(--ink-faint);}
+
+.wedo-app .field-h{display:flex; align-items:center; justify-content:space-between;}
+.wedo-app .field-h .forgot{font-size:12.5px; font-weight:600; color:var(--pink); cursor:pointer; white-space:nowrap; background:none; border:none; font-family:'Archivo',sans-serif;}
+.wedo-app .field-h .forgot:hover{text-decoration:underline;}
+
+.wedo-app .pwrap{position:relative;}
+.wedo-app .pwrap .inp{padding-right:58px;}
+.wedo-app .peek{position:absolute; right:6px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; padding:8px 10px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint);}
+.wedo-app .peek:hover{color:var(--ink);}
+
+.wedo-app .pw-meter{display:flex; gap:5px; margin-top:9px;}
+.wedo-app .pw-meter i{height:4px; flex:1; border-radius:100px; background:rgba(35,23,18,.1); transition:background .25s;}
+.wedo-app .pw-hint{font-size:11.5px; color:var(--ink-faint); margin-top:7px;}
+
+.wedo-app .terms{display:flex; align-items:flex-start; gap:11px; margin:4px 0 20px; font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+.wedo-app .terms input{appearance:none; -webkit-appearance:none; width:19px; height:19px; flex:none; margin-top:1px; border:1.5px solid rgba(35,23,18,.3); border-radius:6px; background:#fffdf8; cursor:pointer; position:relative; transition:background .15s, border-color .15s;}
+.wedo-app .terms input:checked{background:var(--pink); border-color:var(--pink);}
+.wedo-app .terms input:checked::after{content:"✓"; position:absolute; inset:0; color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+.wedo-app .terms a{color:var(--pink); font-weight:600;}
+.wedo-app .terms a:hover{text-decoration:underline;}
+
+.wedo-app .btn-block{width:100%; padding:14px; font-size:15px;}
+
+.wedo-app .divider{display:flex; align-items:center; gap:14px; margin:20px 0; color:var(--ink-faint); font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
+.wedo-app .divider::before, .wedo-app .divider::after{content:""; height:1px; flex:1; background:var(--line);}
+
+.wedo-app .btn-oauth{display:flex; align-items:center; justify-content:center; gap:11px; width:100%; padding:13px; border:1.5px solid var(--line); border-radius:100px; background:#fffdf8; cursor:pointer; font-family:'Archivo',sans-serif; font-weight:600; font-size:14.5px; color:var(--ink); transition:border-color .2s, background .2s, transform .18s var(--ease-back);}
+.wedo-app .btn-oauth:hover{border-color:rgba(35,23,18,.4); transform:translateY(-1px);}
+.wedo-app .gmark{width:18px; height:18px; flex:none;}
+
+.wedo-app .signup-note{display:inline-flex; gap:9px; align-items:center; width:fit-content; max-width:100%; white-space:nowrap; font-size:13px; color:var(--ink-soft); background:var(--cream-2); border:1px solid var(--line-2); border-radius:100px; padding:9px 16px; margin-bottom:22px; line-height:1.4;}
+.wedo-app .signup-note .bdot{background:var(--lime);}
+.wedo-app .signup-note b{color:var(--ink); font-weight:700;}
+
+.wedo-app .switch-foot{text-align:center; font-size:14px; color:var(--ink-soft); margin-top:24px;}
+.wedo-app .switch-foot a{color:var(--pink); font-weight:700; cursor:pointer;}
+.wedo-app .switch-foot a:hover{text-decoration:underline;}
+
+.wedo-app .form-legal{text-align:center; font-size:11.5px; color:var(--ink-faint); margin-top:30px; line-height:1.5;}
+
+.wedo-app .auth-msg{font-size:13px; line-height:1.5; border-radius:10px; padding:10px 13px; margin-bottom:14px;}
+.wedo-app .auth-msg.err{background:rgba(238,90,40,.12); color:#b23a1c;}
+.wedo-app .auth-msg.ok{background:rgba(125,138,46,.16); color:#566012;}
+
+@media (max-width:900px){
+  .wedo-app .auth{grid-template-columns:1fr;}
+  .wedo-app .auth-art{display:none;}
+  .wedo-app .form-logo{display:block;}
+  .wedo-app .auth-form{justify-content:flex-start; padding:40px 26px 56px; min-height:100vh; min-height:100dvh;}
+  .wedo-app .form-inner{margin:0 auto;}
+}
+@media (prefers-reduced-motion:reduce){ .wedo-app .art-petal, .wedo-app .art-bg{animation:none;} }
