@@ -1,0 +1,153 @@
+/* app-ui.css — wedo. internal app screens (dashboard).
+   Scoped under .wedo-app so it never leaks to other private routes. */
+:root{
+  --cream:#F7F0E5; --cream-2:#F1E7D8; --ink:#231712;
+  --pink:#E84B8A; --peri:#87A6E8; --lime:#B3C24A; --coral:#EE5A28;
+  --blush:#F3C9C2; --wine:#5E1E2E; --teal:#284A41;
+  --ok:#7d8a2e; --err:#EE5A28; --pending:#87A6E8;
+  --line:rgba(35,23,18,.12); --line-2:rgba(35,23,18,.08);
+  --ink-soft:rgba(35,23,18,.72); --ink-faint:rgba(35,23,18,.5);
+  --ease:cubic-bezier(.22,.61,.36,1); --ease-back:cubic-bezier(.34,1.56,.64,1);
+}
+.wedo-app *{box-sizing:border-box;}
+.wedo-app{margin:0; min-height:100vh; background:var(--cream); color:var(--ink);
+  font-family:'Archivo',system-ui,sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
+.wedo-app a{color:inherit; text-decoration:none;}
+.wedo-app .serif{font-family:'Instrument Serif',Georgia,serif;}
+.wedo-app .it{font-style:italic;}
+.wedo-app .wrap{width:100%; max-width:1180px; margin:0 auto; padding:0 28px;}
+
+/* logo + dot */
+.wedo-app .logo{font-family:'Instrument Serif',serif; font-style:italic; font-size:26px; line-height:1; letter-spacing:-.01em; color:var(--ink); display:inline-flex; align-items:baseline;}
+.wedo-app .logo .dot{font-style:normal; color:var(--pink);}
+.wedo-app .bdot{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--pink); flex:none;}
+
+/* buttons */
+.wedo-app .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:600; font-size:14px;
+  padding:11px 20px; border-radius:100px; cursor:pointer; border:1.5px solid transparent; white-space:nowrap;
+  transition:transform .18s var(--ease-back), background .2s, border-color .2s, box-shadow .2s;}
+.wedo-app .btn:hover{transform:translateY(-1px);}
+.wedo-app .btn-pink{background:var(--pink); color:#fff; box-shadow:0 6px 18px rgba(232,75,138,.3);}
+.wedo-app .btn-pink:hover{background:#e23b7f;}
+.wedo-app .btn-ink{background:var(--ink); color:var(--cream);}
+.wedo-app .btn-ghost{background:transparent; color:var(--ink); border-color:rgba(35,23,18,.25);}
+.wedo-app .btn-ghost:hover{border-color:var(--ink);}
+.wedo-app .btn-sm{padding:8px 15px; font-size:13px;}
+
+/* topbar */
+.wedo-app .topbar{position:sticky; top:0; z-index:50; background:rgba(247,240,229,.85); backdrop-filter:blur(12px); border-bottom:1px solid var(--line);}
+.wedo-app .topbar-in{display:flex; align-items:center; justify-content:space-between; height:66px; gap:18px;}
+.wedo-app .evt-switch{display:flex; align-items:center; gap:10px; padding:7px 14px; border:1px solid var(--line); border-radius:100px; font-size:13.5px; font-weight:500; cursor:pointer; background:rgba(255,255,255,.4); color:var(--ink);}
+.wedo-app .evt-switch .tag{font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint);}
+.wedo-app .evt-switch .chev{opacity:.4;}
+.wedo-app .topbar-r{display:flex; align-items:center; gap:10px;}
+.wedo-app .avatar{width:34px; height:34px; border-radius:50%; background:var(--peri); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; border:none; cursor:pointer;}
+
+/* section heads */
+.wedo-app .greet{font-family:'Instrument Serif',serif; font-size:clamp(34px,5vw,52px); line-height:1; letter-spacing:-.01em; margin:0;}
+.wedo-app .greet .it{font-style:italic; color:var(--pink);}
+.wedo-app .greet-sub{font-size:15px; color:var(--ink-soft); margin:10px 0 0;}
+.wedo-app .kick{display:inline-flex; align-items:center; gap:9px; font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint);}
+
+/* stat cards */
+.wedo-app .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+.wedo-app .stat{position:relative; border-radius:18px; padding:22px 22px 20px; border:1px solid var(--line); background:var(--cream-2); overflow:hidden;}
+.wedo-app .stat .lab{display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint);}
+.wedo-app .stat .lab .d{width:8px; height:8px; border-radius:50%;}
+.wedo-app .stat .val{font-family:'Instrument Serif',serif; font-size:clamp(34px,3.4vw,46px); line-height:1; margin:16px 0 4px; display:flex; align-items:baseline; gap:3px;}
+.wedo-app .stat .val .q{font-size:.5em; opacity:.55;} .wedo-app .stat .val .dec{font-size:.55em; opacity:.55;}
+.wedo-app .stat .delta{font-size:12.5px; color:var(--ink-faint);}
+.wedo-app .stat.s1{background:#f4dfe9;} .wedo-app .stat.s1 .d{background:var(--pink);}
+.wedo-app .stat.s2{background:#dde6fb;} .wedo-app .stat.s2 .d{background:var(--peri);}
+.wedo-app .stat.s3{background:#e9eecb;} .wedo-app .stat.s3 .d{background:var(--lime);}
+.wedo-app .stat.s4{background:var(--cream-2);} .wedo-app .stat.s4 .d{background:var(--ink);}
+
+/* layout cols */
+.wedo-app .cols{display:grid; grid-template-columns:1.35fr 1fr; gap:22px; margin-top:22px;}
+.wedo-app .panel{border:1px solid var(--line); border-radius:20px; background:#fffdf8; overflow:hidden;}
+.wedo-app .panel-h{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line-2);}
+.wedo-app .panel-h h3{font-family:'Instrument Serif',serif; font-style:italic; font-size:24px; margin:0;}
+.wedo-app .panel-b{padding:8px 22px 18px;}
+
+/* funds list */
+.wedo-app .fund{padding:16px 0; border-bottom:1px solid var(--line-2);}
+.wedo-app .fund:last-child{border-bottom:none;}
+.wedo-app .fund-top{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+.wedo-app .fund-name{font-size:15.5px; font-weight:600;}
+.wedo-app .fund-amt{font-family:'Instrument Serif',serif; font-size:20px;}
+.wedo-app .fund-amt .goal{font-size:13px; color:var(--ink-faint); font-family:'Archivo'; font-weight:500;}
+.wedo-app .bar{height:8px; border-radius:100px; background:rgba(35,23,18,.08); margin-top:10px; overflow:hidden;}
+.wedo-app .bar > span{display:block; height:100%; border-radius:100px;}
+.wedo-app .fund.f1 .bar>span{background:var(--pink);} .wedo-app .fund.f2 .bar>span{background:var(--peri);} .wedo-app .fund.f3 .bar>span{background:var(--lime);}
+.wedo-app .fund-meta{display:flex; justify-content:space-between; margin-top:8px; font-size:12.5px; color:var(--ink-faint);}
+
+/* activity feed */
+.wedo-app .act{display:flex; align-items:flex-start; gap:13px; padding:14px 0; border-bottom:1px solid var(--line-2);}
+.wedo-app .act:last-child{border-bottom:none;}
+.wedo-app .act .ava{width:36px; height:36px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:#fff;}
+.wedo-app .act .who{font-size:14.5px; font-weight:600;}
+.wedo-app .act .meta{font-size:12.5px; color:var(--ink-faint); margin-top:2px;}
+.wedo-app .act .amt{margin-left:auto; text-align:right; font-family:'Instrument Serif',serif; font-size:19px; white-space:nowrap;}
+.wedo-app .state-chip{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; padding:3px 9px; border-radius:100px; margin-top:5px;}
+.wedo-app .state-chip .d{width:7px; height:7px; border-radius:50%;}
+.wedo-app .sc-ok{background:rgba(125,138,46,.16); color:#566012;} .wedo-app .sc-ok .d{background:var(--ok);}
+.wedo-app .sc-pend{background:rgba(135,166,232,.2); color:#3f5da8;} .wedo-app .sc-pend .d{background:var(--pending);}
+.wedo-app .sc-err{background:rgba(238,90,40,.14); color:#b23a1c;} .wedo-app .sc-err .d{background:var(--err);}
+
+/* withdraw panel */
+.wedo-app .withdraw{margin-top:22px; border:1px solid var(--line); border-radius:20px; padding:22px; background:linear-gradient(180deg,#fffdf8,#f7f0e5);}
+.wedo-app .wd-row{display:flex; justify-content:space-between; align-items:center; padding:9px 0; font-size:14.5px;}
+.wedo-app .wd-row .lbl{color:var(--ink-soft);}
+.wedo-app .wd-row.tot{border-top:1.5px solid var(--ink); margin-top:6px; padding-top:13px; font-weight:700; font-size:16px;}
+.wedo-app .wd-row .big{font-family:'Instrument Serif',serif; font-size:22px;}
+.wedo-app .wd-note{font-size:12.5px; color:var(--ink-faint); margin:6px 0 16px; display:flex; align-items:center; gap:7px;}
+
+/* invitation preview card */
+.wedo-app .preview-card{display:grid; grid-template-columns:320px 1fr; border:1px solid var(--line); border-radius:22px; overflow:hidden; background:#fffdf8; margin-bottom:26px;}
+.wedo-app .preview-photo{width:100%; height:280px; background:var(--cream-2); display:flex; align-items:center; justify-content:center; object-fit:cover; color:var(--ink-faint); font-size:13px; text-align:center; padding:16px;}
+.wedo-app img.preview-photo{display:block;}
+.wedo-app .preview-info{padding:28px 30px; display:flex; flex-direction:column; justify-content:center;}
+.wedo-app .preview-title{font-size:clamp(34px,4vw,48px); line-height:1; margin:12px 0 0;}
+.wedo-app .preview-title .it{font-style:italic; color:var(--pink);}
+.wedo-app .preview-url{display:inline-flex; align-items:center; gap:9px; margin-top:16px; font-size:13.5px; color:var(--ink-soft); background:var(--cream-2); padding:9px 15px; border-radius:100px; width:fit-content; max-width:100%; cursor:pointer; white-space:nowrap;}
+.wedo-app .preview-url .cp{font-weight:600; color:var(--pink);}
+.wedo-app .preview-actions{display:flex; gap:10px; margin-top:22px; flex-wrap:wrap;}
+
+/* rsvp confirmed list */
+.wedo-app .rsvp-sec{margin-top:22px;}
+.wedo-app .rsvp-count{font-family:'Archivo'; font-size:13px; font-weight:600; color:#fff; background:var(--lime); padding:2px 11px; border-radius:100px; vertical-align:middle; margin-left:10px;}
+.wedo-app .rsvp-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:4px 26px; padding:6px 22px 20px;}
+.wedo-app .rsvp-item{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line-2);}
+.wedo-app .rsvp-item .ava{width:34px; height:34px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff;}
+.wedo-app .rsvp-item .txt{min-width:0; flex:1;}
+.wedo-app .rsvp-item .nm{font-size:14.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.wedo-app .rsvp-item .sub{font-size:12px; color:var(--ink-faint); margin-top:1px; white-space:nowrap;}
+.wedo-app .rsvp-item .pax{flex:none; margin-left:auto; font-size:12.5px; color:var(--ink-faint); display:inline-flex; align-items:center; gap:6px; white-space:nowrap;}
+.wedo-app .rsvp-item .pax .bdot{width:6px; height:6px; background:var(--lime);}
+
+/* empty states */
+.wedo-app .empty-note{padding:26px 8px; text-align:center; color:var(--ink-faint); font-size:14px;}
+.wedo-app .empty-note a{color:var(--pink); font-weight:600;}
+
+/* floating pill nav */
+.wedo-app .pillnav{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:90; display:flex; gap:4px;
+  background:rgba(35,23,18,.92); backdrop-filter:blur(16px); padding:6px 8px; border-radius:50px; box-shadow:0 10px 34px rgba(35,23,18,.24);}
+.wedo-app .pillnav a{display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:50px; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:rgba(247,240,229,.6); transition:all .2s;}
+.wedo-app .pillnav a.on{background:var(--pink); color:#fff;}
+.wedo-app .pillnav a.on .d{width:6px; height:6px; border-radius:50%; background:#fff;}
+
+@media (max-width:880px){
+  .wedo-app .stats{grid-template-columns:repeat(2,1fr);}
+  .wedo-app .cols{grid-template-columns:1fr;}
+  .wedo-app .rsvp-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:680px){
+  .wedo-app .preview-card{grid-template-columns:1fr;}
+  .wedo-app .preview-photo{height:200px;}
+}
+@media (max-width:520px){
+  .wedo-app .wrap{padding:0 18px;}
+  .wedo-app .stats{grid-template-columns:1fr 1fr; gap:12px;}
+  .wedo-app .evt-switch .tag{display:none;}
+  .wedo-app .rsvp-grid{grid-template-columns:1fr;}
+}
