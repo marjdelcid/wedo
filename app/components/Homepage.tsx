@@ -1,133 +1,356 @@
 "use client";
-import { useState } from "react";
+import { useEffect } from "react";
+import Link from "next/link";
+import "../home.css";
 
 export default function Homepage() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  // Confetti burst on the CTAs + pointer parallax on the hero layers.
+  useEffect(() => {
+    const reduce =
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const COLORS = ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28", "#F3C9C2"];
+    const cleanups: Array<() => void> = [];
+
+    function burst(x: number, y: number) {
+      if (reduce) return;
+      const n = 18;
+      for (let i = 0; i < n; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        const col = COLORS[i % COLORS.length];
+        c.style.background = col;
+        if (i % 3 === 0) {
+          c.style.borderRadius = "50%";
+          c.style.width = "9px";
+          c.style.height = "9px";
+        }
+        c.style.left = x + "px";
+        c.style.top = y + "px";
+        document.body.appendChild(c);
+        const ang = Math.PI * (0.15 + Math.random() * 0.7) * -1; // upward arc
+        const spread = (Math.random() - 0.5) * 2.2;
+        const dist = 90 + Math.random() * 150;
+        const dx = Math.cos(ang) * dist * spread * 1.2;
+        const dy = Math.sin(ang) * dist - (40 + Math.random() * 60);
+        const rot = Math.random() * 720 - 360;
+        const dur = 700 + Math.random() * 600;
+        c.animate(
+          [
+            { transform: "translate(0,0) rotate(0deg)", opacity: 1 },
+            {
+              transform:
+                "translate(" + dx * 0.6 + "px," + dy + "px) rotate(" + rot * 0.6 + "deg)",
+              opacity: 1,
+              offset: 0.5,
+            },
+            {
+              transform:
+                "translate(" + dx + "px," + (dy + 220) + "px) rotate(" + rot + "deg)",
+              opacity: 0,
+            },
+          ],
+          { duration: dur, easing: "cubic-bezier(.18,.7,.4,1)", fill: "forwards" }
+        );
+        setTimeout(
+          (function (el: HTMLDivElement) {
+            return function () {
+              el.remove();
+            };
+          })(c),
+          dur + 60
+        );
+      }
+    }
+
+    function fire(el: Element) {
+      const r = el.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2);
+    }
+
+    ["cta-main", "cta-close"].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const onClick = (e: Event) => {
+        e.preventDefault();
+        fire(el);
+      };
+      let last = 0;
+      const onEnter = () => {
+        const t = Date.now();
+        if (t - last > 900) {
+          last = t;
+          fire(el);
+        }
+      };
+      el.addEventListener("click", onClick);
+      el.addEventListener("mouseenter", onEnter);
+      cleanups.push(() => {
+        el.removeEventListener("click", onClick);
+        el.removeEventListener("mouseenter", onEnter);
+      });
+    });
+
+    /* pointer parallax — composes with CSS translate/rotate via the transform property */
+    const hero = document.querySelector<HTMLElement>(".hero");
+    const layers = Array.prototype.slice.call(
+      document.querySelectorAll<HTMLElement>(".hero [data-depth]")
+    ) as HTMLElement[];
+    if (
+      hero &&
+      layers.length &&
+      !reduce &&
+      window.matchMedia("(pointer:fine)").matches
+    ) {
+      let tx = 0,
+        ty = 0,
+        cx = 0,
+        cy = 0,
+        raf: number | null = null;
+      function loop() {
+        cx += (tx - cx) * 0.08;
+        cy += (ty - cy) * 0.08;
+        layers.forEach(function (el) {
+          const d = parseFloat(el.getAttribute("data-depth") || "0") || 0;
+          el.style.transform =
+            "translate3d(" +
+            ((cx * d) / 60).toFixed(2) +
+            "px," +
+            ((cy * d) / 60).toFixed(2) +
+            "px,0)";
+        });
+        if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1) {
+          raf = requestAnimationFrame(loop);
+        } else {
+          raf = null;
+        }
+      }
+      const onMove = (e: PointerEvent) => {
+        const r = hero.getBoundingClientRect();
+        tx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+        ty = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+        if (!raf) raf = requestAnimationFrame(loop);
+      };
+      const onLeave = () => {
+        tx = 0;
+        ty = 0;
+        if (!raf) raf = requestAnimationFrame(loop);
+      };
+      hero.addEventListener("pointermove", onMove as EventListener);
+      hero.addEventListener("pointerleave", onLeave);
+      cleanups.push(() => {
+        hero.removeEventListener("pointermove", onMove as EventListener);
+        hero.removeEventListener("pointerleave", onLeave);
+        if (raf) cancelAnimationFrame(raf);
+      });
+    }
+
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
 
   return (
-    <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh" }}>
-
+    <div className="wedo-home" id="top">
       {/* NAV */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", background: "rgba(250,248,245,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(26,23,20,0.08)", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase" as const, color: "#1A1714" }}>
-          WE<em style={{ color: "#8C6D4F", fontStyle: "italic", letterSpacing: 0 }}>do</em>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <a href="/login" style={{ padding: "8px 20px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#5A524A", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
-            Iniciar sesión
+      <header className="nav">
+        <div className="wrap nav-in">
+          <a className="logo brandmark" href="#top">
+            wedo<span className="dot">.</span>
           </a>
-          <a href="/registro" style={{ padding: "8px 20px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "none", background: "#8C6D4F", color: "#fff", cursor: "pointer", borderRadius: 3, fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
-            Crear mi lista
-          </a>
+          <nav className="nav-r">
+            <a className="link-u hide-sm" href="#funciones">
+              Cómo funciona
+            </a>
+            <Link className="link-u" href="/login">
+              Iniciar sesión
+            </Link>
+            <Link
+              className="btn btn-ink"
+              href="/registro"
+              style={{ padding: "10px 18px", fontSize: 14 }}
+            >
+              Crea tu evento
+            </Link>
+          </nav>
         </div>
-      </nav>
+      </header>
 
-      {/* HERO */}
-      <div style={{ position: "relative", minHeight: "90vh", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "url('https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=80')", backgroundSize: "cover", backgroundPosition: "center" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(26,23,20,0.35), rgba(26,23,20,0.65))" }} />
-        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "0 24px", maxWidth: 700 }}>
-          <div style={{ fontSize: 10, letterSpacing: 5, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.65)", marginBottom: 16, fontWeight: 500 }}>La lista de regalos para tu boda</div>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 64, fontWeight: 300, color: "#fff", lineHeight: 1.0, marginBottom: 16, letterSpacing: 0.5 }}>
-            Regala momentos,<br /><em style={{ color: "#F0D8BC" }}>no cosas</em>
-          </div>
-          <div style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, fontWeight: 300, maxWidth: 500, margin: "0 auto 36px" }}>
-            Crea tu lista de regalos de boda en minutos. Tus invitados contribuyen en quetzales y tú recibes el dinero directo en tu cuenta bancaria guatemalteca.
-          </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" as const, alignItems: "center" }}>
-            {!submitted ? (
-              <>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" style={{ padding: "13px 18px", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 3, fontSize: 14, fontFamily: "'Jost', sans-serif", background: "rgba(255,255,255,0.12)", color: "#fff", backdropFilter: "blur(8px)", width: 240, outline: "none" }} />
-                <a href="/registro" style={{ padding: "13px 28px", background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
-                  Comenzar gratis
-                </a>
-              </>
-            ) : (
-              <div style={{ background: "rgba(107,140,118,0.9)", backdropFilter: "blur(8px)", padding: "13px 28px", borderRadius: 3, fontSize: 13, color: "#fff", fontWeight: 500 }}>
-                ✦ ¡Gracias! Te contactamos pronto.
+      <main>
+        {/* HERO */}
+        <section className="hero">
+          <div className="stage">
+            {/* depth: organic color blobs */}
+            <span className="blob b-peri" data-depth="22" aria-hidden="true" />
+            <span className="blob b-lima" data-depth="34" aria-hidden="true" />
+            <span className="blob b-durazno" data-depth="46" aria-hidden="true" />
+            <span className="blob b-coral" data-depth="58" aria-hidden="true" />
+
+            {/* depth: floating product elements (invite is behind the text) */}
+            <div className="float fl-invite" data-depth="28">
+              <div className="k">Nuestra boda</div>
+              <div className="n">
+                María <span className="it">&amp;</span> José
               </div>
-            )}
-          </div>
-          <div style={{ marginTop: 16, fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 0.5 }}>Gratis para empezar · Solo 3.5% por contribución recibida</div>
-        </div>
-      </div>
-
-      {/* HOW IT WORKS */}
-      <div style={{ padding: "80px 40px", textAlign: "center", background: "#fff" }}>
-        <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 10, fontWeight: 600 }}>Así funciona</div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 40, fontWeight: 300, color: "#1A1714", marginBottom: 12 }}>Simple como debe ser</div>
-        <div style={{ width: 36, height: 1, background: "#8C6D4F", margin: "0 auto 48px" }} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 32, maxWidth: 800, margin: "0 auto" }}>
-          {[
-            { num: "01", title: "Crea tu lista", desc: "Agrega los fondos que quieres — luna de miel, hogar, experiencias. Sube fotos y escribe tu historia." },
-            { num: "02", title: "Comparte con tus invitados", desc: "Tu página personalizada con tu URL única. Los invitados la ven desde cualquier dispositivo." },
-            { num: "03", title: "Recibe el dinero", desc: "Tus invitados contribuyen en quetzales con tarjeta. El dinero llega directo a tu banco guatemalteco." },
-          ].map((s, i) => (
-            <div key={i} style={{ textAlign: "left" as const }}>
-              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 48, fontWeight: 300, color: "#EDE0D4", lineHeight: 1, marginBottom: 12 }}>{s.num}</div>
-              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 400, color: "#1A1714", marginBottom: 8 }}>{s.title}</div>
-              <div style={{ fontSize: 13, color: "#5A524A", lineHeight: 1.75, fontWeight: 300 }}>{s.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* FEATURES */}
-      <div style={{ padding: "80px 40px", background: "#FAF8F5" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 10, fontWeight: 600 }}>Por qué Wedo</div>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 40, fontWeight: 300, color: "#1A1714" }}>Hecho para Guatemala</div>
-          <div style={{ width: 36, height: 1, background: "#8C6D4F", margin: "12px auto 0" }} />
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20, maxWidth: 900, margin: "0 auto" }}>
-          {[
-            { icon: "🇬🇹", title: "Pagos en Quetzales", desc: "Integración con Recurrente — la pasarela de pagos líder en Guatemala. Acepta Visa y Mastercard locales." },
-            { icon: "🏦", title: "A tu cuenta bancaria", desc: "Retira tus fondos a Banrural, BI, BAC, o cualquier banco guatemalteco en 2–3 días hábiles." },
-            { icon: "✦", title: "Página personalizada", desc: "Diseña tu invitación con tus colores, fotos y tipografía. Una URL única para compartir con tus invitados." },
-            { icon: "📊", title: "Dashboard en tiempo real", desc: "Ve quién contribuyó, cuánto llevas recaudado y gestiona tus fondos desde cualquier lugar." },
-          ].map((f, i) => (
-            <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "24px 20px" }}>
-              <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
-              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1714", marginBottom: 8 }}>{f.title}</div>
-              <div style={{ fontSize: 12, color: "#5A524A", lineHeight: 1.75, fontWeight: 300 }}>{f.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* PRICING */}
-      <div style={{ padding: "80px 40px", background: "#fff", textAlign: "center" }}>
-        <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 10, fontWeight: 600 }}>Precio</div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 40, fontWeight: 300, color: "#1A1714", marginBottom: 12 }}>Transparente y justo</div>
-        <div style={{ width: 36, height: 1, background: "#8C6D4F", margin: "0 auto 48px" }} />
-        <div style={{ maxWidth: 400, margin: "0 auto", background: "#FAF8F5", border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 32, position: "relative" as const, overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #8C6D4F, #B8964A)" }} />
-          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 8 }}>Por contribución recibida</div>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 64, fontWeight: 300, color: "#1A1714", lineHeight: 1 }}>3.5<span style={{ fontSize: 32 }}>%</span></div>
-          <div style={{ fontSize: 13, color: "#5A524A", marginTop: 8, marginBottom: 24, fontWeight: 300 }}>Sin costo fijo mensual. Solo pagas cuando recibes.</div>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, textAlign: "left" as const, marginBottom: 28 }}>
-            {["Página de invitación personalizada", "Fondos ilimitados", "Dashboard en tiempo real", "Transferencias a cualquier banco GT", "Soporte en español"].map((item, i) => (
-              <div key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "#5A524A", fontWeight: 300 }}>
-                <span style={{ color: "#8C6D4F", fontWeight: 600 }}>✦</span> {item}
+              <div className="d">15 · febrero · 2026</div>
+              <div className="lg">
+                wedo<span className="dot">.</span>
               </div>
-            ))}
+            </div>
+            <div className="float chip chip-money" data-depth="64">
+              <span className="ck">
+                <span className="d" style={{ background: "var(--lime)" }} />
+                Recibido
+              </span>
+              <span className="cv">Q 12,400</span>
+            </div>
+            <div className="float chip chip-rsvp" data-depth="76">
+              <span className="ck">
+                <span className="d" style={{ background: "var(--peri)" }} />
+                RSVP
+              </span>
+              <span className="cv">
+                86{" "}
+                <span className="it" style={{ fontSize: 15, opacity: 0.55 }}>
+                  confirmados
+                </span>
+              </span>
+            </div>
+
+            {/* content layer */}
+            <div className="stage-inner wrap">
+              <span className="eyebrow hero-eyebrow anim d1">
+                <span className="d" />
+                Para bodas y toda celebración · Guatemala
+              </span>
+
+              <h1 className="lema">
+                <span className="word w-invita">Invita,</span>{" "}
+                <span className="word w-celebra">celebra,</span>{" "}
+                <span className="word w-recibe">recibe</span>
+              </h1>
+
+              <div className="hero-foot">
+                <div className="hero-cta anim d6">
+                  <Link className="btn btn-pink" id="cta-main" href="/registro">
+                    Crea tu evento
+                    <span className="dotmini" />
+                  </Link>
+                  <a className="link-u" href="#funciones">
+                    Ver cómo funciona
+                  </a>
+                </div>
+                <div className="hero-desc anim d7">
+                  <p className="sign">
+                    Que empiece con un sí<span className="dot">.</span>
+                  </p>
+                  <p className="sub">
+                    Invita, gestiona el RSVP y recibe los regalos en efectivo —en
+                    quetzales, directo a tu cuenta. Tú decides cómo usarlo.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <a href="/registro" style={{ display: "block", padding: 14, background: "#8C6D4F", color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif", textDecoration: "none", textAlign: "center" as const }}>
-            Crear mi lista gratis
-          </a>
-        </div>
-      </div>
+        </section>
 
-      {/* FOOTER */}
-      <div style={{ padding: "40px", background: "#1A1714", textAlign: "center" }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase" as const, color: "#FAF8F5", marginBottom: 8 }}>
-          WE<em style={{ color: "#8C6D4F", fontStyle: "italic", letterSpacing: 0 }}>do</em>
-        </div>
-        <div style={{ fontSize: 11, color: "rgba(250,248,245,0.35)", letterSpacing: 1, marginBottom: 16 }}>La lista de regalos para bodas en Guatemala</div>
-        <div style={{ fontSize: 10, color: "rgba(250,248,245,0.2)", letterSpacing: 0.5 }}>© 2025 Wedo · Guatemala · hola@wedo.gt</div>
-      </div>
+        {/* FUNCTIONS */}
+        <section className="funcs" id="funciones">
+          <div className="wrap">
+            <div className="funcs-head">
+              <h2>
+                Todo en un solo lugar
+                <span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span>
+              </h2>
+              <span className="eyebrow anim d1">
+                <span className="d" />
+                Tres pasos, una página
+              </span>
+            </div>
+            <div className="fgrid">
+              <article className="fcard c1 anim d2">
+                <span className="fnum">i</span>
+                <div className="ft">
+                  <span className="fdot" />
+                  <h3>Invita</h3>
+                </div>
+                <p>
+                  Invitaciones digitales con estilo, listas para compartir por
+                  WhatsApp o link. Tu evento, con tu cara.
+                </p>
+              </article>
+              <article className="fcard c2 anim d3">
+                <span className="fnum">ii</span>
+                <div className="ft">
+                  <span className="fdot" />
+                  <h3>Confirma</h3>
+                </div>
+                <p>
+                  Gestiona el RSVP sin enredos. Mira quién viene en tiempo real,
+                  desde tu teléfono.
+                </p>
+              </article>
+              <article className="fcard c3 anim d4">
+                <span className="fnum">iii</span>
+                <div className="ft">
+                  <span className="fdot" />
+                  <h3>Recibe</h3>
+                </div>
+                <p>
+                  Una lista de regalos en efectivo, en quetzales, directo a tu
+                  cuenta. Tú eliges en qué gastarlo.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
 
+        {/* EVENT TYPES */}
+        <section className="events">
+          <div className="wrap events-in">
+            <span className="lbl">Para celebrar</span>
+            <span className="ev serif">
+              Bodas<span className="d" />
+            </span>
+            <span className="ev serif">
+              Baby showers<span className="d" />
+            </span>
+            <span className="ev serif">
+              Cumpleaños<span className="d" />
+            </span>
+            <span className="ev serif">
+              Despedidas<span className="d" />
+            </span>
+            <span className="ev serif">
+              y más<span className="d" />
+            </span>
+          </div>
+        </section>
+
+        {/* CLOSING CTA */}
+        <section className="close">
+          <div className="wrap">
+            <p className="sign-lg">
+              Que empiece
+              <br />
+              con un sí<span className="dot">.</span>
+            </p>
+            <p>
+              Tu próxima celebración empieza aquí. Crea tu evento gratis en un
+              minuto.
+            </p>
+            <Link className="btn btn-pink" id="cta-close" href="/registro">
+              Crea tu evento
+              <span className="dotmini" />
+            </Link>
+
+            <div className="foot">
+              <div className="logo">
+                wedo<span className="dot">.</span>
+              </div>
+              <span>© 2026 wedo. · Guatemala</span>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
