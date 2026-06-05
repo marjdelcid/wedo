@@ -8,10 +8,26 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE_DESC =
+  "Crea tu evento, envía invitaciones, gestiona RSVP y arma tu lista de regalos en efectivo. El dinero llega directo a tu cuenta en quetzales. Para bodas y toda celebración en Guatemala.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wedo.gifts"),
   title: "wedo. · Invita, celebra, recibe",
-  description:
-    "Crea tu evento, envía invitaciones, gestiona RSVP y arma tu lista de regalos en efectivo. El dinero llega directo a tu cuenta en quetzales. Para bodas y toda celebración en Guatemala.",
+  description: SITE_DESC,
+  openGraph: {
+    type: "website",
+    siteName: "wedo.",
+    title: "wedo. · Invita, celebra, recibe",
+    description: SITE_DESC,
+    url: "https://wedo.gifts",
+    locale: "es_GT",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "wedo. · Invita, celebra, recibe",
+    description: SITE_DESC,
+  },
 };
 
 export default function RootLayout({
