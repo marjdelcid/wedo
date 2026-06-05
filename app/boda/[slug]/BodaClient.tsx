@@ -398,11 +398,12 @@ export default function BodaClient({ slug }: { slug: string }) {
           {pareja.recepcion_maps && <a className="ic-map" href={pareja.recepcion_maps} target="_blank" rel="noreferrer">Ver en Maps ↗</a>}
         </div>
       );
-      if (pareja.hashtag) cards.push(
-        <div className="info-card" key="ht"><div className="ic-k">Comparte tus fotos</div><div className="ic-s">{pareja.hashtag}</div></div>
-      );
-      if (secs.regalos) cards.push(
-        <div className="info-card" key="reg"><div className="ic-k">Mesa de regalos</div><div className="ic-s">Aportes en quetzales, directo a su cuenta.</div></div>
+      if (pareja.hashtag || pareja.fotos_url) cards.push(
+        <div className="info-card" key="ht">
+          <div className="ic-k">Comparte tus fotos</div>
+          {pareja.hashtag && <div className="ic-s">{pareja.hashtag}</div>}
+          {pareja.fotos_url && <a className="ic-map" href={pareja.fotos_url} target="_blank" rel="noreferrer">Compartir fotos ↗</a>}
+        </div>
       );
 
       const dressFotos: string[] = Array.isArray(pareja.dresscode_fotos) ? pareja.dresscode_fotos : [];

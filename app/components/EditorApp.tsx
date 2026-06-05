@@ -157,7 +157,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     nombre1: "", nombre2: "", fecha: "", lugar: "", hora: "",
     ceremonia: "", ceremonia_maps: "", recepcion: "", recepcion_maps: "",
     dresscode: "", dresscode_notas: "", dresscode_fotos: [] as string[],
-    galeria_fotos: [] as string[], historia: "", musica: "", hashtag: "", mensaje_gracias: "",
+    galeria_fotos: [] as string[], historia: "", musica: "", hashtag: "", fotos_url: "", mensaje_gracias: "",
     foto_hero: "", tipografia: "Cormorant Garamond", tipografia_titulos: "Cormorant Garamond",
     paleta: "rosawedo", hero_oscuridad: 45, color_acento: "#E84B8A", color_fondo: "#F7F0E5", color_superficie: "#FFFFFF",
     paleta_colores: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"] as string[],
@@ -208,7 +208,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       dresscode: p.dresscode || "", dresscode_notas: p.dresscode_notas || "",
       dresscode_fotos: Array.isArray(p.dresscode_fotos) ? p.dresscode_fotos : [],
       galeria_fotos: Array.isArray(p.galeria_fotos) ? p.galeria_fotos : [],
-      historia: p.historia || "", musica: p.musica || "", hashtag: p.hashtag || "", mensaje_gracias: p.mensaje_gracias || "",
+      historia: p.historia || "", musica: p.musica || "", hashtag: p.hashtag || "", fotos_url: p.fotos_url || "", mensaje_gracias: p.mensaje_gracias || "",
       foto_hero: p.foto_hero || "", tipografia: p.tipografia || "Cormorant Garamond", tipografia_titulos: p.tipografia_titulos || p.tipografia || "Cormorant Garamond",
       paleta: p.paleta || "rosawedo", hero_oscuridad: p.hero_oscuridad ?? 45,
       color_acento: p.color_acento || "#E84B8A", color_fondo: p.color_fondo || "#F7F0E5", color_superficie: p.color_superficie || "#FFFFFF",
@@ -248,7 +248,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     nombre1: f.nombre1, nombre2: f.nombre2, fecha: f.fecha || null, lugar: f.lugar, hora: f.hora,
     ceremonia: f.ceremonia, ceremonia_maps: f.ceremonia_maps, recepcion: f.recepcion, recepcion_maps: f.recepcion_maps,
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
-    galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, mensaje_gracias: f.mensaje_gracias,
+    galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, fotos_url: f.fotos_url, mensaje_gracias: f.mensaje_gracias,
     frase_portada: f.frase_portada, agenda: f.agenda,
   }, "info");
   const saveDiseno = () => savePareja({
@@ -262,7 +262,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     nombre1: f.nombre1, nombre2: f.nombre2, fecha: f.fecha || null, lugar: f.lugar, hora: f.hora,
     ceremonia: f.ceremonia, ceremonia_maps: f.ceremonia_maps, recepcion: f.recepcion, recepcion_maps: f.recepcion_maps,
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
-    galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, mensaje_gracias: f.mensaje_gracias,
+    galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, fotos_url: f.fotos_url, mensaje_gracias: f.mensaje_gracias,
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
@@ -532,6 +532,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   <div className="ecard-h">Detalles especiales</div>
                   <div className="field"><label>Canción favorita</label><input className="inp" value={f.musica} onChange={(e) => setField("musica", e.target.value)} placeholder="Perfect — Ed Sheeran" /></div>
                   <div className="field"><label>Hashtag de la boda</label><input className="inp" value={f.hashtag} onChange={(e) => setField("hashtag", e.target.value)} placeholder="#MaríayJosé2026" /></div>
+                  <div className="field"><label>Link para compartir fotos</label><input className="inp" value={f.fotos_url} onChange={(e) => setField("fotos_url", e.target.value)} placeholder="https://photos.app.goo.gl/... (álbum compartido)" /><p className="hint" style={{ margin: "6px 0 0" }}>Un álbum compartido (Google Fotos, Drive…) para que tus invitados suban y vean fotos.</p></div>
                   <div className="field" style={{ marginBottom: 0 }}><label>Mensaje de agradecimiento a quienes regalan</label><p className="hint">Aparece tras hacer un regalo. Si lo dejas vacío, usamos uno por defecto.</p><textarea className="inp area" style={{ minHeight: 72 }} value={f.mensaje_gracias} onChange={(e) => setField("mensaje_gracias", e.target.value)} placeholder="Con todo nuestro amor, gracias por ser parte de este momento." /></div>
                 </div>
 
