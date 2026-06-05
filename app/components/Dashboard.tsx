@@ -306,7 +306,7 @@ export default function Dashboard() {
               <span style={{ color: "var(--pink)" }}>.</span>
             </div>
             <div className="preview-url" onClick={copyLink}>
-              {(host || "wedo.gt")}/boda/{slug}{" "}
+              {(host || "wedo.gifts")}/boda/{slug}{" "}
               <span className="cp">· {copied ? "¡copiado!" : "copiar link"}</span>
             </div>
             <div className="preview-actions">
