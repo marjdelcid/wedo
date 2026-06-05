@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
+import "../../inv-pay.css";
+
+const fmtQ = (n: number) => "Q " + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const PALETAS: Record<string, { accent: string; bg: string; surface: string }> = {
   champagne:  { accent: "#8C6D4F", bg: "#FAF8F5", surface: "#FFFFFF" },
@@ -37,7 +40,8 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [selected, setSelected] = useState(0);
   const [amount, setAmount] = useState(100);
   const [open, setOpen] = useState(false);
-  const [paid, setPaid] = useState(false);
+  const [payState, setPayState] = useState<"choose" | "pend" | "ok" | "err">("choose");
+  const [customStr, setCustomStr] = useState("");
   const [nombre, setNombre] = useState("");
   const [mensajeRegalo, setMensajeRegalo] = useState("");
   const [activeSection, setActiveSection] = useState("");
@@ -144,17 +148,37 @@ function fireConfetti() {
   }
 }
 
+function openGift(i: number) {
+  const g = fondos[i];
+  setSelected(i);
+  setNombre(""); setMensajeRegalo(""); setCustomStr("");
+  setPayState("choose");
+  setAmount(g?.modo === "completo" ? (g.meta || 0) : ((g?.chips && g.chips[0]) || 100));
+  setOpen(true);
+}
+function closeGift() {
+  setOpen(false); setPayState("choose"); setNombre(""); setMensajeRegalo(""); setCustomStr("");
+}
+
 async function handlePay() {
-  const f = fondos[selected];
-  const montoFinal = f.modo === "completo" ? f.meta : amount;
-  setPaid(true);
-  if (pareja?.confeti_regalo) fireConfetti();
-  await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
-  await supabase.from("fondos").update({
-    recaudado: (f.recaudado || 0) + montoFinal,
-    ...(f.modo === "completo" ? { tomado: true } : {})
-  }).eq("id", f.id);
-  loadData();
+  const g = fondos[selected];
+  if (!g) return;
+  const montoFinal = g.modo === "completo" ? (g.meta || 0) : amount;
+  if (!montoFinal || montoFinal <= 0) return;
+  setPayState("pend");
+  try {
+    const { error: e1 } = await supabase.from("contribuciones").insert({ fondo_id: g.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
+    if (e1) throw e1;
+    await supabase.from("fondos").update({
+      recaudado: (g.recaudado || 0) + montoFinal,
+      ...(g.modo === "completo" ? { tomado: true } : {})
+    }).eq("id", g.id);
+    setPayState("ok");
+    if (pareja?.confeti_regalo) fireConfetti();
+    loadData();
+  } catch {
+    setPayState("err");
+  }
 }
 
   if (loading) return (
@@ -370,7 +394,7 @@ async function handlePay() {
               {fondos.map((fondo, i) => {
                 const pct = fondo.meta > 0 ? Math.min(Math.round((fondo.recaudado / fondo.meta) * 100), 100) : 0;
                 return (
-                  <div key={i} onClick={() => { setSelected(i); setOpen(true); }} style={{ background: pal.surface, borderRadius: 4, border: "1px solid rgba(26,23,20,0.08)", overflow: "hidden", cursor: "pointer", transition: "transform 0.3s, box-shadow 0.3s" }}
+                  <div key={i} onClick={() => openGift(i)} style={{ background: pal.surface, borderRadius: 4, border: "1px solid rgba(26,23,20,0.08)", overflow: "hidden", cursor: "pointer", transition: "transform 0.3s, box-shadow 0.3s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-6px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 20px 48px rgba(26,23,20,0.10)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}>
                     <div style={{ height: 150, overflow: "hidden", background: "#F5F2ED" }}>
@@ -760,94 +784,104 @@ async function handlePay() {
 
       </div>{/* end animated sections */}
 
-      {/* DETAIL OVERLAY */}
-      {open && f && (
-        <div onClick={(e) => e.target === e.currentTarget && setOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(26,23,20,0.45)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 680, overflow: "hidden", borderTop: "1px solid rgba(26,23,20,0.08)" }}>
-            <div style={{ height: 220, overflow: "hidden", position: "relative", background: "#F5F2ED" }}>
-              {f.foto && <img src={f.foto} alt={f.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, rgba(26,23,20,0.5) 100%)" }} />
-              <button onClick={() => setOpen(false)} style={{ position: "absolute", top: 12, right: 14, width: 30, height: 30, borderRadius: "50%", background: "rgba(250,248,245,0.9)", border: "1px solid rgba(26,23,20,0.14)", cursor: "pointer", fontSize: 13, color: "#5A524A" }}>✕</button>
+      {/* CONTRIBUTION MODAL — wedo. brand (cream sheet, 3.5% breakdown, states) */}
+      {open && f && (() => {
+        const gross = f.modo === "completo" ? (f.meta || 0) : amount;
+        const fee = Math.round(gross * 0.035 * 100) / 100;
+        const net = Math.round((gross - fee) * 100) / 100;
+        const chips = f.chips && f.chips.length ? f.chips : [100, 200, 500, 1000];
+        return (
+          <div className="wedo-pay">
+            <div className="overlay" onClick={(e) => e.target === e.currentTarget && closeGift()}>
+              <div className="sheet">
+                <div className="sheet-h">
+                  <span className="mk">wedo<span className="dot">.</span></span>
+                  <button className="x" onClick={closeGift}>✕</button>
+                </div>
+
+                {payState === "choose" && (f.tomado ? (
+                  <div className="state-view">
+                    <div className="state-ico ok">✓</div>
+                    <h3>Ya fue regalado</h3>
+                    <p>Este regalo ya lo tomó otro invitado. ¡Explora los demás!</p>
+                    <button className="pay-btn" onClick={closeGift}>Ver otros regalos</button>
+                  </div>
+                ) : (
+                  <>
+                    <h3>{f.nombre}</h3>
+                    <p className="sub">Tu aporte le llega directo a {pareja.nombre1} &amp; {pareja.nombre2}.</p>
+
+                    {f.modo === "completo" ? (
+                      <>
+                        <div className="amt-label">Regalo completo</div>
+                        <div className="amt-custom fixed"><span className="q">Q</span><span className="fixedval">{(f.meta || 0).toLocaleString()}</span></div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="amt-label">Elige un monto</div>
+                        <div className="amt-chips">
+                          {chips.map((a: number) => (
+                            <button key={a} className={"amt-chip" + (!customStr && amount === a ? " sel" : "")} onClick={() => { setAmount(a); setCustomStr(""); }}>Q{a.toLocaleString()}</button>
+                          ))}
+                        </div>
+                        <div className="amt-custom">
+                          <span className="q">Q</span>
+                          <input inputMode="numeric" placeholder="Otro monto" value={customStr} onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ""); setCustomStr(v); if (v) setAmount(parseInt(v)); }} />
+                        </div>
+                      </>
+                    )}
+
+                    <input className="name-field" placeholder="Tu nombre (opcional)" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+                    <textarea className="msg-field" placeholder="Escribe un mensaje para los novios (opcional)…" value={mensajeRegalo} onChange={(e) => setMensajeRegalo(e.target.value)} />
+
+                    <div className="amt-label">Resumen</div>
+                    <div className="breakdown">
+                      <div className="bd-row"><span>Tu aporte</span><span className="v">{fmtQ(gross)}</span></div>
+                      <div className="bd-row"><span>Comisión wedo. (3.5%)</span><span className="v">– {fmtQ(fee)}</span></div>
+                      <div className="bd-row net"><span>{pareja.nombre1} &amp; {pareja.nombre2} reciben</span><span className="v">{fmtQ(net)}</span></div>
+                    </div>
+                    <div className="bd-note"><span className="d" />La comisión cubre el procesamiento del pago en quetzales. El dinero llega a su cuenta bancaria en 2–3 días hábiles.</div>
+                    <button className="pay-btn" onClick={handlePay} disabled={gross <= 0}>Aportar {fmtQ(gross)}</button>
+                    <div className="secure"><span>🔒</span> Pago seguro con Recurrente · Visa &amp; Mastercard</div>
+                  </>
+                ))}
+
+                {payState === "pend" && (
+                  <div className="state-view">
+                    <div className="state-ico pend">·</div>
+                    <h3>Procesando tu aporte</h3>
+                    <p>Estamos confirmando el pago con el banco. No cierres esta ventana —tarda solo unos segundos.</p>
+                  </div>
+                )}
+
+                {payState === "ok" && (
+                  <div className="state-view">
+                    <div className="state-ico ok">✓</div>
+                    <h3>¡Gracias por tu regalo!</h3>
+                    <p>Tu aporte de <strong>{fmtQ(gross)}</strong> va en camino a {pareja.nombre1} &amp; {pareja.nombre2}.</p>
+                    <div className="gracias" style={{ color: pal.accent }}>“{pareja.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial."}”</div>
+                    <button className="pay-btn" onClick={closeGift}>Volver a la invitación</button>
+                  </div>
+                )}
+
+                {payState === "err" && (
+                  <div className="state-view">
+                    <div className="state-ico err">!</div>
+                    <h3>No se pudo procesar</h3>
+                    <p>Revisa los datos e intenta de nuevo. <strong>No se hizo ningún cargo.</strong></p>
+                    <button className="pay-btn" onClick={() => setPayState("choose")}>Intentar de nuevo</button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div style={{ width: 32, height: 2, background: "rgba(26,23,20,0.14)", borderRadius: 1, margin: "12px auto 0" }} />
-
-            {/* THANK YOU CARD */}
-            {paid ? (
-              <div style={{ padding: "32px 26px 36px", textAlign: "center" }}>
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#EDF4EF", margin: "0 auto 18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 20, color: "#6B8C76" }}>✦</span>
-                </div>
-                <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 28, fontWeight: 300, color: "#1A1714", marginBottom: 6 }}>
-                  {nombre ? `¡Gracias, ${nombre.split(" ")[0]}!` : "¡Muchas gracias!"}
-                </div>
-                <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: "#A89C90", marginBottom: 20 }}>Tu regalo fue enviado</div>
-                <div style={{ width: 32, height: 1, background: pal.accent, margin: "0 auto 20px" }} />
-                <div style={{ fontSize: 14, color: "#5A524A", lineHeight: 1.8, fontWeight: 300, fontStyle: "italic", fontFamily: `'${fontTitulos}', serif` }}>
-                  {pareja.mensaje_gracias || `Con todo nuestro amor, gracias por ser parte de este momento tan especial para nosotros.`}
-                </div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "#A89C90", fontWeight: 300 }}>— {pareja.nombre1} & {pareja.nombre2}</div>
-                <button onClick={() => { setPaid(false); setOpen(false); setNombre(""); setMensajeRegalo(""); }} style={{ marginTop: 24, padding: "10px 28px", background: "transparent", border: `1px solid ${pal.accent}`, borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, color: pal.accent, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
-                  Cerrar
-                </button>
-              </div>
-            ) : (
-            <div style={{ padding: "16px 26px 26px" }}>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: "#1A1714", marginBottom: 5 }}>{f.nombre}</div>
-              <div style={{ fontSize: 13, color: "#5A524A", lineHeight: 1.7, marginBottom: 12, fontWeight: 300 }}>{f.descripcion}</div>
-              {f.historia && <div style={{ borderLeft: `1.5px solid ${pal.accent}`, paddingLeft: 16, fontFamily: `'${fontTitulos}', serif`, fontSize: 17, fontStyle: "italic", color: "#5A524A", lineHeight: 1.75, marginBottom: 18, fontWeight: 300 }}>{f.historia}</div>}
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 10, fontWeight: 600, color: "#5A524A", display: "block", marginBottom: 6, letterSpacing: 0.5 }}>Tu nombre</label>
-                <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="María García" style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }} />
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 10, fontWeight: 600, color: "#5A524A", display: "block", marginBottom: 6, letterSpacing: 0.5 }}>Mensaje para los novios <span style={{ fontWeight: 400, color: "#A89C90" }}>(opcional)</span></label>
-                <textarea value={mensajeRegalo} onChange={e => setMensajeRegalo(e.target.value)} placeholder="¡Felicidades! Los queremos muchísimo..." style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", resize: "none" as const, minHeight: 68, boxSizing: "border-box" as const }} />
-              </div>
-
-         {f.tomado ? (
-  <div style={{ width: "100%", padding: 15, background: "#F5F2ED", borderRadius: 3, textAlign: "center" as const, fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 300, color: "#8C6D4F", letterSpacing: 1 }}>
-    ✦ Este regalo ya fue tomado
-  </div>
-) : f.modo === "completo" ? (
-  <button onClick={handlePay} disabled={paid} style={{ width: "100%", padding: 15, background: paid ? "#6B8C76" : pal.accent, color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
-    {paid ? "¡Regalo enviado! Gracias ✦" : `Regalar Q${(f.meta || 0).toLocaleString()} — Regalo completo`}
-  </button>
-) : (
-  <>
-    <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" as const }}>
-      {(f.chips || [100, 200, 500, 1000]).map((a: number) => (
-        <button key={a} onClick={() => setAmount(a)} style={{ padding: "9px 18px", border: `1px solid ${amount === a ? "#1A1714" : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 12, fontWeight: 500, cursor: "pointer", background: amount === a ? "#1A1714" : "transparent", color: amount === a ? "#fff" : "#5A524A", fontFamily: "'Jost', sans-serif" }}>Q{a.toLocaleString()}</button>
-      ))}
-      <button onClick={() => setAmount(0)} style={{ padding: "9px 18px", border: `1px solid ${amount === 0 ? "#1A1714" : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 12, fontWeight: 500, cursor: "pointer", background: amount === 0 ? "#1A1714" : "transparent", color: amount === 0 ? "#fff" : "#5A524A", fontFamily: "'Jost', sans-serif", fontStyle: "italic" }}>Otro</button>
-    </div>
-    {amount === 0 && (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 14, fontWeight: 500, color: "#5A524A" }}>Q</span>
-        <input type="number" placeholder="Escribe tu monto" onChange={e => setAmount(parseInt(e.target.value) || 0)} style={{ flex: 1, padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }} />
-      </div>
-    )}
-    <button onClick={handlePay} disabled={paid || amount <= 0} style={{ width: "100%", padding: 15, background: paid ? "#6B8C76" : amount <= 0 ? "#E0DAD4" : pal.accent, color: amount <= 0 ? "#A89C90" : "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: amount <= 0 ? "default" : "pointer", fontFamily: "'Jost', sans-serif" }}>
-      {paid ? "¡Regalo enviado! Gracias ✦" : amount > 0 ? `Regalar Q${amount.toLocaleString()} con tarjeta` : "Selecciona un monto"}
-    </button>
-  </>
-)}
-
-            </div>
-            )}
           </div>
-          <SectionLinks links={[
-            { id: "detalles",   label: "Ver detalles" },
-            { id: "invitacion", label: "Ver invitación" },
-            { id: "regalos",    label: "Ver lista de regalos" },
-          ]} />
-        </div>
-      )}
+        );
+      })()}
 
-      {/* FOOTER */}
-      <div style={{ padding: "24px", textAlign: "center", borderTop: "1px solid rgba(26,23,20,0.08)", marginTop: 20 }}>
-        <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted }}>Con amor</div>
-        <div style={{ fontFamily: `'${font}', serif`, fontSize: 18, fontWeight: 300, color: txt.muted, marginTop: 4 }}>{pareja.nombre1} & {pareja.nombre2}</div>
-        <div style={{ marginTop: 8, fontSize: 9, letterSpacing: 1, color: txt.muted }}>Creado con <span style={{ color: pal.accent }}>Wedo</span></div>
+      {/* FOOTER — wedo. attribution (brand chrome) */}
+      <div style={{ background: "var(--ink)", color: "var(--cream)", textAlign: "center", padding: "26px 24px", marginTop: 24 }}>
+        <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontSize: 26, lineHeight: 1 }}>wedo<span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span></div>
+        <div style={{ fontFamily: "'Archivo', sans-serif", fontSize: 11, letterSpacing: ".04em", color: "rgba(247,240,229,.55)", marginTop: 6 }}>Invitación &amp; regalos en efectivo · Guatemala</div>
       </div>
     </div>
   );
