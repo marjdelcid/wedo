@@ -12,6 +12,8 @@
   --ok:#7d8a2e; --pending:#87A6E8;
   /* couple palette defaults (overridden inline from editor choices) */
   --c-accent:#E84B8A; --c-peri:#87A6E8; --c-lime:#B3C24A;
+  /* the couple's 4-color story (c1 = accent) — themes cards, rsvp, swatches */
+  --c1:#E84B8A; --c2:#87A6E8; --c3:#B3C24A; --c4:#EE5A28;
   --c-bg:#F7F0E5; --c-surface:#FFFDF9; --c-ink:#231712; --c-soft:#8a8079; --c-muted:#A89C90;
   --c-line:rgba(35,23,18,.12);
   --c-font:'Cormorant Garamond',Georgia,serif; --c-font-tit:'Cormorant Garamond',Georgia,serif;
@@ -139,8 +141,8 @@
 /* ===== generic section — centred reading column ===== */
 .inv-public .sec{max-width:660px; margin:0 auto; width:100%; padding:80px 26px 120px;}
 .inv-public .sec-k{font-family:'Archivo',sans-serif; font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:var(--c-accent); font-weight:700; text-align:center; margin-bottom:16px;}
-.inv-public .isection[data-sec="rsvp"] .sec-k{color:var(--c-peri);}
-.inv-public .isection[data-sec="detalles"] .sec-k{color:#8a972f;}
+.inv-public .isection[data-sec="rsvp"] .sec-k{color:color-mix(in srgb, var(--c2) 82%, #231712);}
+.inv-public .isection[data-sec="detalles"] .sec-k{color:color-mix(in srgb, var(--c3) 78%, #231712);}
 .inv-public .sec-h{font-family:var(--c-font-tit); font-size:clamp(32px,5.5vw,44px); text-align:center; color:var(--c-ink); margin:0 0 26px; font-weight:500;}
 .inv-public .sec p.body{font-size:20px; line-height:1.85; text-align:center; color:var(--c-soft); margin:0;}
 .inv-public .song{margin-top:26px; text-align:center; padding:16px; background:var(--c-surface); border:1px solid var(--c-line); border-radius:14px;}
@@ -173,12 +175,12 @@
 .inv-public .gift.done{opacity:.7;}
 .inv-public .gift .gbtn.done{background:var(--ok); cursor:default;}
 
-/* ===== rsvp — on-brand card (periwinkle accent) ===== */
-.inv-public .rsvp-box{max-width:440px; margin:0 auto; background:linear-gradient(165deg,#FFFFFF,#EDF1FC); border:1px solid rgba(135,166,232,.32); border-radius:22px; padding:30px 26px; text-align:center;}
-.inv-public .rsvp-box .rsvp-ico{width:46px; height:46px; border-radius:50%; background:var(--c-peri); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:'Instrument Serif',serif; font-style:italic; font-size:24px; box-shadow:0 8px 20px rgba(135,166,232,.34);}
+/* ===== rsvp — on-brand card (tinted with the couple's 2nd color) ===== */
+.inv-public .rsvp-box{max-width:440px; margin:0 auto; background:linear-gradient(165deg,#FFFFFF, color-mix(in srgb, var(--c2) 16%, #fff)); border:1px solid color-mix(in srgb, var(--c2) 32%, transparent); border-radius:22px; padding:30px 26px; text-align:center;}
+.inv-public .rsvp-box .rsvp-ico{width:46px; height:46px; border-radius:50%; background:var(--c2); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:'Instrument Serif',serif; font-style:italic; font-size:24px; box-shadow:0 8px 20px color-mix(in srgb, var(--c2) 40%, transparent);}
 .inv-public .rsvp-box input{width:100%; padding:14px 16px; border:1px solid var(--c-line); border-radius:12px; font-family:var(--c-font-tit); font-size:18px; background:#fff; color:var(--c-ink); text-align:center; outline:none; margin-bottom:12px; transition:border-color .18s, box-shadow .18s;}
-.inv-public .rsvp-box input:focus{border-color:var(--c-peri); box-shadow:0 0 0 3px rgba(135,166,232,.18);}
-.inv-public .rsvp-box .rbtn{width:100%; padding:14px; border:none; border-radius:100px; background:var(--c-peri); color:#fff; font-family:'Archivo',sans-serif; font-weight:600; font-size:14.5px; box-shadow:0 8px 22px rgba(135,166,232,.3); transition:transform .15s;}
+.inv-public .rsvp-box input:focus{border-color:var(--c2); box-shadow:0 0 0 3px color-mix(in srgb, var(--c2) 22%, transparent);}
+.inv-public .rsvp-box .rbtn{width:100%; padding:14px; border:none; border-radius:100px; background:var(--c2); color:#fff; font-family:'Archivo',sans-serif; font-weight:600; font-size:14.5px; box-shadow:0 8px 22px color-mix(in srgb, var(--c2) 34%, transparent); transition:transform .15s;}
 .inv-public .rsvp-box .rbtn:hover{transform:translateY(-1px);}
 .inv-public .rsvp-note{font-family:'Archivo',sans-serif; font-size:12.5px; color:var(--c-soft); margin-top:14px;}
 
@@ -196,14 +198,15 @@
 .inv-public .info-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
 .inv-public .info-card{background:var(--c-surface); border:1px solid var(--c-line); border-radius:16px; padding:18px 18px 16px; display:flex; flex-direction:column; transition:transform .2s var(--ease), box-shadow .2s var(--ease);}
 .inv-public .info-card:hover{transform:translateY(-3px); box-shadow:0 14px 30px rgba(58,46,40,.1);}
-.inv-public .info-card:nth-child(1){background:#FBEDF3; border-color:rgba(232,75,138,.24);}
-.inv-public .info-card:nth-child(1) .ic-k, .inv-public .info-card:nth-child(1) .ic-map{color:#D6377E;}
-.inv-public .info-card:nth-child(2){background:#ECF1FC; border-color:rgba(135,166,232,.32);}
-.inv-public .info-card:nth-child(2) .ic-k, .inv-public .info-card:nth-child(2) .ic-map{color:#5577CC;}
-.inv-public .info-card:nth-child(3){background:#F3F6E1; border-color:rgba(179,194,74,.36);}
-.inv-public .info-card:nth-child(3) .ic-k{color:#7E8C28;}
-.inv-public .info-card:nth-child(4){background:#FCECE4; border-color:rgba(238,90,40,.24);}
-.inv-public .info-card:nth-child(4) .ic-k{color:#D24E1F;}
+/* 4 cards tinted with the couple's 4 chosen colors (light tint bg + readable key) */
+.inv-public .info-card:nth-child(1){background:color-mix(in srgb, var(--c1) 13%, #FFFDF9); border-color:color-mix(in srgb, var(--c1) 30%, transparent);}
+.inv-public .info-card:nth-child(1) .ic-k, .inv-public .info-card:nth-child(1) .ic-map{color:color-mix(in srgb, var(--c1) 80%, #231712);}
+.inv-public .info-card:nth-child(2){background:color-mix(in srgb, var(--c2) 13%, #FFFDF9); border-color:color-mix(in srgb, var(--c2) 32%, transparent);}
+.inv-public .info-card:nth-child(2) .ic-k, .inv-public .info-card:nth-child(2) .ic-map{color:color-mix(in srgb, var(--c2) 80%, #231712);}
+.inv-public .info-card:nth-child(3){background:color-mix(in srgb, var(--c3) 14%, #FFFDF9); border-color:color-mix(in srgb, var(--c3) 34%, transparent);}
+.inv-public .info-card:nth-child(3) .ic-k, .inv-public .info-card:nth-child(3) .ic-map{color:color-mix(in srgb, var(--c3) 78%, #231712);}
+.inv-public .info-card:nth-child(4){background:color-mix(in srgb, var(--c4) 13%, #FFFDF9); border-color:color-mix(in srgb, var(--c4) 30%, transparent);}
+.inv-public .info-card:nth-child(4) .ic-k, .inv-public .info-card:nth-child(4) .ic-map{color:color-mix(in srgb, var(--c4) 80%, #231712);}
 .inv-public .ic-map{font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.01em; color:var(--c-accent); margin-top:12px; align-self:flex-start; text-decoration:none;}
 .inv-public .ic-map:hover{text-decoration:underline;}
 .inv-public .info-card .ic-k{font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--c-accent);}

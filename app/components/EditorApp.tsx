@@ -14,23 +14,25 @@ import "../app-ui.css";
 
 type Pane = "info" | "diseno" | "regalos" | "invitacion" | "invitados" | "secciones";
 
+// Cada paleta define 4 colores (dots[0] = acento). Se aplican en la
+// invitación pública: portada, info-cards de Detalles, RSVP y dress code.
 const PALETAS = [
-  { id: "rosawedo",   nombre: "Rosa wedo.",     accent: "#E84B8A", bg: "#F7F0E5", dots: ["#E84B8A", "#F7F0E5", "#87A6E8"] },
-  { id: "periwinkle", nombre: "Periwinkle",     accent: "#87A6E8", bg: "#F7F0E5", dots: ["#87A6E8", "#F7F0E5", "#E84B8A"] },
-  { id: "lima",       nombre: "Lima fresca",    accent: "#B3C24A", bg: "#F7F0E5", dots: ["#B3C24A", "#F7F0E5", "#E84B8A"] },
-  { id: "coral",      nombre: "Coral cálido",   accent: "#EE5A28", bg: "#FDF8F5", dots: ["#EE5A28", "#FDF8F5", "#F3C9C2"] },
-  { id: "vino",       nombre: "Vino & crema",   accent: "#5E1E2E", bg: "#F7F0E5", dots: ["#5E1E2E", "#F7F0E5", "#E84B8A"] },
-  { id: "champagne",  nombre: "Champagne",      accent: "#8C6D4F", bg: "#FAF8F5", dots: ["#8C6D4F", "#FAF8F5", "#B8964A"] },
-  { id: "jardin",     nombre: "Jardín",         accent: "#4A7C59", bg: "#F4F7F4", dots: ["#4A7C59", "#F4F7F4", "#8BB49A"] },
-  { id: "rose",       nombre: "Rosa polvos",    accent: "#A0556A", bg: "#FDF5F6", dots: ["#A0556A", "#FDF5F6", "#D4A0AE"] },
-  { id: "midnight",   nombre: "Noche & Oro",    accent: "#C9A84C", bg: "#141210", dots: ["#141210", "#C9A84C", "#F0E8D8"] },
-  { id: "terracotta", nombre: "Terracotta",     accent: "#C4562A", bg: "#FDF8F5", dots: ["#C4562A", "#FDF8F5", "#E8B49A"] },
-  { id: "lavanda",    nombre: "Lavanda",        accent: "#7B6BA8", bg: "#F7F5FF", dots: ["#7B6BA8", "#F7F5FF", "#C4BCDC"] },
-  { id: "azulpolvo",  nombre: "Azul polvos",    accent: "#4A6E8C", bg: "#F3F7FA", dots: ["#4A6E8C", "#F3F7FA", "#8AAEC4"] },
-  { id: "bordeaux",   nombre: "Bordeaux",       accent: "#7A2B3A", bg: "#FDF5F6", dots: ["#7A2B3A", "#FDF5F6", "#C4788A"] },
-  { id: "olivo",      nombre: "Olivo & Marfil", accent: "#5C6E3E", bg: "#F8F6EE", dots: ["#5C6E3E", "#F8F6EE", "#A0A870"] },
-  { id: "grisperla",  nombre: "Gris perla",     accent: "#5A5A5A", bg: "#F8F8F8", dots: ["#5A5A5A", "#F8F8F8", "#A8A8A8"] },
-  { id: "vinedo",     nombre: "Viñedo",         accent: "#7A2B3A", bg: "#F8F6EE", dots: ["#7A2B3A", "#F8F6EE", "#5C6E3E"] },
+  { id: "rosawedo",   nombre: "Rosa wedo.",     accent: "#E84B8A", bg: "#F7F0E5", dots: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"] },
+  { id: "periwinkle", nombre: "Periwinkle",     accent: "#87A6E8", bg: "#F7F0E5", dots: ["#87A6E8", "#E84B8A", "#B3C24A", "#5E6FB0"] },
+  { id: "lima",       nombre: "Lima fresca",    accent: "#B3C24A", bg: "#F7F0E5", dots: ["#B3C24A", "#E84B8A", "#87A6E8", "#7E8C28"] },
+  { id: "coral",      nombre: "Coral cálido",   accent: "#EE5A28", bg: "#FDF8F5", dots: ["#EE5A28", "#F3C9C2", "#E84B8A", "#C4562A"] },
+  { id: "vino",       nombre: "Vino & crema",   accent: "#5E1E2E", bg: "#F7F0E5", dots: ["#5E1E2E", "#E84B8A", "#C4788A", "#87A6E8"] },
+  { id: "champagne",  nombre: "Champagne",      accent: "#8C6D4F", bg: "#FAF8F5", dots: ["#8C6D4F", "#B8964A", "#C4A878", "#7A8B6A"] },
+  { id: "jardin",     nombre: "Jardín",         accent: "#4A7C59", bg: "#F4F7F4", dots: ["#4A7C59", "#8BB49A", "#B3C24A", "#C4A878"] },
+  { id: "rose",       nombre: "Rosa polvos",    accent: "#A0556A", bg: "#FDF5F6", dots: ["#A0556A", "#D4A0AE", "#E84B8A", "#87A6E8"] },
+  { id: "midnight",   nombre: "Noche & Oro",    accent: "#C9A84C", bg: "#141210", dots: ["#C9A84C", "#87A6E8", "#E84B8A", "#B3C24A"] },
+  { id: "terracotta", nombre: "Terracotta",     accent: "#C4562A", bg: "#FDF8F5", dots: ["#C4562A", "#E8B49A", "#B8964A", "#87A6E8"] },
+  { id: "lavanda",    nombre: "Lavanda",        accent: "#7B6BA8", bg: "#F7F5FF", dots: ["#7B6BA8", "#C4BCDC", "#E84B8A", "#87A6E8"] },
+  { id: "azulpolvo",  nombre: "Azul polvos",    accent: "#4A6E8C", bg: "#F3F7FA", dots: ["#4A6E8C", "#8AAEC4", "#87A6E8", "#B3C24A"] },
+  { id: "bordeaux",   nombre: "Bordeaux",       accent: "#7A2B3A", bg: "#FDF5F6", dots: ["#7A2B3A", "#C4788A", "#E84B8A", "#B8964A"] },
+  { id: "olivo",      nombre: "Olivo & Marfil", accent: "#5C6E3E", bg: "#F8F6EE", dots: ["#5C6E3E", "#A0A870", "#B3C24A", "#C4A878"] },
+  { id: "grisperla",  nombre: "Gris perla",     accent: "#5A5A5A", bg: "#F8F8F8", dots: ["#5A5A5A", "#A8A8A8", "#87A6E8", "#E84B8A"] },
+  { id: "vinedo",     nombre: "Viñedo",         accent: "#7A2B3A", bg: "#F8F6EE", dots: ["#7A2B3A", "#5C6E3E", "#B8964A", "#C4788A"] },
 ];
 
 const TIPOGRAFIAS = [

@@ -14,13 +14,28 @@ import "../../inv-public.css";
 
 const fmtQ = (n: number) => "Q " + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-// couple palettes — only the ACCENT is used (the invitation canvas stays the
-// light wedo. editorial design; the accent personalizes names/buttons/keys)
-const ACCENTS: Record<string, string> = {
-  champagne: "#8C6D4F", jardin: "#4A7C59", rose: "#A0556A", midnight: "#C9A84C",
-  terracotta: "#C4562A", lavanda: "#7B6BA8", azulpolvo: "#4A6E8C", bordeaux: "#7A2B3A",
-  olivo: "#5C6E3E", grisperla: "#5A5A5A", vinedo: "#7A2B3A", rosa: "#E84B8A",
-  peri: "#87A6E8", lima: "#B3C24A", coral: "#EE5A28", brand: "#E84B8A",
+// couple palettes — 4-color story per palette (must match EditorApp PALETAS).
+// colores[0] is the accent; the 4 colors theme the cover, the 4 Detalles
+// info-cards, the RSVP and the dress-code swatches. The canvas itself stays
+// the light wedo. editorial design.
+const PAL_COLORS: Record<string, string[]> = {
+  rosawedo: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"],
+  periwinkle: ["#87A6E8", "#E84B8A", "#B3C24A", "#5E6FB0"],
+  lima: ["#B3C24A", "#E84B8A", "#87A6E8", "#7E8C28"],
+  coral: ["#EE5A28", "#F3C9C2", "#E84B8A", "#C4562A"],
+  vino: ["#5E1E2E", "#E84B8A", "#C4788A", "#87A6E8"],
+  champagne: ["#8C6D4F", "#B8964A", "#C4A878", "#7A8B6A"],
+  jardin: ["#4A7C59", "#8BB49A", "#B3C24A", "#C4A878"],
+  rose: ["#A0556A", "#D4A0AE", "#E84B8A", "#87A6E8"],
+  midnight: ["#C9A84C", "#87A6E8", "#E84B8A", "#B3C24A"],
+  terracotta: ["#C4562A", "#E8B49A", "#B8964A", "#87A6E8"],
+  lavanda: ["#7B6BA8", "#C4BCDC", "#E84B8A", "#87A6E8"],
+  azulpolvo: ["#4A6E8C", "#8AAEC4", "#87A6E8", "#B3C24A"],
+  bordeaux: ["#7A2B3A", "#C4788A", "#E84B8A", "#B8964A"],
+  olivo: ["#5C6E3E", "#A0A870", "#B3C24A", "#C4A878"],
+  grisperla: ["#5A5A5A", "#A8A8A8", "#87A6E8", "#E84B8A"],
+  vinedo: ["#7A2B3A", "#5C6E3E", "#B8964A", "#C4788A"],
+  brand: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"],
 };
 
 const PETAL_COLORS = ["#E84B8A", "#B3C24A", "#F3C9C2", "#87A6E8", "#EE5A28", "#E84B8A", "#B3C24A"];
@@ -210,14 +225,21 @@ export default function BodaClient({ slug }: { slug: string }) {
     </div>
   );
 
-  // ---- couple theme (accent + fonts only; canvas stays light editorial) ----
+  // ---- couple theme (4 palette colors + fonts; canvas stays light editorial) ----
   const pid = pareja.paleta || "brand";
-  const accent = pid === "personalizado" ? (pareja.color_acento || "#E84B8A") : (ACCENTS[pid] || "#E84B8A");
+  const colores = pid === "personalizado"
+    ? [pareja.color_acento || "#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"]
+    : (PAL_COLORS[pid] || PAL_COLORS.brand);
+  const accent = colores[0];
   const font = pareja.tipografia || "Cormorant Garamond";
   const fontTitulos = pareja.tipografia_titulos || font;
 
   const themeVars = {
     ["--c-accent" as string]: accent,
+    ["--c1" as string]: colores[0],
+    ["--c2" as string]: colores[1],
+    ["--c3" as string]: colores[2],
+    ["--c4" as string]: colores[3],
     ["--c-font" as string]: `'${font}', Georgia, serif`,
     ["--c-font-tit" as string]: `'${fontTitulos}', Georgia, serif`,
   } as React.CSSProperties;
@@ -385,7 +407,7 @@ export default function BodaClient({ slug }: { slug: string }) {
               {dressFotos.length > 0 && <div className="dress-photos">{dressFotos.slice(0, 6).map((u, i) => <img key={i} src={u} alt="" />)}</div>}
               <div className="dress-sw">
                 <span className="sw-l">Paleta sugerida</span>
-                <i style={{ background: "var(--c-accent)" }} /><i style={{ background: "#87A6E8" }} /><i style={{ background: "#B3C24A" }} /><i style={{ background: "#F3C9C2" }} />
+                <i style={{ background: "var(--c1)" }} /><i style={{ background: "var(--c2)" }} /><i style={{ background: "var(--c3)" }} /><i style={{ background: "var(--c4)" }} />
               </div>
             </div>
           )}
