@@ -160,6 +160,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     galeria_fotos: [] as string[], historia: "", musica: "", hashtag: "", mensaje_gracias: "",
     foto_hero: "", tipografia: "Cormorant Garamond", tipografia_titulos: "Cormorant Garamond",
     paleta: "rosawedo", hero_oscuridad: 45, color_acento: "#E84B8A", color_fondo: "#F7F0E5", color_superficie: "#FFFFFF",
+    paleta_colores: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"] as string[],
     invitacion_url: "",
     frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, confeti_regalo: false,
   });
@@ -207,6 +208,9 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       foto_hero: p.foto_hero || "", tipografia: p.tipografia || "Cormorant Garamond", tipografia_titulos: p.tipografia_titulos || p.tipografia || "Cormorant Garamond",
       paleta: p.paleta || "rosawedo", hero_oscuridad: p.hero_oscuridad ?? 45,
       color_acento: p.color_acento || "#E84B8A", color_fondo: p.color_fondo || "#F7F0E5", color_superficie: p.color_superficie || "#FFFFFF",
+      paleta_colores: (Array.isArray(p.paleta_colores) && p.paleta_colores.length === 4)
+        ? p.paleta_colores
+        : (PALETAS.find((x) => x.id === (p.paleta || "rosawedo"))?.dots || ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"]),
       invitacion_url: p.invitacion_url || "",
       frase_portada: p.frase_portada ?? "Nos casamos", estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, confeti_regalo: !!p.confeti_regalo,
@@ -244,7 +248,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   }, "info");
   const saveDiseno = () => savePareja({
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
-    paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie,
+    paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
   }, "diseno");
   const saveInvitacion = () => savePareja({ invitacion_url: f.invitacion_url || null }, "invitacion");
@@ -255,7 +259,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
     galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, mensaje_gracias: f.mensaje_gracias,
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
-    paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie,
+    paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
     invitacion_url: f.invitacion_url || null, secciones, secciones_orden: orden,
   }, "all");
@@ -538,7 +542,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     const id = e.target.value;
                     if (id === "personalizado") { setField("paleta", "personalizado"); return; }
                     const pal = PALETAS.find((p) => p.id === id);
-                    if (pal) setF((p: any) => ({ ...p, paleta: id, color_acento: pal.accent, color_fondo: pal.bg, color_superficie: "#FFFFFF" }));
+                    if (pal) setF((p: any) => ({ ...p, paleta: id, color_acento: pal.accent, color_fondo: pal.bg, color_superficie: "#FFFFFF", paleta_colores: pal.dots }));
                   }}>
                     <optgroup label="wedo. — paletas de marca">
                       {PALETAS.slice(0, 5).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -558,14 +562,19 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   <p className="hint" style={{ margin: "10px 0 0" }}>Las paletas de marca usan crema, tinta y los acentos de wedo. Las clásicas son para un look más tradicional.</p>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--ink-faint)", margin: "16px 0 12px" }}>{f.paleta === "personalizado" ? "Tus colores" : "Ajuste fino de colores"}</div>
                   {[
-                    { k: "color_acento", l: "Color principal", d: "Botones, acentos, líneas decorativas" },
-                    { k: "color_fondo", l: "Color de fondo", d: "Fondo general de la página" },
-                    { k: "color_superficie", l: "Color de tarjetas", d: "Fondo de las tarjetas y secciones" },
-                  ].map(({ k, l, d }) => (
-                    <div className="color-row" key={k}>
-                      <input type="color" value={f[k]} onChange={(e) => setF((p: any) => ({ ...p, [k]: e.target.value, paleta: "personalizado" }))} />
+                    { l: "Color principal", d: "Nombres, botones, acentos y líneas" },
+                    { l: "Color 2", d: "RSVP y la 2ª tarjeta de detalles" },
+                    { l: "Color 3", d: "Encabezado de detalles y la 3ª tarjeta" },
+                    { l: "Color 4", d: "La 4ª tarjeta de detalles y swatches" },
+                  ].map(({ l, d }, i) => (
+                    <div className="color-row" key={i}>
+                      <input type="color" value={(f.paleta_colores && f.paleta_colores[i]) || "#E84B8A"} onChange={(e) => setF((p: any) => {
+                        const cols = [...(p.paleta_colores || ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"])];
+                        cols[i] = e.target.value;
+                        return { ...p, paleta_colores: cols, paleta: "personalizado", ...(i === 0 ? { color_acento: e.target.value } : {}) };
+                      })} />
                       <div className="crinfo"><div className="crlabel">{l}</div><div className="crdesc">{d}</div></div>
-                      <span className="crhex">{f[k]}</span>
+                      <span className="crhex">{(f.paleta_colores && f.paleta_colores[i]) || ""}</span>
                     </div>
                   ))}
                 </div>

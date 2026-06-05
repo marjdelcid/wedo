@@ -227,9 +227,11 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   // ---- couple theme (4 palette colors + fonts; canvas stays light editorial) ----
   const pid = pareja.paleta || "brand";
-  const colores = pid === "personalizado"
-    ? [pareja.color_acento || "#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"]
-    : (PAL_COLORS[pid] || PAL_COLORS.brand);
+  const colores: string[] = (Array.isArray(pareja.paleta_colores) && pareja.paleta_colores.length === 4)
+    ? pareja.paleta_colores
+    : (pid === "personalizado"
+      ? [pareja.color_acento || "#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"]
+      : (PAL_COLORS[pid] || PAL_COLORS.brand));
   const accent = colores[0];
   const font = pareja.tipografia || "Cormorant Garamond";
   const fontTitulos = pareja.tipografia_titulos || font;
