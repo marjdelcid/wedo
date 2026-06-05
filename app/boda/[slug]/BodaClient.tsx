@@ -407,12 +407,20 @@ export default function BodaClient({ slug }: { slug: string }) {
 
       const dressFotos: string[] = Array.isArray(pareja.dresscode_fotos) ? pareja.dresscode_fotos : [];
       const hasDress = !!(pareja.dresscode || pareja.dresscode_notas || dressFotos.length);
-      const hasAny = cards.length > 0 || hasDress;
+      const agenda = (Array.isArray(pareja.agenda) ? pareja.agenda : []).filter((r: any) => r && (r.hora || r.evento));
+      const hasAny = agenda.length > 0 || cards.length > 0 || hasDress;
 
       return (
         <div className="sec">
           <div className="sec-k">Detalles del día</div>
           <h2 className="sec-h">El gran día</h2>
+          {agenda.length > 0 && (
+            <div className="itin">
+              {agenda.map((r: { hora: string; evento: string }, i: number) => (
+                <div className="it-row" key={i}><div className="it-time">{r.hora}</div><div className="it-ev">{r.evento}</div></div>
+              ))}
+            </div>
+          )}
           {cards.length > 0 && <div className="info-grid">{cards}</div>}
           {hasDress && (
             <div className="dress">

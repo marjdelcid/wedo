@@ -161,10 +161,14 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     foto_hero: "", tipografia: "Cormorant Garamond", tipografia_titulos: "Cormorant Garamond",
     paleta: "rosawedo", hero_oscuridad: 45, color_acento: "#E84B8A", color_fondo: "#F7F0E5", color_superficie: "#FFFFFF",
     paleta_colores: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"] as string[],
+    agenda: [] as { hora: string; evento: string }[],
     invitacion_url: "",
     frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, confeti_regalo: false,
   });
   const setField = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
+  const addAgenda = () => setF((p: any) => ({ ...p, agenda: [...(p.agenda || []), { hora: "", evento: "" }] }));
+  const updateAgenda = (i: number, k: string, v: string) => setF((p: any) => { const a = [...(p.agenda || [])]; a[i] = { ...a[i], [k]: v }; return { ...p, agenda: a }; });
+  const removeAgenda = (i: number) => setF((p: any) => ({ ...p, agenda: (p.agenda || []).filter((_: any, j: number) => j !== i) }));
 
   // secciones
   const [secciones, setSecciones] = useState<Record<string, boolean>>({ galeria: true, regalos: true, historia: true, detalles: true, invitacion: true, rsvp: true, countdown: true });
@@ -211,6 +215,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       paleta_colores: (Array.isArray(p.paleta_colores) && p.paleta_colores.length === 4)
         ? p.paleta_colores
         : (PALETAS.find((x) => x.id === (p.paleta || "rosawedo"))?.dots || ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"]),
+      agenda: Array.isArray(p.agenda) ? p.agenda : [],
       invitacion_url: p.invitacion_url || "",
       frase_portada: p.frase_portada ?? "Nos casamos", estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, confeti_regalo: !!p.confeti_regalo,
@@ -244,7 +249,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     ceremonia: f.ceremonia, ceremonia_maps: f.ceremonia_maps, recepcion: f.recepcion, recepcion_maps: f.recepcion_maps,
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
     galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, mensaje_gracias: f.mensaje_gracias,
-    frase_portada: f.frase_portada,
+    frase_portada: f.frase_portada, agenda: f.agenda,
   }, "info");
   const saveDiseno = () => savePareja({
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
@@ -261,6 +266,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
+    agenda: f.agenda,
     invitacion_url: f.invitacion_url || null, secciones, secciones_orden: orden,
   }, "all");
 
@@ -473,6 +479,19 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     <div className="field grow"><label>Ciudad</label><input className="inp" value={f.lugar} onChange={(e) => setField("lugar", e.target.value)} placeholder="Antigua Guatemala" /></div>
                     <div className="field grow"><label>Hora</label><input className="inp" value={f.hora} onChange={(e) => setField("hora", e.target.value)} placeholder="4:00 PM" /></div>
                   </div>
+                </div>
+
+                <div className="ecard">
+                  <div className="ecard-h">Agenda del día</div>
+                  <p className="hint" style={{ margin: "0 0 12px" }}>El cronograma que verán tus invitados en Detalles (hora + momento).</p>
+                  {(f.agenda || []).map((row: { hora: string; evento: string }, i: number) => (
+                    <div className="frow" key={i} style={{ alignItems: "flex-end" }}>
+                      <div className="field" style={{ width: 120 }}><label>Hora</label><input className="inp" value={row.hora} onChange={(e) => updateAgenda(i, "hora", e.target.value)} placeholder="4:00 PM" /></div>
+                      <div className="field grow"><label>Momento</label><input className="inp" value={row.evento} onChange={(e) => updateAgenda(i, "evento", e.target.value)} placeholder="Ceremonia religiosa" /></div>
+                      <button className="btn btn-ghost btn-sm" onClick={() => removeAgenda(i)} style={{ marginBottom: 14 }}>Quitar</button>
+                    </div>
+                  ))}
+                  <button className="btn btn-ghost btn-sm" onClick={addAgenda}>+ Agregar momento</button>
                 </div>
 
                 <div className="ecard">
