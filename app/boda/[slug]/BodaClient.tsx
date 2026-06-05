@@ -292,7 +292,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       const t = line.trim();
       if (!t) return <div key={i} style={{ height: 5 }} />;
       if (t.startsWith("## ")) return <div key={i} style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--c-muted)", margin: "8px 0 4px" }}>{renderInline(t.slice(3))}</div>;
-      if (t.startsWith("* ")) return <div key={i} style={{ display: "flex", gap: 8, marginBottom: 3, justifyContent: "center" }}><span style={{ color: "var(--c-accent)" }}>·</span><span>{renderInline(t.slice(2))}</span></div>;
+      if (t.startsWith("* ")) return <div key={i} style={{ display: "flex", gap: 8, marginBottom: 3, justifyContent: "flex-start" }}><span style={{ color: "var(--c-accent)" }}>·</span><span>{renderInline(t.slice(2))}</span></div>;
       return <div key={i} style={{ marginBottom: 3 }}>{renderInline(t)}</div>;
     });
   }

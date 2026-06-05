@@ -77,7 +77,7 @@
 .inv-public .cv-seal .mk .dot{color:var(--c-accent);}
 
 .inv-public .cover-text{position:relative; z-index:1; margin-top:36px;}
-.inv-public .cover .names{font-family:'Great Vibes',cursive; font-size:clamp(50px,9vw,84px); line-height:1.02; color:var(--c-accent); margin:0; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:0 .32em;}
+.inv-public .cover .names{font-family:var(--c-font); font-size:clamp(50px,9vw,84px); line-height:1.02; color:var(--c-accent); margin:0; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:0 .32em;}
 .inv-public .cover .names .amp{font-style:normal;}
 .inv-public .cv-div{color:rgba(35,23,18,.4); margin:14px auto 16px; width:160px;}
 .inv-public .cv-div svg{width:100%; height:16px; display:block;}
@@ -94,7 +94,7 @@
 @keyframes scrollHint{0%,100%{transform:translateY(0);} 50%{transform:translateY(4px);}}
 
 /* big date (shown only in 'fecha' style) */
-.inv-public .big-date{display:none; font-family:var(--c-font-tit); color:var(--c-ink); line-height:.86; align-items:baseline; justify-content:center; gap:.14em;}
+.inv-public .big-date{display:none; font-family:var(--c-font); color:var(--c-ink); line-height:.86; align-items:baseline; justify-content:center; gap:.14em;}
 .inv-public .big-date .bd-d, .inv-public .big-date .bd-m{font-size:clamp(76px,18vw,156px); font-weight:500;}
 .inv-public .big-date .bd-dot{font-size:clamp(54px,12vw,112px); color:var(--c-accent);}
 .inv-public .big-date .bd-y{font-size:clamp(20px,4vw,30px); letter-spacing:.18em; align-self:flex-end; margin-bottom:.5em; color:var(--c-soft);}
@@ -112,7 +112,7 @@
 .inv-public .cover[data-style="minimalista"] .cv-blob,
 .inv-public .cover[data-style="minimalista"] .petals,
 .inv-public .cover[data-style="minimalista"] .cd{display:none;}
-.inv-public .cover[data-style="minimalista"] .names{font-family:var(--c-font-tit); font-style:italic; font-weight:500; font-size:clamp(46px,8vw,78px); color:var(--c-ink); gap:0 .18em;}
+.inv-public .cover[data-style="minimalista"] .names{font-family:var(--c-font); font-style:italic; font-weight:500; font-size:clamp(46px,8vw,78px); color:var(--c-ink); gap:0 .18em;}
 .inv-public .cover[data-style="minimalista"] .names .amp{color:var(--c-accent);}
 .inv-public .cover[data-style="minimalista"] .cv-kick{margin-bottom:44px;}
 .inv-public .cover[data-style="minimalista"] .date{font-size:16px; letter-spacing:.3em;}
@@ -217,7 +217,7 @@
 .inv-public .dress{margin-top:18px; background:linear-gradient(165deg,#FBF5EC,#F4E2DB); border:1px solid var(--c-line); border-radius:20px; padding:26px 24px;}
 .inv-public .dress-k{font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--c-accent); text-align:center;}
 .inv-public .dress-h{font-family:var(--c-font-tit); font-weight:500; font-size:28px; color:var(--c-ink); text-align:center; margin:6px 0 12px;}
-.inv-public .dress-p{font-size:16.5px; line-height:1.65; color:var(--c-soft); text-align:center; margin:0 auto; max-width:46ch;}
+.inv-public .dress-p{font-size:16.5px; line-height:1.65; color:var(--c-soft); text-align:left; margin:0 auto; max-width:46ch;}
 .inv-public .dress-photos{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:18px;}
 .inv-public .dress-photos img{width:100%; height:clamp(130px,22vw,180px); object-fit:cover; border-radius:12px;}
 .inv-public .dress-sw{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:9px; margin-top:18px;}
