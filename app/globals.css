@@ -88,7 +88,7 @@ a{color:inherit; text-decoration:none;}
 .link-u::after{content:""; position:absolute; left:0; right:0; bottom:-3px; height:1.6px; background:var(--pink); transform:scaleX(0); transform-origin:left; transition:transform .3s var(--ease);}
 .link-u:hover::after{transform:scaleX(1);}
 
-.wrap{width:100%; max-width:1180px; margin:0 auto; padding:0 22px;}
+.wrap{width:100%; max-width:1180px; margin:0 auto; padding:0 clamp(30px,8vw,40px);}
 
 /* =====================================================================
    LANDING (Homepage.tsx) — layered editorial hero + blended sections
@@ -108,7 +108,7 @@ a{color:inherit; text-decoration:none;}
 .nav-r .hide-sm{display:none;}
 
 .hero{position:relative; overflow:hidden; isolation:isolate;}
-.stage{position:relative; min-height:calc(100svh - 66px); display:flex; flex-direction:column; justify-content:center; padding:96px 0 104px;}
+.stage{position:relative; min-height:calc(100svh - 66px); display:flex; flex-direction:column; justify-content:center; padding:clamp(92px,14vh,132px) 0 clamp(48px,9vh,80px);}
 
 .blob{position:absolute; z-index:0; border-radius:62% 38% 54% 46% / 56% 44% 56% 44%; will-change:transform; filter:blur(8px); pointer-events:none;}
 .b-peri{width:clamp(260px,42vw,520px); aspect-ratio:1.15; top:-7%; left:-9%; background:radial-gradient(circle at 38% 36%, #b6cbf6, #87A6E8 62%, rgba(135,166,232,0) 72%); opacity:.9; animation:drift1 16s ease-in-out infinite;}
@@ -142,12 +142,14 @@ a{color:inherit; text-decoration:none;}
 .w-recibe{color:var(--pink); font-style:italic; animation-delay:.32s;}
 @keyframes wordRise{0%{opacity:0; transform:translateY(40px) scale(.93);} 70%{opacity:1; transform:translateY(-6px) scale(1.01);} 100%{opacity:1; transform:none;}}
 
-.stage-inner{position:relative; display:flex; flex-direction:column; justify-content:space-between; min-height:calc(100svh - 66px); padding:22px 0 26px; gap:18px;}
+.stage-inner{position:relative; display:flex; flex-direction:column; justify-content:center; min-height:auto; padding-top:0; padding-bottom:0; gap:clamp(24px,5.5vh,38px);}
 .eyebrow{display:inline-flex; align-items:center; gap:9px; font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--ink);}
 .eyebrow .d{width:8px; height:8px; border-radius:50%; background:var(--pink);}
 .hero-eyebrow{position:relative; z-index:10; align-self:flex-start;}
 .hero-foot{position:relative; z-index:10; display:flex; flex-direction:column; gap:14px;}
-.hero-cta{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+.hero-cta{display:flex; flex-direction:column; align-items:stretch; gap:14px; flex-wrap:wrap;}
+.hero-cta .btn{width:100%;}
+.hero-cta .link-u{align-self:center;}
 .hero-desc .sign{font-family:'Instrument Serif',serif; font-style:italic; font-size:clamp(19px,4.6vw,25px); margin:0;}
 .hero-desc .sign .dot{color:var(--pink); font-style:normal;}
 .hero-desc .sub{font-size:13.5px; line-height:1.55; color:rgba(35,23,18,.78); margin:7px 0 0; max-width:38ch;}
@@ -210,7 +212,7 @@ a{color:inherit; text-decoration:none;}
    — hide them (decorative) and let the hero breathe; blobs stay as backdrop */
 @media (max-width:759px){
   .float{display:none;}
-  .stage{padding:72px 0 84px;}
+  .chip{display:none;}
 }
 
 @media (min-width:760px){
@@ -218,7 +220,12 @@ a{color:inherit; text-decoration:none;}
   .nav-in{height:78px;}
   .nav-r .hide-sm{display:inline-flex;}
   .nav-r{gap:14px;}
-  .stage-inner{padding:38px 0 34px;}
+  .float{display:block;}
+  .chip{display:flex;}
+  .stage{padding:96px 0 104px;}
+  .stage-inner{justify-content:space-between; min-height:calc(100svh - 66px); padding-top:38px; padding-bottom:34px; gap:18px;}
+  .hero-cta{flex-direction:row; align-items:center; gap:16px;}
+  .hero-cta .btn{width:auto;}
   .lema{max-width:11ch; padding-left:6%;}
   .hero-foot{flex-direction:row; align-items:flex-end; justify-content:space-between; gap:40px;}
   .hero-desc{text-align:right;}
