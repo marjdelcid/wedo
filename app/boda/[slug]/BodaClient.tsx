@@ -326,7 +326,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   function GiftCard({ g, i }: { g: any; i: number }) {
     const meta = g.meta || 0;
     const pct = meta > 0 ? Math.min(Math.round(((g.recaudado || 0) / meta) * 100), 100) : 0;
-    const showBar = g.modo !== "completo" && meta > 0;
+    const showBar = g.modo !== "completo" && meta > 0 && g.mostrar_progreso !== false;
     return (
       <div className={"gift" + (g.tomado ? " done" : "")}>
         {g.foto && <div className="gthumb"><img src={g.foto} alt={g.nombre} /></div>}

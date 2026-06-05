@@ -180,7 +180,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [fondos, setFondos] = useState<any[]>([]);
   const [showGiftForm, setShowGiftForm] = useState(false);
   const [editingGift, setEditingGift] = useState<any>(null);
-  const [gForm, setGForm] = useState<any>({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "" });
+  const [gForm, setGForm] = useState<any>({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: true });
   const [savingGift, setSavingGift] = useState(false);
 
   // invitados
@@ -315,10 +315,10 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const pick = (id: string) => fileRefs.current[id]?.click();
 
   // ---- gifts ----
-  function openNewGift() { setEditingGift(null); setGForm({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "" }); setShowGiftForm(true); }
+  function openNewGift() { setEditingGift(null); setGForm({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: true }); setShowGiftForm(true); }
   function openEditGift(g: any) {
     setEditingGift(g);
-    setGForm({ nombre: g.nombre || "", descripcion: g.descripcion || "", historia: g.historia || "", meta: g.meta?.toString() || "", foto: g.foto || "", modo: g.modo || "libre", chips: g.chips || [100, 200, 500, 1000], nuevoChip: "" });
+    setGForm({ nombre: g.nombre || "", descripcion: g.descripcion || "", historia: g.historia || "", meta: g.meta?.toString() || "", foto: g.foto || "", modo: g.modo || "libre", chips: g.chips || [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: g.mostrar_progreso !== false });
     setShowGiftForm(true);
   }
   function addChip() {
@@ -329,7 +329,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   async function saveGift() {
     if (!gForm.nombre) return;
     setSavingGift(true);
-    const data = { nombre: gForm.nombre, descripcion: gForm.descripcion, historia: gForm.historia, meta: parseFloat(gForm.meta) || 0, foto: gForm.foto || null, modo: gForm.modo, chips: gForm.chips };
+    const data = { nombre: gForm.nombre, descripcion: gForm.descripcion, historia: gForm.historia, meta: parseFloat(gForm.meta) || 0, foto: gForm.foto || null, modo: gForm.modo, chips: gForm.chips, mostrar_progreso: gForm.mostrar_progreso !== false };
     if (editingGift) await supabase.from("fondos").update(data).eq("id", editingGift.id);
     else await supabase.from("fondos").insert({ pareja_id: pareja.id, ...data, recaudado: 0, orden: fondos.length, tomado: false });
     setShowGiftForm(false); setEditingGift(null); setSavingGift(false);
@@ -682,6 +682,9 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                           <button className="btn btn-ghost btn-sm" type="button" onClick={addChip}>+ Agregar</button>
                         </div>
                       </>
+                    )}
+                    {gForm.modo === "libre" && (
+                      <div className="toggle-row" style={{ marginBottom: 14 }}><button type="button" className={"switch" + (gForm.mostrar_progreso === false ? " off" : "")} onClick={() => setGForm((p: any) => ({ ...p, mostrar_progreso: !(p.mostrar_progreso !== false) }))} />Mostrar el % recaudado en la invitación</div>
                     )}
                     <div className="field" style={{ marginBottom: 8 }}><label>Foto</label></div>
                     <input ref={(el) => { fileRefs.current.gift = el; }} type="file" accept="image/*" onChange={onGiftFoto} style={{ display: "none" }} />
