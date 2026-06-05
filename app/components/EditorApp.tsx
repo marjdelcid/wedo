@@ -165,6 +165,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     rsvp_fecha_limite: "",
     invitacion_url: "",
     frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, confeti_regalo: false,
+    std_estilo: "c",
   });
   const setField = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const addAgenda = () => setF((p: any) => ({ ...p, agenda: [...(p.agenda || []), { hora: "", evento: "" }] }));
@@ -221,6 +222,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       invitacion_url: p.invitacion_url || "",
       frase_portada: p.frase_portada ?? "Nos casamos", estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, confeti_regalo: !!p.confeti_regalo,
+      std_estilo: p.std_estilo || "c",
     });
     setRsvpCodigo(p.rsvp_codigo_requerido || false);
     if (p.secciones) setSecciones((s) => ({ ...s, ...p.secciones }));
@@ -257,6 +259,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
+    std_estilo: f.std_estilo,
   }, "diseno");
   const saveInvitacion = () => savePareja({ invitacion_url: f.invitacion_url || null }, "invitacion");
   const saveSecciones = () => savePareja({ secciones, secciones_orden: orden }, "secciones");
@@ -268,7 +271,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
-    agenda: f.agenda, rsvp_fecha_limite: f.rsvp_fecha_limite || null,
+    agenda: f.agenda, rsvp_fecha_limite: f.rsvp_fecha_limite || null, std_estilo: f.std_estilo,
     invitacion_url: f.invitacion_url || null, secciones, secciones_orden: orden,
   }, "all");
 
@@ -641,6 +644,27 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   </div>
                   <div className="toggle-row" style={{ marginTop: 16 }}><button className={"switch" + (f.petalos ? "" : " off")} onClick={() => setField("petalos", !f.petalos)} />Lluvia de pétalos en la portada</div>
                   <div className="toggle-row" style={{ marginTop: 10 }}><button className={"switch" + (f.confeti_regalo ? "" : " off")} onClick={() => setField("confeti_regalo", !f.confeti_regalo)} />Confeti al hacer un regalo</div>
+                </div>
+
+                <div className="ecard">
+                  <div className="ecard-h">Save the Date</div>
+                  <p className="hint">Pantalla aparte para enviar <strong>antes</strong> de la invitación formal (cuenta regresiva + agregar al calendario). Elige el estilo:</p>
+                  <div className="cover-grid">
+                    {[
+                      { id: "a", label: "Foto", prev: <em>{f.nombre1 || "Andrea"} & {f.nombre2 || "Diego"}</em> },
+                      { id: "b", label: "Editorial", prev: <em>Save the date</em> },
+                      { id: "c", label: "Letterpress", prev: "TO BE · WED" },
+                    ].map((s) => (
+                      <div key={s.id} className={"cover-opt" + (f.std_estilo === s.id ? " sel" : "")} onClick={() => setField("std_estilo", s.id)}>
+                        <span style={{ fontFamily: ff(f.tipografia), fontSize: 15, color: "var(--ink)" }}>{s.prev}</span>
+                        <span className="ttl">{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {pareja?.slug && (
+                    <a className="btn btn-ghost btn-sm" href={`/std/${pareja.slug}`} target="_blank" rel="noreferrer" style={{ marginTop: 12, display: "inline-flex" }}>Ver / compartir Save the Date ↗</a>
+                  )}
+                  <p className="hint" style={{ margin: "8px 0 0" }}>Link para compartir: wedo.gifts/std/{pareja?.slug || "tu-evento"}</p>
                 </div>
 
                 <button className="btn btn-pink btn-sm" onClick={saveDiseno} disabled={savingPane === "diseno"}>{saveLabel("diseno", "Guardar diseño")}</button>
