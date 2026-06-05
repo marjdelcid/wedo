@@ -14,6 +14,15 @@ import "../../inv-public.css";
 
 const fmtQ = (n: number) => "Q " + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+// readable text color (ink vs white) over a solid accent background
+function textOn(hex: string): string {
+  const h = (hex || "").replace("#", "");
+  if (h.length !== 6) return "#fff";
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  return lum > 162 ? "#231712" : "#fff";
+}
+
 // couple palettes — 4-color story per palette (must match EditorApp PALETAS).
 // colores[0] is the accent; the 4 colors theme the cover, the 4 Detalles
 // info-cards, the RSVP and the dress-code swatches. The canvas itself stays
@@ -242,6 +251,8 @@ export default function BodaClient({ slug }: { slug: string }) {
     ["--c2" as string]: colores[1],
     ["--c3" as string]: colores[2],
     ["--c4" as string]: colores[3],
+    ["--c-on-accent" as string]: textOn(colores[0]),
+    ["--c-on-c2" as string]: textOn(colores[1]),
     ["--c-font" as string]: `'${font}', Georgia, serif`,
     ["--c-font-tit" as string]: `'${fontTitulos}', Georgia, serif`,
   } as React.CSSProperties;
@@ -465,7 +476,7 @@ export default function BodaClient({ slug }: { slug: string }) {
             ) : (
               <>
                 <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                  <button onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "si" }))} style={{ flex: 1, padding: 12, border: `1.5px solid ${rsvpForm.asistencia === "si" ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: rsvpForm.asistencia === "si" ? "var(--c-accent)" : "transparent", color: rsvpForm.asistencia === "si" ? "#fff" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>✓ Sí, asistiré</button>
+                  <button onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "si" }))} style={{ flex: 1, padding: 12, border: `1.5px solid ${rsvpForm.asistencia === "si" ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: rsvpForm.asistencia === "si" ? "var(--c-accent)" : "transparent", color: rsvpForm.asistencia === "si" ? "var(--c-on-accent)" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>✓ Sí, asistiré</button>
                   <button onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "no", acompanantes: "0" }))} style={{ flex: 1, padding: 12, border: `1.5px solid ${rsvpForm.asistencia === "no" ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: "transparent", color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>✕ No podré ir</button>
                 </div>
                 {rsvpForm.asistencia === "si" && rsvpSelected.asientos > 1 && (

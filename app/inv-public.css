@@ -14,6 +14,8 @@
   --c-accent:#E84B8A; --c-peri:#87A6E8; --c-lime:#B3C24A;
   /* the couple's 4-color story (c1 = accent) — themes cards, rsvp, swatches */
   --c1:#E84B8A; --c2:#87A6E8; --c3:#B3C24A; --c4:#EE5A28;
+  /* readable text over solid accent backgrounds (set inline per couple) */
+  --c-on-accent:#fff; --c-on-c2:#fff;
   --c-bg:#F7F0E5; --c-surface:#FFFDF9; --c-ink:#231712; --c-soft:#8a8079; --c-muted:#A89C90;
   --c-line:rgba(35,23,18,.12);
   --c-font:'Cormorant Garamond',Georgia,serif; --c-font-tit:'Cormorant Garamond',Georgia,serif;
@@ -170,17 +172,17 @@
 .inv-public .gift .bar{height:7px; border-radius:100px; background:rgba(35,23,18,.1); overflow:hidden; margin-bottom:6px;}
 .inv-public .gift .bar>span{display:block; height:100%; background:var(--c-accent); border-radius:100px;}
 .inv-public .gift .gp{display:flex; justify-content:space-between; font-family:'Archivo',sans-serif; font-size:11.5px; color:var(--c-soft); margin-bottom:14px;}
-.inv-public .gift .gbtn{width:100%; padding:13px; border:none; border-radius:100px; background:var(--c-accent); color:#fff; font-family:'Archivo',sans-serif; font-weight:600; font-size:14px; letter-spacing:.02em; transition:transform .15s, filter .2s;}
+.inv-public .gift .gbtn{width:100%; padding:13px; border:none; border-radius:100px; background:var(--c-accent); color:var(--c-on-accent); font-family:'Archivo',sans-serif; font-weight:600; font-size:14px; letter-spacing:.02em; transition:transform .15s, filter .2s;}
 .inv-public .gift .gbtn:hover{transform:translateY(-1px); filter:brightness(1.06);}
 .inv-public .gift.done{opacity:.7;}
-.inv-public .gift .gbtn.done{background:var(--ok); cursor:default;}
+.inv-public .gift .gbtn.done{background:var(--ok); color:#fff; cursor:default;}
 
 /* ===== rsvp — on-brand card (tinted with the couple's 2nd color) ===== */
 .inv-public .rsvp-box{max-width:440px; margin:0 auto; background:linear-gradient(165deg,#FFFFFF, color-mix(in srgb, var(--c2) 16%, #fff)); border:1px solid color-mix(in srgb, var(--c2) 32%, transparent); border-radius:22px; padding:30px 26px; text-align:center;}
-.inv-public .rsvp-box .rsvp-ico{width:46px; height:46px; border-radius:50%; background:var(--c2); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:'Instrument Serif',serif; font-style:italic; font-size:24px; box-shadow:0 8px 20px color-mix(in srgb, var(--c2) 40%, transparent);}
+.inv-public .rsvp-box .rsvp-ico{width:46px; height:46px; border-radius:50%; background:var(--c2); color:var(--c-on-c2); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:'Instrument Serif',serif; font-style:italic; font-size:24px; box-shadow:0 8px 20px color-mix(in srgb, var(--c2) 40%, transparent);}
 .inv-public .rsvp-box input{width:100%; padding:14px 16px; border:1px solid var(--c-line); border-radius:12px; font-family:var(--c-font-tit); font-size:18px; background:#fff; color:var(--c-ink); text-align:center; outline:none; margin-bottom:12px; transition:border-color .18s, box-shadow .18s;}
 .inv-public .rsvp-box input:focus{border-color:var(--c2); box-shadow:0 0 0 3px color-mix(in srgb, var(--c2) 22%, transparent);}
-.inv-public .rsvp-box .rbtn{width:100%; padding:14px; border:none; border-radius:100px; background:var(--c2); color:#fff; font-family:'Archivo',sans-serif; font-weight:600; font-size:14.5px; box-shadow:0 8px 22px color-mix(in srgb, var(--c2) 34%, transparent); transition:transform .15s;}
+.inv-public .rsvp-box .rbtn{width:100%; padding:14px; border:none; border-radius:100px; background:var(--c2); color:var(--c-on-c2); font-family:'Archivo',sans-serif; font-weight:600; font-size:14.5px; box-shadow:0 8px 22px color-mix(in srgb, var(--c2) 34%, transparent); transition:transform .15s;}
 .inv-public .rsvp-box .rbtn:hover{transform:translateY(-1px);}
 .inv-public .rsvp-note{font-family:'Archivo',sans-serif; font-size:12.5px; color:var(--c-soft); margin-top:14px;}
 
@@ -243,4 +245,7 @@
   .inv-public .sec{max-width:860px; padding:90px 40px 120px;}
   .inv-public .gifts-wrap{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
   .inv-public .gift{margin-bottom:0;}
+  /* regalos: sección más ancha para 3 tarjetas por fila */
+  .inv-public .isection[data-sec="regalos"] .sec{max-width:1060px;}
+  .inv-public .isection[data-sec="regalos"] .gifts-wrap{grid-template-columns:repeat(3,1fr);}
 }
