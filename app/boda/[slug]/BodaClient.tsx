@@ -283,11 +283,13 @@ export default function BodaClient({ slug }: { slug: string }) {
   })() : null;
 
   function renderInline(text: string): React.ReactNode[] {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-      part.startsWith("**") && part.endsWith("**")
-        ? <strong key={i} style={{ fontWeight: 600, color: "var(--c-ink)" }}>{part.slice(2, -2)}</strong>
-        : <span key={i}>{part}</span>
-    );
+    return text.split(/(\*\*[^*]+\*\*|_[^_]+_)/g).map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**"))
+        return <strong key={i} style={{ fontWeight: 600, color: "var(--c-ink)" }}>{part.slice(2, -2)}</strong>;
+      if (part.length > 2 && part.startsWith("_") && part.endsWith("_"))
+        return <em key={i}>{part.slice(1, -1)}</em>;
+      return <span key={i}>{part}</span>;
+    });
   }
   function renderDresscode(text: string) {
     return text.split("\n").map((line, i) => {

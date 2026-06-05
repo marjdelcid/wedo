@@ -487,7 +487,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                 <div className="ecard">
                   <div className="ecard-h">Dress code</div>
                   <div className="field"><label>Etiqueta de dress code</label><input className="inp" value={f.dresscode} onChange={(e) => setField("dresscode", e.target.value)} placeholder="Formal · tonos tierra" /></div>
-                  <div className="field"><label>Cómo nos gustaría que te vistieras</label><textarea className="inp area" value={f.dresscode_notas} onChange={(e) => setField("dresscode_notas", e.target.value)} placeholder="Nos encantaría ver tonos tierra, crema y nude." /></div>
+                  <div className="field"><label>Cómo nos gustaría que te vistieras</label><textarea className="inp area" value={f.dresscode_notas} onChange={(e) => setField("dresscode_notas", e.target.value)} placeholder="Nos encantaría ver tonos tierra, crema y nude." /><p className="hint" style={{ margin: "6px 0 0" }}>Formato: <code>_cursiva_</code>, <code>**negrita**</code>, <code>* viñeta</code> al inicio de línea, <code>## subtítulo</code>.</p></div>
                   <label className="hint" style={{ fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--ink-faint)", display: "block", marginBottom: 8 }}>Fotos de inspiración (máx. 6)</label>
                   {f.dresscode_fotos.length > 0 && (
                     <div className="photo-grid dc">
