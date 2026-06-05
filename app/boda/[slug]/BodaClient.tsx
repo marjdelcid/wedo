@@ -398,6 +398,16 @@ export default function BodaClient({ slug }: { slug: string }) {
           {pareja.recepcion_maps && <a className="ic-map" href={pareja.recepcion_maps} target="_blank" rel="noreferrer">Ver en Maps ↗</a>}
         </div>
       );
+      if (pareja.rsvp_fecha_limite) {
+        const dl = new Date(pareja.rsvp_fecha_limite + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" });
+        cards.push(
+          <div className="info-card" key="rsvplim">
+            <div className="ic-k">Confirma tu asistencia</div>
+            <div className="ic-v">{dl}</div>
+            <div className="ic-s">Por favor confirma antes de esta fecha</div>
+          </div>
+        );
+      }
       if (pareja.hashtag || pareja.fotos_url) cards.push(
         <div className="info-card" key="ht">
           <div className="ic-k">Comparte tus fotos</div>

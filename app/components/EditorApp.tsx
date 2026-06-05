@@ -162,6 +162,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     paleta: "rosawedo", hero_oscuridad: 45, color_acento: "#E84B8A", color_fondo: "#F7F0E5", color_superficie: "#FFFFFF",
     paleta_colores: ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"] as string[],
     agenda: [] as { hora: string; evento: string }[],
+    rsvp_fecha_limite: "",
     invitacion_url: "",
     frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, confeti_regalo: false,
   });
@@ -216,6 +217,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
         ? p.paleta_colores
         : (PALETAS.find((x) => x.id === (p.paleta || "rosawedo"))?.dots || ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28"]),
       agenda: Array.isArray(p.agenda) ? p.agenda : [],
+      rsvp_fecha_limite: p.rsvp_fecha_limite || "",
       invitacion_url: p.invitacion_url || "",
       frase_portada: p.frase_portada ?? "Nos casamos", estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, confeti_regalo: !!p.confeti_regalo,
@@ -249,7 +251,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     ceremonia: f.ceremonia, ceremonia_maps: f.ceremonia_maps, recepcion: f.recepcion, recepcion_maps: f.recepcion_maps,
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
     galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, fotos_url: f.fotos_url, mensaje_gracias: f.mensaje_gracias,
-    frase_portada: f.frase_portada, agenda: f.agenda,
+    frase_portada: f.frase_portada, agenda: f.agenda, rsvp_fecha_limite: f.rsvp_fecha_limite || null,
   }, "info");
   const saveDiseno = () => savePareja({
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
@@ -266,7 +268,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
-    agenda: f.agenda,
+    agenda: f.agenda, rsvp_fecha_limite: f.rsvp_fecha_limite || null,
     invitacion_url: f.invitacion_url || null, secciones, secciones_orden: orden,
   }, "all");
 
@@ -479,6 +481,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     <div className="field grow"><label>Ciudad</label><input className="inp" value={f.lugar} onChange={(e) => setField("lugar", e.target.value)} placeholder="Antigua Guatemala" /></div>
                     <div className="field grow"><label>Hora</label><input className="inp" value={f.hora} onChange={(e) => setField("hora", e.target.value)} placeholder="4:00 PM" /></div>
                   </div>
+                  <div className="field" style={{ marginBottom: 0 }}><label>Fecha límite para confirmar (RSVP)</label><input className="inp" type="date" value={f.rsvp_fecha_limite || ""} onChange={(e) => setField("rsvp_fecha_limite", e.target.value)} /><p className="hint" style={{ margin: "6px 0 0" }}>Aparece en Detalles como “Confirma tu asistencia antes de…”. Déjalo vacío para ocultarlo.</p></div>
                 </div>
 
                 <div className="ecard">
