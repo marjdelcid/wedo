@@ -147,7 +147,6 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [loading, setLoading] = useState(true);
   const [pareja, setPareja] = useState<any>(null);
   const [pane, setPane] = useState<Pane>(initialPane);
-  const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
   const [savedPane, setSavedPane] = useState<Pane | "all" | null>(null);
   const [savingPane, setSavingPane] = useState<Pane | "all" | null>(null);
 
@@ -839,74 +838,6 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
           </div>
         </main>
 
-        {/* LIVE PREVIEW */}
-        <aside className="preview-pane">
-          <div className="pv-head">
-            <span className="lbl"><span className="bdot" />Vista previa</span>
-            <div className="pv-toggle">
-              <button className={device === "mobile" ? "on" : ""} onClick={() => setDevice("mobile")}>Móvil</button>
-              <button className={device === "desktop" ? "on" : ""} onClick={() => setDevice("desktop")}>Escritorio</button>
-            </div>
-          </div>
-          <div className={"device" + (device === "desktop" ? " desktop" : "")}>
-            <div className="screen" style={{ background: f.color_fondo }}>
-              <div className="inv" style={{ fontFamily: ff(f.tipografia_titulos) }}>
-                <div className="cover" style={{
-                  backgroundImage: f.foto_hero ? `linear-gradient(rgba(0,0,0,${f.hero_oscuridad / 100}),rgba(0,0,0,${f.hero_oscuridad / 100})), url(${f.foto_hero})` : `linear-gradient(180deg, ${f.color_fondo}, ${accent}22)`,
-                  color: f.foto_hero ? "#fff" : "#3a2e2a",
-                }}>
-                  {f.petalos && <span aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: `radial-gradient(${accent}55 2px, transparent 3px), radial-gradient(${accent}33 2px, transparent 3px)`, backgroundSize: "26px 26px, 40px 40px", backgroundPosition: "0 0, 12px 8px", opacity: 0.5 }} />}
-                  {(() => {
-                    const est = f.estilo_portada;
-                    const nameColor = f.foto_hero ? "#fff" : accent;
-                    const dateStr = (f.fecha ? new Date(f.fecha).toLocaleDateString("es-GT", { day: "2-digit", month: "2-digit", year: "numeric" }) : "15 · 02 · 2026") + (f.lugar ? ` — ${f.lugar}` : "");
-                    const frase = f.frase_portada || "Nos casamos";
-                    const n1 = f.nombre1 || "María", n2 = f.nombre2 || "José";
-                    const preColor = f.foto_hero ? "rgba(255,255,255,.85)" : accent;
-                    const subColor = f.foto_hero ? "rgba(255,255,255,.85)" : "#7a6a5a";
-                    if (est === "minimalista") return (<>
-                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor, fontSize: 30, letterSpacing: ".15em" }}>{n1[0].toUpperCase()} · {n2[0].toUpperCase()}</div>
-                      <div className="date" style={{ color: subColor }}>{dateStr}</div>
-                    </>);
-                    if (est === "fecha") return (<>
-                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor, fontSize: 34 }}>{dateStr.split(" — ")[0]}</div>
-                      <div className="pre" style={{ color: preColor, marginTop: 8 }}>{n1} &amp; {n2}</div>
-                    </>);
-                    if (est === "apilada") return (<>
-                      <div className="pre" style={{ color: preColor }}>{frase}</div>
-                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor, fontSize: 40 }}>{n1}<br />&amp;<br />{n2}</div>
-                      <div className="date" style={{ color: subColor }}>{dateStr}</div>
-                    </>);
-                    if (est === "marco") return (
-                      <div style={{ border: `1px solid ${f.foto_hero ? "rgba(255,255,255,.6)" : accent}`, padding: "18px 14px", margin: "0 6px" }}>
-                        <div className="pre" style={{ color: preColor }}>{frase}</div>
-                        <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor }}>{n1} &amp; {n2}</div>
-                        <div className="date" style={{ color: subColor }}>{dateStr}</div>
-                      </div>
-                    );
-                    if (est === "editorial") return (<>
-                      <div className="names" style={{ fontFamily: ff(f.tipografia), fontStyle: "italic", color: nameColor, fontSize: 40 }}>{frase}</div>
-                      <div className="date" style={{ color: subColor }}>{n1} &amp; {n2} · {dateStr}</div>
-                    </>);
-                    return (<>
-                      <div className="pre" style={{ color: preColor }}>{frase}</div>
-                      <div className="names" style={{ fontFamily: ff(f.tipografia), color: nameColor }}>{n1} &amp; {n2}</div>
-                      <div className="date" style={{ color: subColor }}>{dateStr}</div>
-                    </>);
-                  })()}
-                </div>
-                <div className="body" style={{ background: f.color_superficie }}>
-                  <div className="sec-h" style={{ color: accent }}>Nuestra mesa de regalos</div>
-                  {(fondos.length ? fondos : [{ nombre: "Luna de miel", meta: 12000, modo: "libre" }]).slice(0, 4).map((g: any, i: number) => (
-                    <div className="gift-pv" key={i}><span>{g.nombre}</span><span className="pg-amt" style={{ color: accent }}>{g.modo === "libre" && !g.meta ? "Aporte libre" : fmtMoney(g.meta)}</span></div>
-                  ))}
-                  <button className="give-btn" style={{ background: accent, fontFamily: ff(f.tipografia_titulos) }}>Hacer un regalo</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p className="pv-note">Así lo ven tus invitados. La invitación usa <strong>tus</strong> fuentes y colores —el editor de marca es aparte.</p>
-        </aside>
       </div>
 
       {/* PILL NAV */}

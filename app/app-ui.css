@@ -135,7 +135,7 @@
 /* =====================================================================
    EDITOR — 3 zones: section rail · edit panel · live preview
    ===================================================================== */
-.wedo-app .editor{display:grid; grid-template-columns:214px 1fr 360px; min-height:calc(100vh - 66px);}
+.wedo-app .editor{display:grid; grid-template-columns:214px 1fr; min-height:calc(100vh - 66px);}
 .wedo-app .erail{border-right:1px solid var(--line); padding:22px 14px; display:flex; flex-direction:column;}
 .wedo-app .erail .sec-title{font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); padding:4px 12px 12px;}
 .wedo-app .erail a{display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:12px; font-size:14px; font-weight:500; color:var(--ink-soft); transition:background .18s, color .18s; cursor:pointer;}
