@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import "../../inv-pay.css";
+import "../../inv-public.css";
 
 const fmtQ = (n: number) => "Q " + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -33,6 +34,8 @@ const TEXT: Record<string, { primary: string; secondary: string; muted: string }
   vinedo:     { primary: "#1A100E", secondary: "#4A3028", muted: "#7A6858" },
 };
 
+const PETAL_COLORS = ["#E84B8A", "#B3C24A", "#F3C9C2", "#87A6E8", "#EE5A28", "#E84B8A", "#B3C24A"];
+
 export default function BodaClient({ slug }: { slug: string }) {
   const [pareja, setPareja] = useState<any>(null);
   const [fondos, setFondos] = useState<any[]>([]);
@@ -44,7 +47,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [customStr, setCustomStr] = useState("");
   const [nombre, setNombre] = useState("");
   const [mensajeRegalo, setMensajeRegalo] = useState("");
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection, setActiveSection] = useState("portada");
 
   // RSVP state
   const [rsvpQuery, setRsvpQuery] = useState("");
@@ -67,131 +70,126 @@ export default function BodaClient({ slug }: { slug: string }) {
     setPareja(p);
     const { data: f } = await supabase.from("fondos").select("*").eq("pareja_id", p.id).order("orden");
     setFondos(f || []);
-    // Set initial active section to first enabled section in saved order
-    const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, ...(p.secciones || {}) };
-    const order: string[] = Array.isArray(p.secciones_orden) && p.secciones_orden.length > 0 ? p.secciones_orden : ["regalos", "historia", "detalles", "invitacion", "rsvp"];
-    const first = order.find(id => !!(secs as any)[id] && id !== "countdown") || "regalos";
-    setActiveSection(first);
     setLoading(false);
   }
 
-async function searchRsvp() {
-  if (!rsvpQuery.trim()) return;
-  setRsvpSearched(true);
-  setRsvpSelected(null);
-  const { data } = await supabase.from("invitados")
-    .select("id,nombre,asientos,confirmado,pareja_id,tiene_codigo")
-    .eq("pareja_id", pareja.id)
-    .ilike("nombre", `%${rsvpQuery.trim()}%`);
-  setRsvpResults(data || []);
-}
-
-async function handleVerifyCodigo() {
-  if (!rsvpSelected) return;
-  setRsvpCodigoLoading(true);
-  setRsvpCodigoError(false);
-  const { data } = await supabase.from("invitados")
-    .select("id")
-    .eq("id", rsvpSelected.id)
-    .eq("codigo", rsvpCodigoInput.trim().toUpperCase())
-    .single();
-  setRsvpCodigoLoading(false);
-  if (data) {
-    setRsvpCodigoStep(false);
-    setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
-  } else {
-    setRsvpCodigoError(true);
+  async function searchRsvp() {
+    if (!rsvpQuery.trim()) return;
+    setRsvpSearched(true);
+    setRsvpSelected(null);
+    const { data } = await supabase.from("invitados")
+      .select("id,nombre,asientos,confirmado,pareja_id,tiene_codigo")
+      .eq("pareja_id", pareja.id)
+      .ilike("nombre", `%${rsvpQuery.trim()}%`);
+    setRsvpResults(data || []);
   }
-}
 
-async function handleRsvpSubmit() {
-  if (!rsvpSelected || !rsvpForm.asistencia) return;
-  setRsvpSubmitting(true);
-  await supabase.from("rsvp").insert({
-    invitado_id: rsvpSelected.id,
-    pareja_id: pareja.id,
-    nombre: rsvpSelected.nombre,
-    telefono: rsvpForm.telefono,
-    asistencia: rsvpForm.asistencia,
-    acompanantes: parseInt(rsvpForm.acompanantes) || 0,
-    restricciones: rsvpForm.restricciones,
-    mensaje: rsvpForm.mensaje,
-  });
-  await supabase.from("invitados").update({ confirmado: true }).eq("id", rsvpSelected.id);
-  setRsvpSubmitting(false);
-  setRsvpDone(true);
-}
-
-function fireConfetti() {
-  if (typeof window === "undefined") return;
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const COLORS = ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28", "#F3C9C2"];
-  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  for (let i = 0; i < 26; i++) {
-    const c = document.createElement("div");
-    c.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:9999;background:${COLORS[i % COLORS.length]};`;
-    if (i % 3 === 0) { c.style.borderRadius = "50%"; c.style.width = "9px"; c.style.height = "9px"; }
-    document.body.appendChild(c);
-    const ang = Math.PI * (0.15 + Math.random() * 0.7) * -1;
-    const spread = (Math.random() - 0.5) * 2.4;
-    const dist = 120 + Math.random() * 180;
-    const dx = Math.cos(ang) * dist * spread * 1.2;
-    const dy = Math.sin(ang) * dist - (60 + Math.random() * 80);
-    const rot = Math.random() * 720 - 360;
-    const dur = 800 + Math.random() * 700;
-    c.animate([
-      { transform: "translate(0,0) rotate(0deg)", opacity: 1 },
-      { transform: `translate(${dx * 0.6}px,${dy}px) rotate(${rot * 0.6}deg)`, opacity: 1, offset: 0.5 },
-      { transform: `translate(${dx}px,${dy + 320}px) rotate(${rot}deg)`, opacity: 0 },
-    ], { duration: dur, easing: "cubic-bezier(.18,.7,.4,1)", fill: "forwards" });
-    setTimeout(() => c.remove(), dur + 80);
+  async function handleVerifyCodigo() {
+    if (!rsvpSelected) return;
+    setRsvpCodigoLoading(true);
+    setRsvpCodigoError(false);
+    const { data } = await supabase.from("invitados")
+      .select("id")
+      .eq("id", rsvpSelected.id)
+      .eq("codigo", rsvpCodigoInput.trim().toUpperCase())
+      .single();
+    setRsvpCodigoLoading(false);
+    if (data) {
+      setRsvpCodigoStep(false);
+      setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
+    } else {
+      setRsvpCodigoError(true);
+    }
   }
-}
 
-function openGift(i: number) {
-  const g = fondos[i];
-  setSelected(i);
-  setNombre(""); setMensajeRegalo(""); setCustomStr("");
-  setPayState("choose");
-  setAmount(g?.modo === "completo" ? (g.meta || 0) : ((g?.chips && g.chips[0]) || 100));
-  setOpen(true);
-}
-function closeGift() {
-  setOpen(false); setPayState("choose"); setNombre(""); setMensajeRegalo(""); setCustomStr("");
-}
-
-async function handlePay() {
-  const g = fondos[selected];
-  if (!g) return;
-  const montoFinal = g.modo === "completo" ? (g.meta || 0) : amount;
-  if (!montoFinal || montoFinal <= 0) return;
-  setPayState("pend");
-  try {
-    const { error: e1 } = await supabase.from("contribuciones").insert({ fondo_id: g.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
-    if (e1) throw e1;
-    await supabase.from("fondos").update({
-      recaudado: (g.recaudado || 0) + montoFinal,
-      ...(g.modo === "completo" ? { tomado: true } : {})
-    }).eq("id", g.id);
-    setPayState("ok");
-    if (pareja?.confeti_regalo) fireConfetti();
-    loadData();
-  } catch {
-    setPayState("err");
+  async function handleRsvpSubmit() {
+    if (!rsvpSelected || !rsvpForm.asistencia) return;
+    setRsvpSubmitting(true);
+    await supabase.from("rsvp").insert({
+      invitado_id: rsvpSelected.id,
+      pareja_id: pareja.id,
+      nombre: rsvpSelected.nombre,
+      telefono: rsvpForm.telefono,
+      asistencia: rsvpForm.asistencia,
+      acompanantes: parseInt(rsvpForm.acompanantes) || 0,
+      restricciones: rsvpForm.restricciones,
+      mensaje: rsvpForm.mensaje,
+    });
+    await supabase.from("invitados").update({ confirmado: true }).eq("id", rsvpSelected.id);
+    setRsvpSubmitting(false);
+    setRsvpDone(true);
   }
-}
+
+  function fireConfetti() {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const COLORS = ["#E84B8A", "#87A6E8", "#B3C24A", "#EE5A28", "#F3C9C2"];
+    const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+    for (let i = 0; i < 26; i++) {
+      const c = document.createElement("div");
+      c.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:9999;background:${COLORS[i % COLORS.length]};`;
+      if (i % 3 === 0) { c.style.borderRadius = "50%"; c.style.width = "9px"; c.style.height = "9px"; }
+      document.body.appendChild(c);
+      const ang = Math.PI * (0.15 + Math.random() * 0.7) * -1;
+      const spread = (Math.random() - 0.5) * 2.4;
+      const dist = 120 + Math.random() * 180;
+      const dx = Math.cos(ang) * dist * spread * 1.2;
+      const dy = Math.sin(ang) * dist - (60 + Math.random() * 80);
+      const rot = Math.random() * 720 - 360;
+      const dur = 800 + Math.random() * 700;
+      c.animate([
+        { transform: "translate(0,0) rotate(0deg)", opacity: 1 },
+        { transform: `translate(${dx * 0.6}px,${dy}px) rotate(${rot * 0.6}deg)`, opacity: 1, offset: 0.5 },
+        { transform: `translate(${dx}px,${dy + 320}px) rotate(${rot}deg)`, opacity: 0 },
+      ], { duration: dur, easing: "cubic-bezier(.18,.7,.4,1)", fill: "forwards" });
+      setTimeout(() => c.remove(), dur + 80);
+    }
+  }
+
+  function openGift(i: number) {
+    const g = fondos[i];
+    setSelected(i);
+    setNombre(""); setMensajeRegalo(""); setCustomStr("");
+    setPayState("choose");
+    setAmount(g?.modo === "completo" ? (g.meta || 0) : ((g?.chips && g.chips[0]) || 100));
+    setOpen(true);
+  }
+  function closeGift() {
+    setOpen(false); setPayState("choose"); setNombre(""); setMensajeRegalo(""); setCustomStr("");
+  }
+
+  async function handlePay() {
+    const g = fondos[selected];
+    if (!g) return;
+    const montoFinal = g.modo === "completo" ? (g.meta || 0) : amount;
+    if (!montoFinal || montoFinal <= 0) return;
+    setPayState("pend");
+    try {
+      const { error: e1 } = await supabase.from("contribuciones").insert({ fondo_id: g.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
+      if (e1) throw e1;
+      await supabase.from("fondos").update({
+        recaudado: (g.recaudado || 0) + montoFinal,
+        ...(g.modo === "completo" ? { tomado: true } : {})
+      }).eq("id", g.id);
+      setPayState("ok");
+      if (pareja?.confeti_regalo) fireConfetti();
+      loadData();
+    } catch {
+      setPayState("err");
+    }
+  }
 
   if (loading) return (
-    <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "#A89C90" }}>Cargando...</div>
+    <div style={{ fontFamily: "'Archivo', sans-serif", background: "#F7F0E5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontSize: 26, color: "rgba(35,23,18,.5)" }}>Cargando<span style={{ color: "#E84B8A" }}>.</span></div>
     </div>
   );
 
   if (!pareja) return (
-    <div style={{ fontFamily: "'Jost', sans-serif", background: "#FAF8F5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+    <div style={{ fontFamily: "'Archivo', sans-serif", background: "#F7F0E5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
       <div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: "#A89C90", marginBottom: 8 }}>Página no encontrada</div>
-        <a href="/" style={{ fontSize: 11, color: "#8C6D4F", textDecoration: "none", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const }}>Volver al inicio</a>
+        <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontSize: 34, color: "#231712", marginBottom: 8 }}>Página no encontrada</div>
+        <a href="/" style={{ fontSize: 12, color: "#E84B8A", textDecoration: "none", fontWeight: 700 }}>Volver al inicio</a>
       </div>
     </div>
   );
@@ -203,22 +201,13 @@ async function handlePay() {
   const txt = (pid === "personalizado" || !TEXT[pid]) ? TEXT.champagne : TEXT[pid];
   const font = pareja.tipografia || "Cormorant Garamond";
   const fontTitulos = pareja.tipografia_titulos || font;
-  const overlayOpacity = (pareja.hero_oscuridad || 45) / 85;
+  const overlayOpacity = (pareja.hero_oscuridad || 45) / 100;
   const f = fondos[selected];
-  const heroImg = pareja.foto_hero || "https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80";
-  const secs = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
+  const heroImg = pareja.foto_hero || "";
+  const onPhoto = !!pareja.foto_hero;
+  const secs: any = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
   const galeriaFotos: string[] = Array.isArray(pareja.galeria_fotos) ? pareja.galeria_fotos : [];
-  const DEFAULT_SEC_ORDER = ["regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
-  const savedOrder: string[] = Array.isArray(pareja.secciones_orden) && pareja.secciones_orden.length > 0 ? pareja.secciones_orden : DEFAULT_SEC_ORDER;
-  const secOrder = [...savedOrder, ...DEFAULT_SEC_ORDER.filter(id => !savedOrder.includes(id))];
-  const NAV_DEF: Record<string, { label: string; visible: boolean }> = {
-    regalos:    { label: "Regalos",               visible: !!secs.regalos },
-    historia:   { label: "Nuestra historia",       visible: !!secs.historia },
-    detalles:   { label: "Detalles",               visible: !!secs.detalles },
-    invitacion: { label: "Invitación",             visible: !!secs.invitacion },
-    rsvp:       { label: "Confirmar asistencia",   visible: !!secs.rsvp },
-    countdown:  { label: "Cuenta regresiva",       visible: false },
-  };
+  const savedOrder: string[] = Array.isArray(pareja.secciones_orden) && pareja.secciones_orden.length > 0 ? pareja.secciones_orden : [];
 
   const frasePortada = pareja.frase_portada || "Nos casamos";
   const estiloPortada = pareja.estilo_portada || "clasica";
@@ -233,558 +222,259 @@ async function handlePay() {
   function renderInline(text: string): React.ReactNode[] {
     return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
       part.startsWith("**") && part.endsWith("**")
-        ? <strong key={i} style={{ fontWeight: 600, color: txt.primary }}>{part.slice(2, -2)}</strong>
+        ? <strong key={i} style={{ fontWeight: 600, color: "var(--c-ink)" }}>{part.slice(2, -2)}</strong>
         : <span key={i}>{part}</span>
     );
   }
-
   function renderDresscode(text: string) {
     return text.split("\n").map((line, i) => {
       const t = line.trim();
-      if (!t) return <div key={i} style={{ height: 6 }} />;
-      if (t.startsWith("## ")) return (
-        <div key={i} style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6, marginTop: i > 0 ? 10 : 0 }}>
-          {renderInline(t.slice(3))}
-        </div>
-      );
-      if (t.startsWith("* ")) return (
-        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 5, alignItems: "flex-start" }}>
-          <span style={{ color: pal.accent, flexShrink: 0, lineHeight: 1.7 }}>·</span>
-          <span>{renderInline(t.slice(2))}</span>
-        </div>
-      );
-      return <div key={i} style={{ marginBottom: 5 }}>{renderInline(t)}</div>;
+      if (!t) return <div key={i} style={{ height: 5 }} />;
+      if (t.startsWith("## ")) return <div key={i} style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--c-muted)", margin: "8px 0 4px" }}>{renderInline(t.slice(3))}</div>;
+      if (t.startsWith("* ")) return <div key={i} style={{ display: "flex", gap: 8, marginBottom: 3 }}><span style={{ color: "var(--c-accent)" }}>·</span><span>{renderInline(t.slice(2))}</span></div>;
+      return <div key={i} style={{ marginBottom: 3 }}>{renderInline(t)}</div>;
     });
   }
 
-  function SectionLinks({ links }: { links: { id: string; label: string }[] }) {
-    const visible = links.filter(l => l.id === "regalos" ? !!secs.regalos : !!(secs as any)[l.id]);
-    if (visible.length === 0) return null;
+  // theme vars from the couple's choices
+  const themeVars = {
+    ["--c-accent" as string]: pal.accent,
+    ["--c-bg" as string]: pal.bg,
+    ["--c-surface" as string]: pal.surface,
+    ["--c-ink" as string]: txt.primary,
+    ["--c-soft" as string]: txt.secondary,
+    ["--c-muted" as string]: txt.muted,
+    ["--c-font" as string]: `'${font}', Georgia, serif`,
+    ["--c-font-tit" as string]: `'${fontTitulos}', Georgia, serif`,
+  } as React.CSSProperties;
+
+  // section order/nav per handoff (couple's enabled toggles + saved order)
+  const PUB_LABELS: Record<string, string> = { historia: "Historia", galeria: "Galería", regalos: "Regalos", rsvp: "RSVP", detalles: "Detalles", invitacion: "Invitación" };
+  const PUB_DEFAULT = ["historia", "galeria", "regalos", "rsvp", "detalles", "invitacion"];
+  const orderedSecs = [...savedOrder, ...PUB_DEFAULT.filter((x) => !savedOrder.includes(x))]
+    .filter((x, i, a) => PUB_DEFAULT.includes(x) && a.indexOf(x) === i)
+    .filter((x) => !!secs[x] && (x !== "galeria" || galeriaFotos.length > 0));
+
+  // countdown on the cover (when the section is enabled)
+  const cd = (secs.countdown && pareja.fecha) ? (() => {
+    const diff = new Date(pareja.fecha + "T12:00:00").getTime() - Date.now();
+    if (diff <= 0) return null;
+    return { days: Math.floor(diff / 86400000), hours: Math.floor((diff % 86400000) / 3600000), mins: Math.floor((diff % 3600000) / 60000) };
+  })() : null;
+
+  const cText = onPhoto ? "#fff" : "var(--c-accent)";
+  const cPre = onPhoto ? "rgba(255,255,255,.85)" : "var(--c-accent)";
+  const cDate = onPhoto ? "rgba(255,255,255,.82)" : "var(--c-soft)";
+  const cdN = onPhoto ? "#fff" : "var(--c-accent)";
+  const cdL = onPhoto ? "rgba(255,255,255,.75)" : "var(--c-soft)";
+  const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
+
+  const coverStyle: React.CSSProperties = onPhoto
+    ? { backgroundImage: `linear-gradient(rgba(35,23,18,${(overlayOpacity * 0.45).toFixed(2)}), rgba(35,23,18,${Math.min(overlayOpacity, 0.82).toFixed(2)})), url('${heroImg}')` }
+    : { background: "var(--c-bg)" };
+
+  const Countdown = () => cd ? (
+    <div className="cd">
+      <div className="u"><div className="n" style={{ color: cdN }}>{cd.days}</div><div className="l" style={{ color: cdL }}>días</div></div>
+      <div className="u"><div className="n" style={{ color: cdN }}>{cd.hours}</div><div className="l" style={{ color: cdL }}>horas</div></div>
+      <div className="u"><div className="n" style={{ color: cdN }}>{cd.mins}</div><div className="l" style={{ color: cdL }}>min</div></div>
+    </div>
+  ) : null;
+
+  function CoverText() {
+    const Pre = ({ children }: { children: React.ReactNode }) => <div className="pre" style={{ color: cPre }}>{children}</div>;
+    const Date2 = () => heroDateLine.trim() ? <div className="date" style={{ color: cDate }}>{heroDateLine}</div> : null;
+    if (estiloPortada === "minimalista") return (<div className="cover-text"><div className="names" style={{ color: cText, letterSpacing: ".12em", fontSize: 44 }}>{(n1 || "M").charAt(0).toUpperCase()} · {(n2 || "J").charAt(0).toUpperCase()}</div><Date2 /><Countdown /></div>);
+    if (estiloPortada === "fecha") return (<div className="cover-text"><div className="names" style={{ color: cText, fontSize: 40 }}>{heroDate || "El gran día"}</div><Pre>{n1} &amp; {n2}{pareja.lugar ? ` · ${pareja.lugar}` : ""}</Pre><Countdown /></div>);
+    if (estiloPortada === "apilada") return (<div className="cover-text"><Pre>{frasePortada}</Pre><div className="names" style={{ color: cText, fontSize: 44, lineHeight: 1.05 }}>{n1}<br />&amp;<br />{n2}</div><Date2 /><Countdown /></div>);
+    if (estiloPortada === "marco") return (<div className="cover-text"><div style={{ border: `1px solid ${onPhoto ? "rgba(255,255,255,.55)" : "var(--c-accent)"}`, padding: "22px 18px", display: "inline-block" }}><Pre>{frasePortada}</Pre><div className="names" style={{ color: cText }}>{n1} &amp; {n2}</div><Date2 /></div><Countdown /></div>);
+    if (estiloPortada === "editorial") return (<div className="cover-text"><div className="names" style={{ color: cText, fontStyle: "italic", fontSize: 46 }}>{frasePortada}</div><Date2 /><Pre>{n1} &amp; {n2}</Pre><Countdown /></div>);
+    return (<div className="cover-text"><Pre>{frasePortada}</Pre><div className="names" style={{ color: cText }}>{n1} &amp; {n2}</div><Date2 /><Countdown /></div>);
+  }
+
+  const inpStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", border: "1px solid var(--c-line)", borderRadius: 10, fontSize: 14, fontFamily: "'Archivo', sans-serif", background: "var(--c-bg)", color: "var(--c-ink)", outline: "none", boxSizing: "border-box" };
+
+  function GiftCard({ g, i }: { g: any; i: number }) {
+    const meta = g.meta || 0;
+    const pct = meta > 0 ? Math.min(Math.round(((g.recaudado || 0) / meta) * 100), 100) : 0;
+    const showBar = g.modo !== "completo" && meta > 0;
     return (
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" as const, marginTop: 36, paddingTop: 24, borderTop: "1px solid rgba(26,23,20,0.07)" }}>
-        {visible.map(l => (
-          <button
-            key={l.id}
-            onClick={() => setActiveSection(l.id)}
-            style={{ padding: "10px 20px", background: "transparent", border: `1px solid rgba(26,23,20,0.18)`, borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" as const, color: txt.secondary, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.2s" }}
-            onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.borderColor = pal.accent; b.style.color = pal.accent; }}
-            onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.borderColor = "rgba(26,23,20,0.18)"; b.style.color = txt.secondary; }}
-          >
-            {l.label}
-          </button>
-        ))}
+      <div className={"gift" + (g.tomado ? " done" : "")}>
+        {g.foto && <div className="gthumb"><img src={g.foto} alt={g.nombre} /></div>}
+        <div className="gh"><span className="gn">{g.nombre}</span><span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}` : "Aporte libre"}</span></div>
+        {g.descripcion && <p className="gd">{g.descripcion}</p>}
+        {showBar && (<>
+          <div className="bar"><span style={{ width: `${pct}%` }} /></div>
+          <div className="gp"><span>{pct}% recaudado</span><span>Q {(g.recaudado || 0).toLocaleString()}</span></div>
+        </>)}
+        {g.tomado
+          ? <button className="gbtn done" disabled>Ya regalado</button>
+          : <button className="gbtn" onClick={() => openGift(i)}>Aportar</button>}
       </div>
     );
   }
 
-  const navBtnStyle = (active: boolean) => ({
-    padding: "8px 16px", fontSize: 10, fontWeight: 600 as const, letterSpacing: 1,
-    textTransform: "uppercase" as const, border: `1px solid ${active ? pal.accent : "rgba(26,23,20,0.14)"}`,
-    background: active ? pal.accent : "transparent", color: active ? "#fff" : txt.muted,
-    cursor: "pointer", borderRadius: 3, fontFamily: "'Jost', sans-serif", transition: "all 0.2s"
-  });
-
-  return (
-    <div style={{ fontFamily: "'Jost', sans-serif", background: pal.bg, minHeight: "100vh", color: txt.primary }}>
-      <style>{`
-        @keyframes wedo-fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-        @keyframes wedo-pop{0%{opacity:0;transform:translateY(18px) scale(.97)}70%{opacity:1;transform:translateY(-4px) scale(1.01)}100%{opacity:1;transform:none}}
-        @keyframes wedo-fall{0%{transform:translateY(-12px) translateX(0) rotate(0deg);opacity:0}12%{opacity:.85}100%{transform:translateY(360px) translateX(24px) rotate(240deg);opacity:0}}
-        @media (prefers-reduced-motion:reduce){[data-petal]{display:none!important}}
-      `}</style>
-
-      {/* HERO */}
-      <div style={{ position: "relative", height: 340, overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `url('${heroImg}')`, backgroundSize: "cover", backgroundPosition: "center" }} />
-        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, rgba(26,23,20,${(overlayOpacity * 0.1).toFixed(2)}), rgba(26,23,20,${overlayOpacity.toFixed(2)}))` }} />
-        {petalos && (
-          <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <span key={i} data-petal style={{ position: "absolute", top: -12, left: `${(i * 8 + 5) % 100}%`, width: 8 + (i % 3) * 3, height: 8 + (i % 3) * 3, borderRadius: "60% 0 60% 0", background: i % 2 ? "rgba(243,201,194,0.85)" : `${pal.accent}aa`, animation: `wedo-fall ${5 + (i % 4)}s linear ${i * 0.55}s infinite` }} />
+  function renderSection(id: string) {
+    if (id === "historia") return (
+      <div className="sec">
+        <div className="sec-k">Nuestra historia</div>
+        <h2 className="sec-h">Cómo empezó todo</h2>
+        <p className="body">{pareja.historia || "Pronto compartiremos cómo empezó todo."}</p>
+        {pareja.musica && <div className="song"><div className="k">Nuestra canción</div><div className="v">♪ {pareja.musica}</div></div>}
+      </div>
+    );
+    if (id === "galeria") return (
+      <div className="sec">
+        <div className="sec-k">Galería</div>
+        <h2 className="sec-h">Nuestros momentos</h2>
+        <div className="gallery-grid">{galeriaFotos.map((url, i) => <div className="ph" key={i}><img src={url} alt="" /></div>)}</div>
+      </div>
+    );
+    if (id === "regalos") return (
+      <div className="sec">
+        <div className="sec-k">Mesa de regalos</div>
+        <h2 className="sec-h">Regálanos un momento</h2>
+        {fondos.length === 0
+          ? <p className="body">Los novios aún no han agregado regalos.</p>
+          : <div className="gifts-wrap">{fondos.map((g, i) => <GiftCard key={g.id || i} g={g} i={i} />)}</div>}
+        <div style={{ textAlign: "center", marginTop: 18, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)" }}>Pagos vía <span style={{ color: "var(--c-accent)" }}>Recurrente</span> · Guatemala</div>
+      </div>
+    );
+    if (id === "invitacion") return (
+      <div className="sec">
+        <div className="sec-k">Invitación</div>
+        <h2 className="sec-h">Nuestra invitación</h2>
+        {pareja.invitacion_url
+          ? (pareja.invitacion_url.includes(".pdf")
+            ? <div style={{ textAlign: "center" }}><a href={pareja.invitacion_url} target="_blank" rel="noreferrer" style={{ display: "inline-block", padding: "13px 26px", background: "var(--c-accent)", color: "#fff", textDecoration: "none", borderRadius: 100, fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13 }}>Ver invitación (PDF)</a></div>
+            : <img src={pareja.invitacion_url} alt="Invitación" style={{ width: "100%", borderRadius: 14, boxShadow: "0 8px 30px rgba(35,23,18,.12)" }} />)
+          : <p className="body">La invitación estará disponible aquí pronto.</p>}
+      </div>
+    );
+    if (id === "detalles") {
+      const rows: React.ReactNode[] = [];
+      if (pareja.ceremonia) rows.push(<div className="detail" key="cer"><span className="di" /><div><div className="dt">Ceremonia{pareja.hora ? ` · ${pareja.hora}` : ""}</div><div className="ds">{pareja.ceremonia}</div>{pareja.ceremonia_maps && <a className="map" href={pareja.ceremonia_maps} target="_blank" rel="noreferrer">Ver mapa</a>}</div></div>);
+      if (pareja.recepcion) rows.push(<div className="detail" key="rec"><span className="di" /><div><div className="dt">Recepción</div><div className="ds">{pareja.recepcion}</div>{pareja.recepcion_maps && <a className="map" href={pareja.recepcion_maps} target="_blank" rel="noreferrer">Ver mapa</a>}</div></div>);
+      if (pareja.dresscode || pareja.dresscode_notas) rows.push(<div className="detail" key="dc"><span className="di" /><div><div className="dt">Dress code{pareja.dresscode ? ` · ${pareja.dresscode}` : ""}</div>{pareja.dresscode_notas && <div className="ds">{renderDresscode(pareja.dresscode_notas)}</div>}</div></div>);
+      if (secs.regalos) rows.push(<div className="detail" key="reg"><span className="di" /><div><div className="dt">Mesa de regalos</div><div className="ds">Aportes en quetzales, directo a su cuenta.</div></div></div>);
+      if (pareja.hashtag) rows.push(<div className="detail" key="ht"><span className="di" /><div><div className="dt">Comparte tus fotos</div><div className="ds">{pareja.hashtag}</div></div></div>);
+      return (
+        <div className="sec">
+          <div className="sec-k">Detalles del día</div>
+          <h2 className="sec-h">El gran día</h2>
+          <div className="detalles-wrap">{rows.length ? rows : <p className="body">Pronto compartiremos los detalles del día.</p>}</div>
+        </div>
+      );
+    }
+    if (id === "rsvp") return (
+      <div className="sec">
+        <div className="sec-k">Confirma tu asistencia</div>
+        <h2 className="sec-h">¿Nos acompañas?</h2>
+        {rsvpDone ? (
+          <div style={{ textAlign: "center", background: "var(--c-bg)", borderRadius: 14, padding: 26 }}>
+            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : "Gracias por avisarnos"}</div>
+            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rsvpForm.asistencia === "si" ? "Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!" : "Lamentamos que no puedas acompañarnos, gracias por responder."}</div>
+          </div>
+        ) : rsvpCodigoStep ? (
+          <div style={{ background: "var(--c-bg)", borderRadius: 14, padding: 22 }}>
+            <button onClick={() => { setRsvpSelected(null); setRsvpCodigoStep(false); }} style={{ background: "none", border: "none", color: "var(--c-muted)", cursor: "pointer", fontFamily: "'Archivo',sans-serif", fontSize: 12, marginBottom: 14, padding: 0 }}>← Volver</button>
+            <div style={{ fontFamily: "var(--c-font)", fontSize: 22, color: "var(--c-ink)", marginBottom: 4 }}>{rsvpSelected.nombre}</div>
+            <div style={{ fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 18 }}>Ingresa tu código de acceso</div>
+            <input value={rsvpCodigoInput} onChange={(e) => { setRsvpCodigoInput(e.target.value.toUpperCase()); setRsvpCodigoError(false); }} onKeyDown={(e) => e.key === "Enter" && handleVerifyCodigo()} placeholder="Ej: ABC123" maxLength={8} style={{ ...inpStyle, textAlign: "center", letterSpacing: 3, fontFamily: "monospace", fontSize: 18, marginBottom: 8 }} />
+            {rsvpCodigoError && <div style={{ fontSize: 12, color: "#b23a1c", textAlign: "center", marginBottom: 10 }}>Código incorrecto. Revisa tu invitación.</div>}
+            <button onClick={handleVerifyCodigo} disabled={!rsvpCodigoInput.trim() || rsvpCodigoLoading} style={{ width: "100%", padding: 13, background: "var(--c-accent)", color: "#fff", border: "none", borderRadius: 100, fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 14, cursor: "pointer", opacity: !rsvpCodigoInput.trim() ? 0.5 : 1 }}>{rsvpCodigoLoading ? "Verificando..." : "Continuar"}</button>
+          </div>
+        ) : !rsvpSelected ? (
+          <>
+            <div style={{ background: "var(--c-bg)", borderRadius: 14, padding: 22, marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={rsvpQuery} onChange={(e) => setRsvpQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && searchRsvp()} placeholder="Escribe tu nombre…" style={inpStyle} />
+                <button onClick={searchRsvp} style={{ padding: "0 20px", background: "var(--c-accent)", color: "#fff", border: "none", borderRadius: 100, fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>Buscar</button>
+              </div>
+            </div>
+            {rsvpSearched && rsvpResults.length === 0 && <div style={{ textAlign: "center", color: "var(--c-muted)", fontSize: 13, padding: "12px 0" }}>No encontramos tu nombre. Intenta con otro término.</div>}
+            {rsvpResults.map((inv, i) => (
+              <div key={i} onClick={() => { setRsvpSelected(inv); setRsvpCodigoInput(""); setRsvpCodigoError(false); if (pareja.rsvp_codigo_requerido && inv.tiene_codigo) { setRsvpCodigoStep(true); } else { setRsvpCodigoStep(false); setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" }); } }} style={{ background: "var(--c-surface)", border: "1px solid var(--c-line)", borderRadius: 12, padding: "14px 18px", marginBottom: 8, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontFamily: "var(--c-font)", fontSize: 19, color: "var(--c-ink)" }}>{inv.nombre}</div>
+                  <div style={{ fontSize: 11, color: "var(--c-muted)" }}>{inv.asientos} {inv.asientos === 1 ? "lugar reservado" : "lugares reservados"}{inv.confirmado ? " · ✓ ya confirmaste" : ""}</div>
+                </div>
+                <div style={{ color: "var(--c-muted)" }}>→</div>
+              </div>
             ))}
-          </div>
-        )}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px 32px", textAlign: "center", zIndex: 2 }}>
-          {(() => {
-            const F = `'${font}', serif`;
-            const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
-            const i1 = (n1 || "M").charAt(0).toUpperCase(), i2 = (n2 || "J").charAt(0).toUpperCase();
-            const Pre = ({ children }: { children: React.ReactNode }) => <div style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.78)", marginBottom: 8 }}>{children}</div>;
-            const Date2 = ({ s }: { s?: React.CSSProperties }) => heroDateLine.trim() ? <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: "rgba(255,255,255,0.68)", ...s }}>{heroDateLine}</div> : null;
-            if (estiloPortada === "minimalista") return (<>
-              <div style={{ fontFamily: F, fontSize: 46, fontWeight: 300, color: "#fff", letterSpacing: ".12em", marginBottom: 8, lineHeight: 1 }}>{i1} · {i2}</div>
-              <Date2 />
-            </>);
-            if (estiloPortada === "fecha") return (<>
-              <div style={{ fontFamily: F, fontSize: 40, fontWeight: 300, color: "#fff", marginBottom: 8, lineHeight: 1 }}>{heroDate || "El gran día"}</div>
-              <Pre>{n1} &amp; {n2}{pareja.lugar ? ` · ${pareja.lugar}` : ""}</Pre>
-            </>);
-            if (estiloPortada === "apilada") return (<>
-              <Pre>{frasePortada}</Pre>
-              <div style={{ fontFamily: F, fontSize: 40, fontWeight: 300, color: "#fff", lineHeight: 1.06, marginBottom: 8 }}>{n1}<br />&amp;<br />{n2}</div>
-              <Date2 />
-            </>);
-            if (estiloPortada === "marco") return (
-              <div style={{ border: "1px solid rgba(255,255,255,0.55)", padding: "20px 18px", display: "inline-block", minWidth: 220 }}>
-                <Pre>{frasePortada}</Pre>
-                <div style={{ fontFamily: F, fontSize: 44, fontWeight: 300, color: "#fff", marginBottom: 6, lineHeight: 1 }}>{n1} &amp; {n2}</div>
-                <Date2 />
-              </div>
-            );
-            if (estiloPortada === "editorial") return (<>
-              <div style={{ fontFamily: F, fontStyle: "italic", fontSize: 44, fontWeight: 300, color: "#fff", marginBottom: 8, lineHeight: 1.04 }}>{frasePortada}</div>
-              <Date2 s={{ marginBottom: 4 }} />
-              <Pre>{n1} &amp; {n2}</Pre>
-            </>);
-            return (<>
-              <Pre>{frasePortada}</Pre>
-              <div style={{ fontFamily: F, fontSize: 52, fontWeight: 300, color: "#fff", marginBottom: 6, lineHeight: 1 }}>{n1} &amp; {n2}</div>
-              <Date2 />
-            </>);
-          })()}
-        </div>
-      </div>
-
-      {/* CARRUSEL GALERÍA */}
-      {secs.galeria && galeriaFotos.length > 0 && (
-        <>
-          <style>{`@keyframes wedo-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
-          <div style={{ overflow: "hidden", width: "100%", background: pal.bg, padding: "14px 0", borderBottom: `1px solid rgba(26,23,20,0.06)` }}>
-            <div style={{
-              display: "flex", gap: 10,
-              width: "max-content",
-              animation: `wedo-scroll ${Math.max(galeriaFotos.length * 3, 18)}s linear infinite`,
-            }}>
-              {[...galeriaFotos, ...galeriaFotos].map((url, i) => (
-                <div key={i} style={{ flexShrink: 0, width: 180, height: 120, borderRadius: 3, overflow: "hidden", background: "#F5F2ED" }}>
-                  <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          </>
+        ) : (
+          <div style={{ background: "var(--c-bg)", borderRadius: 14, padding: 22 }}>
+            <button onClick={() => setRsvpSelected(null)} style={{ background: "none", border: "none", color: "var(--c-muted)", cursor: "pointer", fontFamily: "'Archivo',sans-serif", fontSize: 12, marginBottom: 14, padding: 0 }}>← Volver</button>
+            <div style={{ fontFamily: "var(--c-font)", fontSize: 23, color: "var(--c-ink)", marginBottom: 4 }}>{rsvpSelected.nombre}</div>
+            <div style={{ fontSize: 12, color: "var(--c-muted)", marginBottom: 18 }}>{rsvpSelected.asientos} {rsvpSelected.asientos === 1 ? "lugar reservado para ti" : "lugares reservados para ti"}</div>
+            {rsvpSelected.confirmado ? (
+              <div style={{ textAlign: "center", padding: 14, background: "rgba(125,138,46,.14)", borderRadius: 10, color: "#566012", fontSize: 13, fontWeight: 600 }}>✓ Ya confirmaste tu asistencia</div>
+            ) : (
+              <>
+                <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                  <button onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "si" }))} style={{ flex: 1, padding: 12, border: `1.5px solid ${rsvpForm.asistencia === "si" ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: rsvpForm.asistencia === "si" ? "var(--c-accent)" : "transparent", color: rsvpForm.asistencia === "si" ? "#fff" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>✓ Sí, asistiré</button>
+                  <button onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "no", acompanantes: "0" }))} style={{ flex: 1, padding: 12, border: `1.5px solid ${rsvpForm.asistencia === "no" ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: "transparent", color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>✕ No podré ir</button>
                 </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* NAV SECTIONS */}
-      <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: "16px 24px", borderBottom: `1px solid rgba(26,23,20,0.08)`, flexWrap: "wrap" as const }}>
-        {secOrder.map(id => {
-          const nav = NAV_DEF[id];
-          if (!nav || !nav.visible) return null;
-          return <button key={id} onClick={() => setActiveSection(id)} style={navBtnStyle(activeSection === id)}>{nav.label}</button>;
-        })}
-      </div>
-
-      <div key={activeSection} style={secAnim}>
-
-      {/* SECCIÓN REGALOS */}
-      {secs.regalos && activeSection === "regalos" && (
-        <>
-          <div style={{ textAlign: "center", padding: "28px 24px 8px" }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Para los novios</div>
-            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestros Regalos</div>
-            <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
-          </div>
-
-          {fondos.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px 24px" }}>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.muted }}>Los novios aún no han agregado regalos</div>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 20, padding: "24px 24px 8px" }}>
-              {fondos.map((fondo, i) => {
-                const pct = fondo.meta > 0 ? Math.min(Math.round((fondo.recaudado / fondo.meta) * 100), 100) : 0;
-                return (
-                  <div key={i} onClick={() => openGift(i)} style={{ background: pal.surface, borderRadius: 4, border: "1px solid rgba(26,23,20,0.08)", overflow: "hidden", cursor: "pointer", transition: "transform 0.3s, box-shadow 0.3s" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-6px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 20px 48px rgba(26,23,20,0.10)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}>
-                    <div style={{ height: 150, overflow: "hidden", background: "#F5F2ED" }}>
-                      {fondo.foto && <img src={fondo.foto} alt={fondo.nombre} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
-                    </div>
-                    <div style={{ padding: "14px 16px 16px" }}>
-                      <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 400, color: txt.primary, marginBottom: 4 }}>{fondo.nombre}</div>
-                      <div style={{ fontSize: 12, color: txt.secondary, lineHeight: 1.65, marginBottom: 9, fontWeight: 300 }}>{fondo.descripcion}</div>
-
-                     {fondo.modo !== "completo" && (
-  <>
-    <div style={{ height: 1, background: "rgba(26,23,20,0.1)", marginBottom: 5 }}>
-      <div style={{ height: 1, background: pal.accent, width: `${pct}%` }} />
-    </div>
-    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: txt.muted }}>
-      <strong style={{ color: txt.primary }}>Q{(fondo.recaudado || 0).toLocaleString()}</strong>
-      <span>{fondo.meta > 0 ? `${pct}% · Q${fondo.meta.toLocaleString()}` : "Sin meta"}</span>
-    </div>
-  </>
-)}
-{fondo.modo === "completo" && (
-  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: txt.muted }}>
-    <strong style={{ color: txt.primary }}>Q{(fondo.meta || 0).toLocaleString()}</strong>
-    {fondo.tomado && <span style={{ color: "#6B8C76", fontWeight: 600 }}>✦ Ya regalado</span>}
-  </div>
-)}
-
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <div style={{ textAlign: "center", padding: "12px 24px 4px", fontSize: 10, color: txt.muted, letterSpacing: 1.5, textTransform: "uppercase" as const }}>
-            Pagos via <span style={{ color: pal.accent }}>Recurrente</span> · Guatemala
-          </div>
-          <div style={{ padding: "0 24px 32px" }}>
-            <SectionLinks links={[
-              { id: "detalles",   label: "Ver detalles" },
-              { id: "invitacion", label: "Ver invitación" },
-              { id: "rsvp",       label: "Confirmar asistencia" },
-            ]} />
-          </div>
-        </>
-      )}
-
-      {/* SECCIÓN HISTORIA */}
-      {secs.historia && activeSection === "historia" && (
-        <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nosotros</div>
-            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>Nuestra Historia</div>
-            <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
-          </div>
-          {pareja.historia ? (
-            <div style={{ fontSize: 15, color: txt.secondary, lineHeight: 1.85, fontWeight: 300, textAlign: "center" as const }}>{pareja.historia}</div>
-          ) : (
-            <div style={{ textAlign: "center", padding: "32px 0", color: txt.muted }}>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, marginBottom: 8 }}>Próximamente</div>
-              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase" as const }}>Los novios pronto compartirán su historia</div>
-            </div>
-          )}
-          {pareja.musica && (
-            <div style={{ marginTop: 32, textAlign: "center", padding: "16px", background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4 }}>
-              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Nuestra canción</div>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, color: txt.primary }}>♪ {pareja.musica}</div>
-            </div>
-          )}
-          <SectionLinks links={[
-            { id: "detalles",   label: "Ver detalles" },
-            { id: "invitacion", label: "Ver invitación" },
-            { id: "rsvp",       label: "Confirmar asistencia" },
-          ]} />
-        </div>
-      )}
-
-      {/* SECCIÓN DETALLES */}
-      {secs.detalles && activeSection === "detalles" && (
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 24px" }}>
-
-          {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: 36 }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>El gran día</div>
-            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 34, fontWeight: 300, color: txt.primary }}>Detalles</div>
-            <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
-          </div>
-
-          {/* Fecha & hora */}
-          {(pareja.fecha || pareja.hora) && (
-            <div style={{ textAlign: "center", marginBottom: 32, padding: "20px 24px", background: pal.surface, border: `1px solid ${pal.accent}22`, borderRadius: 4 }}>
-              {pareja.fecha && (
-                <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 26, fontWeight: 300, color: txt.primary, marginBottom: pareja.hora ? 6 : 0 }}>
-                  {new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                </div>
-              )}
-              {pareja.hora && (
-                <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase" as const, color: txt.muted }}>{pareja.hora}{pareja.lugar ? ` · ${pareja.lugar}` : ""}</div>
-              )}
-            </div>
-          )}
-
-          {/* Ceremonia */}
-          {pareja.ceremonia && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Ceremonia</div>
-              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.ceremonia}</div>
-                    {pareja.hora && <div style={{ fontSize: 11, color: txt.muted, marginTop: 3, letterSpacing: 1 }}>{pareja.hora}</div>}
-                  </div>
-                  {pareja.ceremonia_maps && (
-                    <a href={pareja.ceremonia_maps} target="_blank" rel="noreferrer" style={{ flexShrink: 0, fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: pal.accent, textDecoration: "none", border: `1px solid ${pal.accent}`, borderRadius: 3, padding: "6px 12px", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const }}>
-                      Ver mapa
-                    </a>
-                  )}
-                </div>
-                {pareja.ceremonia_maps && pareja.ceremonia_maps.includes("/maps/embed") && (
-                  <iframe
-                    src={pareja.ceremonia_maps}
-                    width="100%" height="220"
-                    style={{ border: "none", display: "block", borderTop: "1px solid rgba(26,23,20,0.06)" }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Recepción */}
-          {pareja.recepcion && (
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Recepción</div>
-              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: txt.primary }}>{pareja.recepcion}</div>
-                    {pareja.hora && <div style={{ fontSize: 11, color: txt.muted, marginTop: 3, letterSpacing: 1 }}>{pareja.hora}</div>}
-                  </div>
-                  {pareja.recepcion_maps && (
-                    <a href={pareja.recepcion_maps} target="_blank" rel="noreferrer" style={{ flexShrink: 0, fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, color: pal.accent, textDecoration: "none", border: `1px solid ${pal.accent}`, borderRadius: 3, padding: "6px 12px", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" as const }}>
-                      Ver mapa
-                    </a>
-                  )}
-                </div>
-                {pareja.recepcion_maps && pareja.recepcion_maps.includes("/maps/embed") && (
-                  <iframe
-                    src={pareja.recepcion_maps}
-                    width="100%" height="220"
-                    style={{ border: "none", display: "block", borderTop: "1px solid rgba(26,23,20,0.06)" }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Dress code */}
-          {(pareja.dresscode || pareja.dresscode_notas || (Array.isArray(pareja.dresscode_fotos) && pareja.dresscode_fotos.length > 0)) && (
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 9, letterSpacing: 3, textTransform: "uppercase" as const, color: pal.accent, marginBottom: 8 }}>Dress Code</div>
-              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "20px 24px" }}>
-                {pareja.dresscode && (
-                  <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 22, fontWeight: 300, color: txt.primary, marginBottom: pareja.dresscode_notas ? 14 : 0 }}>
-                    {pareja.dresscode}
-                  </div>
-                )}
-                {pareja.dresscode_notas && (
-                  <>
-                    <div style={{ width: 24, height: 1, background: pal.accent, marginBottom: 14 }} />
-                    <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 12 }}>Cómo nos gustaría que te vistieras</div>
-                    <div style={{ fontSize: 12, color: txt.secondary, lineHeight: 1.75, fontWeight: 300 }}>
-                      {renderDresscode(pareja.dresscode_notas)}
-                    </div>
-                  </>
-                )}
-                {Array.isArray(pareja.dresscode_fotos) && pareja.dresscode_fotos.length > 0 && (
-                  <div style={{ marginTop: 20 }}>
-                    <div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 12 }}>Inspiración</div>
-                    <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(pareja.dresscode_fotos.length, 3)}, 1fr)`, gap: 8 }}>
-                      {pareja.dresscode_fotos.map((url: string, i: number) => (
-                        <div key={i} style={{ aspectRatio: "3/4", borderRadius: 3, overflow: "hidden", background: "#F5F2ED" }}>
-                          <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                        </div>
+                {rsvpForm.asistencia === "si" && rsvpSelected.asientos > 1 && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 8 }}>¿Cuántos asisten? (incluyéndote)</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {Array.from({ length: rsvpSelected.asientos }, (_, k) => k + 1).map((nn) => (
+                        <button key={nn} onClick={() => setRsvpForm((p) => ({ ...p, acompanantes: String(nn - 1) }))} style={{ padding: "8px 15px", border: `1px solid ${parseInt(rsvpForm.acompanantes) + 1 === nn ? "var(--c-ink)" : "var(--c-line)"}`, borderRadius: 8, background: parseInt(rsvpForm.acompanantes) + 1 === nn ? "var(--c-ink)" : "transparent", color: parseInt(rsvpForm.acompanantes) + 1 === nn ? "#fff" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontSize: 13, cursor: "pointer" }}>{nn}</button>
                       ))}
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
+                {rsvpForm.asistencia === "si" && <div style={{ marginBottom: 12 }}><input value={rsvpForm.restricciones} onChange={(e) => setRsvpForm((p) => ({ ...p, restricciones: e.target.value }))} placeholder="Restricciones alimentarias (opcional)" style={inpStyle} /></div>}
+                <textarea value={rsvpForm.mensaje} onChange={(e) => setRsvpForm((p) => ({ ...p, mensaje: e.target.value }))} placeholder="Mensaje para los novios (opcional)" style={{ ...inpStyle, minHeight: 64, resize: "vertical", marginBottom: 14 }} />
+                <button onClick={handleRsvpSubmit} disabled={!rsvpForm.asistencia || rsvpSubmitting} style={{ width: "100%", padding: 13, background: "var(--c-accent)", color: "#fff", border: "none", borderRadius: 100, fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 14, cursor: "pointer", opacity: !rsvpForm.asistencia ? 0.5 : 1 }}>{rsvpSubmitting ? "Enviando..." : "Confirmar asistencia"}</button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+    return null;
+  }
 
-          {/* Hashtag */}
-          {pareja.hashtag && (
-            <div style={{ textAlign: "center", padding: "16px", border: `1px solid ${pal.accent}33`, borderRadius: 4 }}>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 22, fontWeight: 300, color: pal.accent }}>{pareja.hashtag}</div>
-            </div>
-          )}
-          <SectionLinks links={[
-            { id: "invitacion", label: "Ver invitación" },
-            { id: "regalos",    label: "Ver lista de regalos" },
-            { id: "rsvp",       label: "Confirmar asistencia" },
-          ]} />
-        </div>
-      )}
-
-      {/* SECCIÓN INVITACIÓN */}
-      {secs.invitacion && activeSection === "invitacion" && (
-        <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px", textAlign: "center" }}>
-          <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Invitación</div>
-          <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary, marginBottom: 20 }}>Nuestra Invitación</div>
-          <div style={{ width: 36, height: 1, background: pal.accent, margin: "0 auto 24px" }} />
-
-          {pareja.invitacion_url ? (
-            pareja.invitacion_url.includes(".pdf") ? (
-              <a href={pareja.invitacion_url} target="_blank" style={{ display: "inline-block", padding: "14px 28px", background: pal.accent, color: "#fff", textDecoration: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, fontFamily: "'Jost', sans-serif" }}>
-                Ver invitación PDF →
-              </a>
+  return (
+    <div className="inv-public" style={themeVars}>
+      <style>{`@keyframes wedo-fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes wedo-pop{0%{opacity:0;transform:translateY(18px) scale(.97)}70%{opacity:1;transform:translateY(-4px) scale(1.01)}100%{opacity:1;transform:none}}`}</style>
+      <div className="backdrop">
+        <main className="inv">
+          <div className="inv-body" key={activeSection}>
+            {activeSection === "portada" ? (
+              <section className="isection on" style={secAnim}>
+                <div className="cover" style={coverStyle}>
+                  {petalos && (
+                    <div className="petals" aria-hidden="true">
+                      {PETAL_COLORS.map((col, i) => (
+                        <span key={i} className="petal" style={{ left: `${[8, 22, 38, 54, 68, 82, 91][i]}%`, background: col, animationDuration: `${[9, 11, 8, 12, 10, 9.5, 11.5][i]}s`, animationDelay: `${[0, 1.4, 2.6, 0.8, 3.2, 1.9, 4][i]}s` }} />
+                      ))}
+                    </div>
+                  )}
+                  <CoverText />
+                </div>
+              </section>
             ) : (
-              <img src={pareja.invitacion_url} alt="Invitación" style={{ width: "100%", borderRadius: 4, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }} />
-            )
-          ) : (
-            <div style={{ padding: "32px 0", color: txt.muted }}>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 20, fontWeight: 300, marginBottom: 8 }}>Próximamente</div>
-              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase" as const }}>La invitación digital estará disponible aquí</div>
-            </div>
-          )}
-
-          <SectionLinks links={[
-            { id: "detalles",   label: "Ver detalles" },
-            { id: "regalos",    label: "Ver lista de regalos" },
-            { id: "rsvp",       label: "Confirmar asistencia" },
-          ]} />
-        </div>
-      )}
-
-      {/* SECCIÓN RSVP */}
-      {secs.rsvp && activeSection === "rsvp" && (
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: 9, letterSpacing: 4, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 6 }}>Confirma tu lugar</div>
-            <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 32, fontWeight: 300, color: txt.primary }}>¿Asistirás?</div>
-            <div style={{ width: 36, height: 1, background: pal.accent, margin: "12px auto 0" }} />
+              <section className="isection on" style={secAnim}>{renderSection(activeSection)}</section>
+            )}
           </div>
 
-          {rsvpDone ? (
-            <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 32, textAlign: "center" as const }}>
-              <div style={{ fontFamily: `'${fontTitulos}', serif`, fontSize: 28, fontWeight: 300, color: pal.accent, marginBottom: 8 }}>
-                {rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : "Gracias por avisarnos"}
-              </div>
-              <div style={{ fontSize: 13, color: txt.secondary, fontWeight: 300 }}>
-                {rsvpForm.asistencia === "si"
-                  ? "Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!"
-                  : "Lamentamos que no puedas acompañarnos, pero gracias por responder."}
-              </div>
-            </div>
-          ) : rsvpCodigoStep ? (
-            <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24 }}>
-              <button onClick={() => { setRsvpSelected(null); setRsvpCodigoStep(false); }} style={{ fontSize: 11, color: txt.muted, background: "none", border: "none", cursor: "pointer", fontFamily: "'Jost', sans-serif", marginBottom: 16, padding: 0 }}>← Volver</button>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 22, fontWeight: 300, color: txt.primary, marginBottom: 4 }}>{rsvpSelected.nombre}</div>
-              <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 24 }}>Ingresa tu código de acceso</div>
-              <input
-                value={rsvpCodigoInput}
-                onChange={e => { setRsvpCodigoInput(e.target.value.toUpperCase()); setRsvpCodigoError(false); }}
-                onKeyDown={e => e.key === "Enter" && handleVerifyCodigo()}
-                placeholder="Ej: ABC123"
-                maxLength={8}
-                style={{ width: "100%", padding: "12px 16px", border: `1.5px solid ${rsvpCodigoError ? "#A07070" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, fontSize: 18, fontFamily: "monospace", background: "#FAF8F5", color: txt.primary, outline: "none", letterSpacing: 3, textAlign: "center" as const, boxSizing: "border-box" as const, marginBottom: 8 }}
-              />
-              {rsvpCodigoError && (
-                <div style={{ fontSize: 12, color: "#A07070", textAlign: "center" as const, marginBottom: 12 }}>Código incorrecto. Revisa tu invitación.</div>
-              )}
-              <button
-                onClick={handleVerifyCodigo}
-                disabled={!rsvpCodigoInput.trim() || rsvpCodigoLoading}
-                style={{ width: "100%", padding: 13, background: !rsvpCodigoInput.trim() ? "#E0DAD4" : rsvpCodigoLoading ? "#A89C90" : pal.accent, color: !rsvpCodigoInput.trim() ? "#A89C90" : "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: !rsvpCodigoInput.trim() ? "default" : "pointer", fontFamily: "'Jost', sans-serif", marginTop: 4 }}
-              >
-                {rsvpCodigoLoading ? "Verificando..." : "Continuar"}
-              </button>
-            </div>
-          ) : !rsvpSelected ? (
-            <>
-              <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24, marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 12 }}>Busca tu nombre</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    value={rsvpQuery}
-                    onChange={e => setRsvpQuery(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && searchRsvp()}
-                    placeholder="Escribe tu nombre o apellido..."
-                    style={{ flex: 1, padding: "10px 14px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none" }}
-                  />
-                  <button onClick={searchRsvp} style={{ padding: "10px 20px", background: pal.accent, color: "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, cursor: "pointer", fontFamily: "'Jost', sans-serif" }}>
-                    Buscar
-                  </button>
-                </div>
-              </div>
+          <nav className="inv-nav">
+            <a className={activeSection === "portada" ? "on" : ""} onClick={() => setActiveSection("portada")}>Portada</a>
+            {orderedSecs.map((s) => <a key={s} className={activeSection === s ? "on" : ""} onClick={() => setActiveSection(s)}>{PUB_LABELS[s]}</a>)}
+          </nav>
 
-              {rsvpSearched && rsvpResults.length === 0 && (
-                <div style={{ textAlign: "center", padding: "20px 0", color: txt.muted, fontSize: 13, fontWeight: 300 }}>
-                  No encontramos tu nombre. Intenta con otro término o contacta a los novios.
-                </div>
-              )}
+          <footer className="inv-foot">
+            <div className="mk">wedo<span className="dot">.</span></div>
+            <div className="ft">Invitación &amp; regalos en efectivo · Guatemala</div>
+          </footer>
+        </main>
+      </div>
 
-              {rsvpResults.map((inv, i) => (
-                <div key={i} onClick={() => {
-                  setRsvpSelected(inv);
-                  setRsvpCodigoInput("");
-                  setRsvpCodigoError(false);
-                  if (pareja.rsvp_codigo_requerido && inv.tiene_codigo) {
-                    setRsvpCodigoStep(true);
-                  } else {
-                    setRsvpCodigoStep(false);
-                    setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" });
-                  }
-                }} style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: "16px 20px", marginBottom: 8, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = pal.accent}
-                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(26,23,20,0.08)"}
-                >
-                  <div>
-                    <div style={{ fontFamily: `'${font}', serif`, fontSize: 20, fontWeight: 400, color: txt.primary }}>{inv.nombre}</div>
-                    <div style={{ fontSize: 11, color: txt.muted, marginTop: 2 }}>{inv.asientos} {inv.asientos === 1 ? "lugar reservado" : "lugares reservados"}</div>
-                    {inv.confirmado && <div style={{ fontSize: 10, color: "#6B8C76", fontWeight: 600, marginTop: 4, letterSpacing: 0.5 }}>✓ Ya confirmaste</div>}
-                  </div>
-                  <div style={{ fontSize: 18, color: txt.muted }}>→</div>
-                </div>
-              ))}
-            </>
-          ) : (
-            <div style={{ background: pal.surface, border: "1px solid rgba(26,23,20,0.08)", borderRadius: 4, padding: 24 }}>
-              <button onClick={() => setRsvpSelected(null)} style={{ fontSize: 11, color: txt.muted, background: "none", border: "none", cursor: "pointer", fontFamily: "'Jost', sans-serif", marginBottom: 16, padding: 0 }}>← Volver</button>
-              <div style={{ fontFamily: `'${font}', serif`, fontSize: 24, fontWeight: 300, color: txt.primary, marginBottom: 4 }}>{rsvpSelected.nombre}</div>
-              <div style={{ fontSize: 12, color: txt.muted, marginBottom: 20 }}>{rsvpSelected.asientos} {rsvpSelected.asientos === 1 ? "lugar reservado para ti" : "lugares reservados para ti"}</div>
-
-              {rsvpSelected.confirmado ? (
-                <div style={{ textAlign: "center", padding: 16, background: "#EDF4EF", borderRadius: 4 }}>
-                  <div style={{ fontSize: 13, color: "#6B8C76", fontWeight: 600 }}>✓ Ya confirmaste tu asistencia</div>
-                </div>
-              ) : (
-                <>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 10 }}>¿Asistirás?</div>
-                  <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-                    <button onClick={() => setRsvpForm(f => ({ ...f, asistencia: "si" }))} style={{ flex: 1, padding: "12px", border: `1.5px solid ${rsvpForm.asistencia === "si" ? "#6B8C76" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, background: rsvpForm.asistencia === "si" ? "#EDF4EF" : "transparent", color: rsvpForm.asistencia === "si" ? "#6B8C76" : txt.secondary, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.15s" }}>
-                      ✓ Sí, asistiré
-                    </button>
-                    <button onClick={() => setRsvpForm(f => ({ ...f, asistencia: "no", acompanantes: "0" }))} style={{ flex: 1, padding: "12px", border: `1.5px solid ${rsvpForm.asistencia === "no" ? "#A07070" : "rgba(26,23,20,0.14)"}`, borderRadius: 3, background: rsvpForm.asistencia === "no" ? "#F5F0F0" : "transparent", color: rsvpForm.asistencia === "no" ? "#A07070" : txt.secondary, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Jost', sans-serif", transition: "all 0.15s" }}>
-                      ✕ No podré ir
-                    </button>
-                  </div>
-
-                  {rsvpForm.asistencia === "si" && rsvpSelected.asientos > 1 && (
-                    <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" as const, color: txt.muted, marginBottom: 8 }}>¿Cuántos asisten? (incluyéndote)</div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const }}>
-                        {Array.from({ length: rsvpSelected.asientos }, (_, i) => i + 1).map(n => (
-                          <button key={n} onClick={() => setRsvpForm(f => ({ ...f, acompanantes: String(n - 1) }))} style={{ padding: "8px 16px", border: `1px solid ${parseInt(rsvpForm.acompanantes) + 1 === n ? txt.primary : "rgba(26,23,20,0.14)"}`, borderRadius: 2, fontSize: 13, fontWeight: 500, cursor: "pointer", background: parseInt(rsvpForm.acompanantes) + 1 === n ? txt.primary : "transparent", color: parseInt(rsvpForm.acompanantes) + 1 === n ? "#fff" : txt.secondary, fontFamily: "'Jost', sans-serif" }}>
-                            {n}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {rsvpForm.asistencia === "si" && (
-                    <div style={{ marginBottom: 14 }}>
-                      <label style={{ fontSize: 10, fontWeight: 600, color: txt.secondary, display: "block", marginBottom: 5, letterSpacing: 0.5 }}>Restricciones alimentarias (opcional)</label>
-                      <input value={rsvpForm.restricciones} onChange={e => setRsvpForm(f => ({ ...f, restricciones: e.target.value }))} placeholder="Vegetariano, alérgico a mariscos..." style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", boxSizing: "border-box" as const }} />
-                    </div>
-                  )}
-
-                  <div style={{ marginBottom: 18 }}>
-                    <label style={{ fontSize: 10, fontWeight: 600, color: txt.secondary, display: "block", marginBottom: 5, letterSpacing: 0.5 }}>Mensaje para los novios (opcional)</label>
-                    <textarea value={rsvpForm.mensaje} onChange={e => setRsvpForm(f => ({ ...f, mensaje: e.target.value }))} placeholder="¡Felicidades! Los queremos mucho..." style={{ width: "100%", padding: "9px 12px", border: "1px solid rgba(26,23,20,0.14)", borderRadius: 3, fontSize: 13, fontFamily: "'Jost', sans-serif", background: "#FAF8F5", color: "#1A1714", outline: "none", resize: "vertical" as const, minHeight: 70, boxSizing: "border-box" as const }} />
-                  </div>
-
-                  <button onClick={handleRsvpSubmit} disabled={!rsvpForm.asistencia || rsvpSubmitting} style={{ width: "100%", padding: 14, background: !rsvpForm.asistencia ? "#E0DAD4" : rsvpSubmitting ? "#A89C90" : pal.accent, color: !rsvpForm.asistencia ? "#A89C90" : "#fff", border: "none", borderRadius: 3, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" as const, cursor: !rsvpForm.asistencia ? "default" : "pointer", fontFamily: "'Jost', sans-serif", transition: "background 0.2s" }}>
-                    {rsvpSubmitting ? "Enviando..." : "Confirmar asistencia"}
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      </div>{/* end animated sections */}
-
-      {/* CONTRIBUTION MODAL — wedo. brand (cream sheet, 3.5% breakdown, states) */}
+      {/* CONTRIBUTION MODAL — wedo. brand */}
       {open && f && (() => {
         const gross = f.modo === "completo" ? (f.meta || 0) : amount;
         const fee = Math.round(gross * 0.035 * 100) / 100;
@@ -810,7 +500,6 @@ async function handlePay() {
                   <>
                     <h3>{f.nombre}</h3>
                     <p className="sub">Tu aporte le llega directo a {pareja.nombre1} &amp; {pareja.nombre2}.</p>
-
                     {f.modo === "completo" ? (
                       <>
                         <div className="amt-label">Regalo completo</div>
@@ -830,10 +519,8 @@ async function handlePay() {
                         </div>
                       </>
                     )}
-
                     <input className="name-field" placeholder="Tu nombre (opcional)" value={nombre} onChange={(e) => setNombre(e.target.value)} />
                     <textarea className="msg-field" placeholder="Escribe un mensaje para los novios (opcional)…" value={mensajeRegalo} onChange={(e) => setMensajeRegalo(e.target.value)} />
-
                     <div className="amt-label">Resumen</div>
                     <div className="breakdown">
                       <div className="bd-row"><span>Tu aporte</span><span className="v">{fmtQ(gross)}</span></div>
@@ -877,12 +564,6 @@ async function handlePay() {
           </div>
         );
       })()}
-
-      {/* FOOTER — wedo. attribution (brand chrome) */}
-      <div style={{ background: "var(--ink)", color: "var(--cream)", textAlign: "center", padding: "26px 24px", marginTop: 24 }}>
-        <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontSize: 26, lineHeight: 1 }}>wedo<span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span></div>
-        <div style={{ fontFamily: "'Archivo', sans-serif", fontSize: 11, letterSpacing: ".04em", color: "rgba(247,240,229,.55)", marginTop: 6 }}>Invitación &amp; regalos en efectivo · Guatemala</div>
-      </div>
     </div>
   );
 }

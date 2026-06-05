@@ -1,0 +1,98 @@
+/* inv-public.css — public wedding invitation (/boda/[slug]).
+   Structure & layout follow the wedo. handoff (Invitación.html); the visual
+   theme (colors + fonts) comes from each couple's editor choices via the
+   --c-* CSS vars set inline on .inv-public. Scoped under .inv-public. */
+.inv-public{ --c-line:rgba(35,23,18,.12); }
+.inv-public *{box-sizing:border-box;}
+
+.inv-public .backdrop{min-height:100vh; padding:64px 14px 48px; display:flex; justify-content:center; position:relative; overflow:hidden; background:var(--c-bg);}
+.inv-public .backdrop::before,.inv-public .backdrop::after{content:""; position:fixed; border-radius:50%; filter:blur(50px); z-index:0; pointer-events:none; opacity:.5;}
+.inv-public .backdrop::before{width:360px; height:360px; background:var(--c-accent); top:-90px; left:-120px; opacity:.16;}
+.inv-public .backdrop::after{width:320px; height:320px; background:var(--c-accent); bottom:-110px; right:-120px; opacity:.12;}
+
+.inv-public .inv{position:relative; z-index:1; width:100%; max-width:460px; background:var(--c-surface);
+  border-radius:26px; box-shadow:0 30px 80px rgba(35,23,18,.22); display:flex; flex-direction:column; align-self:flex-start; overflow:hidden;}
+
+.inv-public .inv-body{}
+.inv-public .isection{display:none;}
+.inv-public .isection.on{display:block;}
+
+/* cover */
+.inv-public .cover{position:relative; overflow:hidden; min-height:430px; display:flex; flex-direction:column; justify-content:flex-end; padding:48px 30px 40px; text-align:center; background-size:cover; background-position:center;}
+.inv-public .petals{position:absolute; inset:0; pointer-events:none; z-index:1; overflow:hidden;}
+.inv-public .petal{position:absolute; top:-24px; width:12px; height:12px; border-radius:60% 0 60% 0; opacity:.6; animation:invFall linear infinite;}
+@keyframes invFall{0%{transform:translateY(-30px) rotate(0deg); opacity:0;} 12%{opacity:.7;} 100%{transform:translateY(520px) rotate(320deg); opacity:0;}}
+.inv-public .cover-text{position:relative; z-index:2;}
+.inv-public .cover .pre{font-family:var(--c-font-tit); font-size:12px; letter-spacing:.34em; text-transform:uppercase;}
+.inv-public .cover .names{font-family:var(--c-font); font-size:54px; line-height:1.1; margin:16px 0 14px;}
+.inv-public .cover .date{font-family:var(--c-font-tit); font-size:15px; letter-spacing:.14em;}
+.inv-public .cover .cd{display:flex; justify-content:center; gap:22px; margin-top:30px;}
+.inv-public .cover .cd .u{text-align:center;}
+.inv-public .cover .cd .n{font-family:var(--c-font); font-size:34px; line-height:1;}
+.inv-public .cover .cd .l{font-size:9px; letter-spacing:.2em; text-transform:uppercase; margin-top:5px; font-family:'Archivo',sans-serif; opacity:.8;}
+
+/* generic section */
+.inv-public .sec{padding:48px 30px;}
+.inv-public .sec-k{font-family:'Archivo',sans-serif; font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:var(--c-muted); text-align:center; margin-bottom:14px;}
+.inv-public .sec-h{font-family:var(--c-font-tit); font-size:30px; text-align:center; color:var(--c-ink); margin:0 0 24px; font-weight:500;}
+.inv-public .sec .body{font-family:var(--c-font-tit); font-size:18px; line-height:1.8; text-align:center; color:var(--c-soft); margin:0;}
+.inv-public .song{margin-top:24px; text-align:center; padding:16px; background:var(--c-bg); border:1px solid var(--c-line); border-radius:14px;}
+.inv-public .song .k{font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:var(--c-muted); margin-bottom:6px;}
+.inv-public .song .v{font-family:var(--c-font-tit); font-size:19px; color:var(--c-ink);}
+
+/* gallery grid */
+.inv-public .gallery-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.inv-public .gallery-grid .ph{height:140px; border-radius:12px; overflow:hidden; background:var(--c-bg);}
+.inv-public .gallery-grid .ph img{width:100%; height:100%; object-fit:cover; display:block;}
+
+/* gift cards */
+.inv-public .gifts-wrap{display:flex; flex-direction:column; gap:16px;}
+.inv-public .gift{border:1px solid var(--c-line); border-radius:18px; padding:20px; background:var(--c-surface); transition:transform .25s, box-shadow .25s;}
+.inv-public .gift:hover{transform:translateY(-4px); box-shadow:0 18px 40px rgba(35,23,18,.12);}
+.inv-public .gift.done{opacity:.72;}
+.inv-public .gthumb{width:100%; height:150px; border-radius:12px; overflow:hidden; margin-bottom:14px; background:var(--c-bg);}
+.inv-public .gthumb img{width:100%; height:100%; object-fit:cover; display:block;}
+.inv-public .gift .gh{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+.inv-public .gift .gn{font-family:var(--c-font-tit); font-size:22px; color:var(--c-ink);}
+.inv-public .gift .gg{font-family:'Archivo',sans-serif; font-size:12px; color:var(--c-muted); white-space:nowrap;}
+.inv-public .gift .gd{font-family:var(--c-font-tit); font-size:16px; line-height:1.5; color:var(--c-soft); margin:6px 0 12px;}
+.inv-public .gift .bar{height:7px; border-radius:100px; background:rgba(35,23,18,.1); overflow:hidden; margin-bottom:6px;}
+.inv-public .gift .bar>span{display:block; height:100%; background:var(--c-accent); border-radius:100px;}
+.inv-public .gift .gp{display:flex; justify-content:space-between; font-family:'Archivo',sans-serif; font-size:11.5px; color:var(--c-muted); margin-bottom:14px;}
+.inv-public .gift .gbtn{width:100%; padding:12px; border:none; border-radius:100px; background:var(--c-accent); color:#fff; font-family:'Archivo',sans-serif; font-weight:600; font-size:14px; letter-spacing:.02em; cursor:pointer; transition:transform .15s, filter .2s;}
+.inv-public .gift .gbtn:hover{transform:translateY(-1px); filter:brightness(1.06);}
+.inv-public .gift .gbtn.done{background:#7d8a2e; cursor:default;}
+
+/* details */
+.inv-public .detalles-wrap{}
+.inv-public .detail{display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--c-line); text-align:left; align-items:flex-start;}
+.inv-public .detail:last-child{border-bottom:none;}
+.inv-public .detail .di{width:9px; height:9px; border-radius:50%; background:var(--c-accent); flex:none; margin-top:8px;}
+.inv-public .detail .dt{font-family:var(--c-font-tit); font-size:18px; color:var(--c-ink);}
+.inv-public .detail .ds{font-size:14px; color:var(--c-soft); font-family:'Archivo',sans-serif; margin-top:1px;}
+.inv-public .detail .map{display:inline-block; margin-top:6px; font-family:'Archivo',sans-serif; font-size:11px; font-weight:600; letter-spacing:.04em; color:var(--c-accent); border:1px solid var(--c-accent); border-radius:100px; padding:5px 12px;}
+
+/* section nav — translucent pill, sticky inside the card */
+.inv-public .inv-nav{position:sticky; bottom:14px; z-index:5; display:flex; gap:2px; width:fit-content; max-width:calc(100% - 28px);
+  margin:6px auto 18px; background:rgba(35,23,18,.5); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); padding:5px; border-radius:100px;
+  box-shadow:0 14px 36px rgba(35,23,18,.26); overflow-x:auto; scrollbar-width:none;}
+.inv-public .inv-nav::-webkit-scrollbar{display:none;}
+.inv-public .inv-nav a{font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; color:rgba(247,240,229,.7); padding:9px 15px; border-radius:100px; white-space:nowrap; cursor:pointer; transition:background .2s, color .2s, transform .2s;}
+.inv-public .inv-nav a:hover{color:#fff;}
+.inv-public .inv-nav a.on{background:var(--c-accent); color:#fff; transform:scale(1.04);}
+
+/* wedo. footer attribution (brand chrome) */
+.inv-public .inv-foot{background:var(--ink); color:var(--cream); text-align:center; padding:24px;}
+.inv-public .inv-foot .mk{font-family:'Instrument Serif',serif; font-style:italic; font-size:26px;}
+.inv-public .inv-foot .mk .dot{font-style:normal; color:var(--pink);}
+.inv-public .inv-foot .ft{font-family:'Archivo',sans-serif; font-size:11px; letter-spacing:.04em; color:rgba(247,240,229,.55); margin-top:6px;}
+
+@media (prefers-reduced-motion:reduce){ .inv-public .petal{animation:none !important;} }
+@media (min-width:780px){
+  .inv-public .inv{max-width:680px;}
+  .inv-public .cover{min-height:480px;}
+  .inv-public .cover .names{font-size:64px;}
+  .inv-public .gallery-grid{grid-template-columns:repeat(4,1fr);}
+  .inv-public .gifts-wrap{display:grid; grid-template-columns:1fr 1fr;}
+  .inv-public .sec{padding:56px 56px;}
+}
