@@ -206,6 +206,13 @@ a{color:inherit; text-decoration:none;}
   .link-u::after{transition:none;}
 }
 
+/* mobile: the floating product cards overlap the lema/CTAs on small screens
+   — hide them (decorative) and let the hero breathe; blobs stay as backdrop */
+@media (max-width:759px){
+  .float{display:none;}
+  .stage{padding:72px 0 84px;}
+}
+
 @media (min-width:760px){
   .wrap{padding:0 40px;}
   .nav-in{height:78px;}
