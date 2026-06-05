@@ -1,0 +1,71 @@
+/* onboarding.css — wedo. host onboarding wizard.
+   Scoped under .wedo-app; inherits tokens + .btn/.field/.inp from app-ui.css. */
+
+.wedo-app .ob{min-height:100vh; min-height:100dvh; position:relative; overflow:hidden;
+  background:var(--cream); display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:48px 22px 40px;}
+
+/* soft brand color blobs for editorial vibrancy (≤20% of canvas) */
+.wedo-app .ob-blob{position:fixed; z-index:0; border-radius:50%; filter:blur(70px); pointer-events:none;}
+.wedo-app .ob-blob.b1{width:340px; height:340px; background:rgba(135,166,232,.30); top:-120px; left:-110px;}
+.wedo-app .ob-blob.b2{width:300px; height:300px; background:rgba(179,194,74,.24); bottom:-130px; right:-100px;}
+.wedo-app .ob-blob.b3{width:220px; height:220px; background:rgba(232,75,138,.16); top:46%; right:8%;}
+
+.wedo-app .ob-inner{position:relative; z-index:1; width:100%; max-width:496px;}
+
+/* header */
+.wedo-app .ob-head{text-align:center; margin-bottom:26px;}
+.wedo-app .ob-logo{font-family:'Instrument Serif',serif; font-style:italic; font-size:40px; line-height:1; color:var(--ink); display:inline-block;}
+.wedo-app .ob-logo .dot{font-style:normal; color:var(--pink);}
+.wedo-app .ob-kicker{font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint); margin-top:14px;}
+
+/* progress segments */
+.wedo-app .ob-prog{display:flex; gap:8px; margin:22px auto 0; max-width:340px;}
+.wedo-app .ob-prog i{height:3px; flex:1; border-radius:100px; background:rgba(35,23,18,.12); overflow:hidden; position:relative;}
+.wedo-app .ob-prog i::after{content:""; position:absolute; inset:0; width:0; background:var(--pink); border-radius:100px; transition:width .45s var(--ease);}
+.wedo-app .ob-prog i.done::after{width:100%;}
+.wedo-app .ob-prog i.active::after{width:100%;}
+
+/* card */
+.wedo-app .ob-card{position:relative; background:#FFFDF9; border:1px solid var(--line); border-radius:22px;
+  padding:34px 32px 30px; box-shadow:0 30px 70px -28px rgba(58,46,40,.34), 0 8px 24px rgba(58,46,40,.06); overflow:hidden;}
+.wedo-app .ob-card::before{content:""; position:absolute; top:0; left:0; right:0; height:4px;
+  background:linear-gradient(90deg, var(--pink), var(--peri) 60%, var(--lime));}
+
+.wedo-app .ob-step{display:none;}
+.wedo-app .ob-step.on{display:block; animation:obIn .4s var(--ease) both;}
+@keyframes obIn{from{transform:translateY(10px); opacity:.4;} to{transform:none; opacity:1;}}
+
+.wedo-app .ob-title{font-family:'Instrument Serif',serif; font-style:italic; font-weight:400; font-size:34px; line-height:1.02; color:var(--ink); margin:0 0 4px;}
+.wedo-app .ob-sub{font-family:'Archivo',sans-serif; font-size:13.5px; color:var(--ink-soft); margin:0 0 22px; line-height:1.5;}
+
+/* fields — a touch larger than the editor for a focused form */
+.wedo-app .ob-card .field{margin-bottom:16px;}
+.wedo-app .ob-card .field label{font-size:11px; letter-spacing:.08em;}
+.wedo-app .ob-card .field label .opt{color:var(--ink-faint); font-weight:600; text-transform:none; letter-spacing:0; font-size:11px;}
+.wedo-app .ob-card .inp{border:1px solid var(--line); border-radius:12px; padding:13px 15px; font-family:'Archivo',sans-serif; font-size:15px; background:#fff; color:var(--ink); width:100%;
+  transition:border-color .18s, box-shadow .18s;}
+.wedo-app .ob-card .inp:focus{outline:none; border-color:var(--pink); box-shadow:0 0 0 3px rgba(232,75,138,.14);}
+.wedo-app .ob-card .inp::placeholder{color:var(--ink-faint);}
+.wedo-app .ob-card textarea.inp{min-height:140px; resize:vertical; line-height:1.55;}
+.wedo-app .ob-grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media(max-width:460px){ .wedo-app .ob-grid2{grid-template-columns:1fr;} }
+
+/* skip-for-now link (story + dress code) */
+.wedo-app .ob-skip{display:inline-flex; align-items:center; gap:6px; margin-top:2px; background:none; border:none; cursor:pointer; white-space:nowrap;
+  font-family:'Archivo',sans-serif; font-size:12.5px; font-weight:600; color:var(--pink); padding:2px 0;}
+.wedo-app .ob-skip:hover{text-decoration:underline;}
+.wedo-app .field .ob-skip{align-self:flex-start;}
+
+/* footer buttons */
+.wedo-app .ob-foot{display:flex; gap:12px; margin-top:24px;}
+.wedo-app .ob-foot .btn{flex:1; padding:14px; font-size:14.5px;}
+.wedo-app .ob-foot .btn.grow2{flex:1.5;}
+.wedo-app .ob-foot.single .btn{flex:1;}
+
+.wedo-app .ob-count{text-align:center; font-family:'Archivo',sans-serif; font-size:12px; letter-spacing:.06em; color:var(--ink-faint); margin-top:22px;}
+
+/* success state */
+.wedo-app .ob-done{text-align:center; padding:8px 4px 4px;}
+.wedo-app .ob-done .seal{width:72px; height:72px; border-radius:50%; background:var(--pink); color:#fff; display:flex; align-items:center; justify-content:center; margin:4px auto 18px; font-family:'Instrument Serif',serif; font-style:italic; font-size:34px; box-shadow:0 10px 26px rgba(232,75,138,.34);}
+.wedo-app .ob-done p{font-size:14.5px; color:var(--ink-soft); line-height:1.6; margin:0 auto 22px; max-width:34ch;}
