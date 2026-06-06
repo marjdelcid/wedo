@@ -67,8 +67,6 @@ export default function StdClient({ slug }: { slug: string }) {
   const estilo = (pareja.std_estilo || "c").toLowerCase();
   const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
   const ciudad = pareja.lugar || "";
-  const i1 = (n1.trim()[0] || "A").toUpperCase();
-  const i2 = (n2.trim()[0] || "M").toUpperCase();
 
   // date pieces
   const fParts = (pareja.fecha || "").split("-"); // [yyyy, mm, dd]
@@ -180,13 +178,14 @@ export default function StdClient({ slug }: { slug: string }) {
   // ---- C · editorial monograma (letterpress) ----
   return (
     <div className="wedo-std">
-      <div className="stdc">
+      <div className="stdc letterpress sagelp">
+        <div className="cbg cbg-emboss-sage" aria-hidden="true" />
         <div className="inner">
           <div className="z-top">
             <div className="tobe">TO BE</div>
             <div className="mono-row">
               <div className="dcol"><span>{dd || "—"}</span><span>{mm || "—"}</span></div>
-              <div className="mono">{i1}<span className="amp">&amp;</span>{i2}</div>
+              <img className="mono" src="/assets/monogram-amb-sage.png" alt="Monograma" />
               <div className="dcol"><span>{yyyy ? yyyy.slice(0, 2) : "20"}</span><span>{yyyy ? yyyy.slice(2) : "26"}</span></div>
             </div>
             <div className="wed">WED</div>

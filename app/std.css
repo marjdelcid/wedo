@@ -70,42 +70,58 @@
 .wedo-std .stdb .cta-cal{width:100%; max-width:340px; background:var(--ink); color:var(--cream); padding:15px; font-size:14.5px;}
 .wedo-std .stdb .note{display:block; font-size:12px; color:var(--ink); opacity:.6; margin-top:12px;}
 
-/* ============ DIRECCIÓN C · EDITORIAL MONOGRAMA (letterpress) ============ */
-.wedo-std .stdc{ --c-bg:#ECE6D9; --c-ink:#292800; --c-rose:#8B263E; --c-blush:#E0AEBA;
+/* ============ DIRECCIÓN C · LETTERPRESS SAGE (handoff opción C) ============
+   Paleta sage: papel #DDE0CF · tinta #46513E · acento #7C886A · vino #8B263E.
+   Monograma y fondo floral son IMÁGENES (public/assets), grabados en relieve. */
+.wedo-std .stdc{ --c-bg:#DDE0CF; --c-ink:#46513E; --c-rose:#7C886A; --c-wine:#8B263E;
   position:relative; min-height:100dvh; width:100%; background:var(--c-bg); color:var(--c-ink); overflow:hidden;}
-.wedo-std .stdc::before{content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.8; mix-blend-mode:multiply;
+/* paper grain (más presente para el letterpress) */
+.wedo-std .stdc::before{content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:1; mix-blend-mode:multiply;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");}
+/* profundidad prensada (viñeta + inset) */
 .wedo-std .stdc::after{content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
-  background:radial-gradient(125% 100% at 50% 32%, rgba(255,253,248,.22) 0%, transparent 46%, rgba(41,40,0,.06) 100%);}
+  background:radial-gradient(120% 95% at 50% 30%, rgba(255,253,248,.30) 0%, transparent 44%, rgba(41,40,0,.12) 100%);
+  box-shadow:inset 0 0 0 1px rgba(41,40,0,.10), inset 0 0 80px rgba(41,40,0,.12);}
+/* fondo floral grabado sage — a sangre, multiply */
+.wedo-std .stdc .cbg{position:absolute; z-index:1; pointer-events:none;}
+.wedo-std .stdc .cbg-emboss-sage{inset:0; background:url("/assets/std-c-emboss-sage.png") center/cover; opacity:1; mix-blend-mode:multiply;}
 .wedo-std .stdc .inner{position:relative; z-index:3; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:space-between; text-align:center; padding:64px 32px 72px; gap:clamp(20px,4vh,40px);}
 /* 3 zonas para distribuir: arriba (títulos+monograma) · centro (meta) · abajo (countdown+cta) */
 .wedo-std .stdc .z-top, .wedo-std .stdc .z-mid, .wedo-std .stdc .z-bot{display:flex; flex-direction:column; align-items:center;}
 .wedo-std .stdc .z-top{gap:clamp(18px,3.2vh,34px);}
 .wedo-std .stdc .z-mid{flex:1; justify-content:center;}
 .wedo-std .stdc .z-bot{gap:clamp(20px,3.2vh,34px);}
-.wedo-std .stdc .tobe, .wedo-std .stdc .wed{font-family:'Cormorant Garamond',serif; font-weight:500; line-height:.9; letter-spacing:.16em; color:var(--c-ink); white-space:nowrap;
-  text-shadow:0 1px 0 rgba(255,253,248,.7), 0 -1px 1px rgba(41,40,0,.22), 0 2px 3px rgba(41,40,0,.12);}
+.wedo-std .stdc .tobe, .wedo-std .stdc .wed{font-family:'Cormorant Garamond',serif; font-weight:500; line-height:.9; letter-spacing:.16em; color:#F3EDD7; white-space:nowrap;
+  text-shadow:0 1px .5px rgba(255,255,250,.9), 0 -1px 1px rgba(48,56,40,.36);}
 .wedo-std .stdc .tobe{font-size:clamp(40px,11vw,52px); padding-left:.16em;}
 .wedo-std .stdc .wed{font-size:clamp(40px,11vw,52px); padding-left:.16em;}
 .wedo-std .stdc .mono-row{display:flex; align-items:center; justify-content:center; gap:18px;}
-.wedo-std .stdc .mono{display:flex; align-items:center; justify-content:center; gap:.02em; font-family:'Cormorant Garamond',serif; font-weight:500; font-size:clamp(78px,22vw,104px); line-height:1; color:var(--c-ink);
-  text-shadow:0 1px 0 rgba(255,253,248,.7), 0 2px 3px rgba(41,40,0,.18);}
-.wedo-std .stdc .mono .amp{font-size:.46em; color:var(--c-rose); font-style:italic; margin:0 .02em; align-self:center;}
+/* monograma = IMAGEN (sage), grabada en relieve (deboss) */
+.wedo-std .stdc .mono{width:clamp(180px,52vw,236px); height:auto; flex:none; object-fit:contain; display:block; mix-blend-mode:multiply;
+  filter:drop-shadow(0 -1.2px .6px rgba(48,56,40,.4)) drop-shadow(0 1.4px .6px rgba(255,255,250,.92));}
 .wedo-std .stdc .dcol{display:flex; flex-direction:column; gap:6px; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:clamp(20px,6vw,25px); line-height:1; letter-spacing:.06em; color:var(--c-rose);
-  text-shadow:0 1px 0 rgba(255,253,248,.85), 0 -1px 0 rgba(41,40,0,.26);}
+  text-shadow:0 1px .5px rgba(255,255,250,.85), 0 -1px 1px rgba(54,62,46,.32);}
 .wedo-std .stdc .meta{margin:0;}
-.wedo-std .stdc .city{font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:clamp(20px,5vw,23px); color:var(--c-ink);}
-.wedo-std .stdc .formal{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:12.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--c-ink); opacity:.86; margin-top:16px;}
+.wedo-std .stdc .city{font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:clamp(20px,5vw,23px); color:var(--c-ink);
+  text-shadow:0 1px .5px rgba(255,255,250,.85), 0 -.5px .5px rgba(48,56,40,.26);}
+.wedo-std .stdc .formal{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:12.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--c-ink); opacity:.86; margin-top:16px;
+  text-shadow:0 1px .5px rgba(255,255,250,.85), 0 -.5px .5px rgba(48,56,40,.26);}
 .wedo-std .stdc .cd-c{display:flex; align-items:center; justify-content:center; gap:20px;}
 .wedo-std .stdc .cd-c .u{display:flex; flex-direction:column; align-items:center; gap:4px;}
-.wedo-std .stdc .cd-c .n{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:30px; line-height:1; color:var(--c-rose);}
-.wedo-std .stdc .cd-c .l{font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--c-ink); opacity:.7;}
-.wedo-std .stdc .cd-c .sep{width:1px; height:36px; background:rgba(41,40,0,.28);}
-.wedo-std .stdc .cta-link{text-align:center; font-family:'Archivo',sans-serif; font-weight:600; font-size:14px; letter-spacing:.04em; color:var(--c-ink); cursor:pointer; background:none; border:none;}
-.wedo-std .stdc .cta-link span{border-bottom:1.5px solid var(--c-rose); padding-bottom:3px;}
-.wedo-std .stdc .foot{position:absolute; left:0; right:0; bottom:26px; text-align:center; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--c-ink); opacity:.45;}
-.wedo-std .stdc .foot .mk{font-family:'Instrument Serif',serif; font-style:italic; text-transform:none; letter-spacing:0; font-size:14px;}
-.wedo-std .stdc .foot .mk .dot{color:var(--c-rose);}
+.wedo-std .stdc .cd-c .n{font-family:'Cormorant Garamond',serif; font-weight:600; font-size:30px; line-height:1; color:var(--c-rose);
+  text-shadow:0 1px .5px rgba(255,255,250,.85), 0 -1px 1px rgba(54,62,46,.32);}
+.wedo-std .stdc .cd-c .l{font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--c-ink); opacity:.7;
+  text-shadow:0 1px .5px rgba(255,255,250,.85), 0 -.5px .5px rgba(48,56,40,.26);}
+.wedo-std .stdc .cd-c .sep{width:1px; height:36px; background:rgba(48,56,40,.24); box-shadow:1px 0 0 rgba(255,255,250,.7);}
+/* CTA como botón letterpress sage */
+.wedo-std .stdc .cta-link{text-align:center; font-family:'Archivo',sans-serif; cursor:pointer; background:none; border:none; padding:0;}
+.wedo-std .stdc .cta-link span{display:inline-block; border:1px solid rgba(70,81,62,.7); border-radius:100px; padding:11px 26px; color:rgb(70,81,62); background:rgb(243,237,215); opacity:.78; font-size:14px; font-weight:400;
+  box-shadow:inset 0 1px 1px rgba(255,255,250,.75), inset 0 -1px 1px rgba(48,56,40,.12), 0 1px 1px rgba(255,255,250,.6); transition:opacity .2s, border-color .2s;}
+.wedo-std .stdc .cta-link span:hover{opacity:.96; border-color:rgba(70,81,62,.9);}
+.wedo-std .stdc .foot{position:absolute; left:0; right:0; bottom:26px; text-align:center; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--c-ink); opacity:.55;}
+.wedo-std .stdc .foot .mk{font-family:'Instrument Serif',serif; font-style:italic; text-transform:none; letter-spacing:0; font-size:16px;
+  text-shadow:0 1px .5px rgba(255,255,250,.85), 0 -.5px .5px rgba(48,56,40,.26);}
+.wedo-std .stdc .foot .mk .dot{color:var(--c-wine);}
 
 /* alturas chicas: compacta para evitar overflow */
 @media (max-height:760px){
