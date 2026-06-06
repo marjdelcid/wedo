@@ -182,25 +182,31 @@ export default function StdClient({ slug }: { slug: string }) {
     <div className="wedo-std">
       <div className="stdc">
         <div className="inner">
-          <div className="tobe">TO BE</div>
-          <div className="mono-row">
-            <div className="dcol"><span>{dd || "—"}</span><span>{mm || "—"}</span></div>
-            <div className="mono">{i1}<span className="amp">&amp;</span>{i2}</div>
-            <div className="dcol"><span>{yyyy ? yyyy.slice(0, 2) : "20"}</span><span>{yyyy ? yyyy.slice(2) : "26"}</span></div>
+          <div className="z-top">
+            <div className="tobe">TO BE</div>
+            <div className="mono-row">
+              <div className="dcol"><span>{dd || "—"}</span><span>{mm || "—"}</span></div>
+              <div className="mono">{i1}<span className="amp">&amp;</span>{i2}</div>
+              <div className="dcol"><span>{yyyy ? yyyy.slice(0, 2) : "20"}</span><span>{yyyy ? yyyy.slice(2) : "26"}</span></div>
+            </div>
+            <div className="wed">WED</div>
           </div>
-          <div className="wed">WED</div>
-          <div className="meta">
-            {ciudad && <div className="city">{ciudad}</div>}
-            <div className="formal">Formal invitation to follow</div>
+          <div className="z-mid">
+            <div className="meta">
+              {ciudad && <div className="city">{ciudad}</div>}
+              <div className="formal">Formal invitation to follow</div>
+            </div>
           </div>
-          <div className="cd-c">
-            <div className="u"><span className="n">{cd.d}</span><span className="l">días</span></div>
-            <span className="sep" />
-            <div className="u"><span className="n">{cd.h}</span><span className="l">horas</span></div>
-            <span className="sep" />
-            <div className="u"><span className="n">{pad(cd.m)}</span><span className="l">min</span></div>
+          <div className="z-bot">
+            <div className="cd-c">
+              <div className="u"><span className="n">{cd.d}</span><span className="l">días</span></div>
+              <span className="sep" />
+              <div className="u"><span className="n">{cd.h}</span><span className="l">horas</span></div>
+              <span className="sep" />
+              <div className="u"><span className="n">{pad(cd.m)}</span><span className="l">min</span></div>
+            </div>
+            <button className="cta-link" onClick={addToCalendar}><span>＋ Agregar al calendario</span></button>
           </div>
-          <button className="cta-link" onClick={addToCalendar}><span>＋ Agregar al calendario</span></button>
           <div className="foot"><Mark /></div>
         </div>
       </div>
