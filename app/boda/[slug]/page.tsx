@@ -21,13 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const fecha = p.fecha ? new Date(p.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : "";
   const title = `${n || "Nuestra boda"} · ${p.frase_portada || "Nos casamos"}`;
   const description = [fecha, p.lugar].filter(Boolean).join(" · ") || "Te invitamos a celebrar con nosotros.";
-  const images = p.foto_hero ? [{ url: p.foto_hero as string }] : undefined;
+  const images = [{ url: (p.foto_hero as string) || "/og.png" }];
   const url = `https://wedo.gifts/boda/${slug}`;
   return {
     title,
     description,
-    openGraph: { title, description, type: "website", url, ...(images ? { images } : {}) },
-    twitter: { card: "summary_large_image", title, description, ...(images ? { images } : {}) },
+    openGraph: { title, description, type: "website", url, images },
+    twitter: { card: "summary_large_image", title, description, images: images.map((i) => i.url) },
   };
 }
 

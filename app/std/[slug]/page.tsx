@@ -21,14 +21,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const fecha = p.fecha ? new Date(p.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : "";
   const title = `${n || "Nuestra boda"} · Save the date`;
   const description = ["Reserva la fecha", fecha, p.lugar].filter(Boolean).join(" · ");
-  // la foto solo aplica al estilo A; en los demás dejamos el OG de marca por defecto
-  const images = (p.std_estilo === "a" && p.foto_hero) ? [{ url: p.foto_hero as string }] : undefined;
+  // la foto solo aplica al estilo A; en los demás usamos el OG de marca
+  const img = (p.std_estilo === "a" && p.foto_hero) ? (p.foto_hero as string) : "/og.png";
   const url = `https://wedo.gifts/std/${slug}`;
   return {
     title,
     description,
-    openGraph: { title, description, type: "website", url, ...(images ? { images } : {}) },
-    twitter: { card: "summary_large_image", title, description, ...(images ? { images } : {}) },
+    openGraph: { title, description, type: "website", url, images: [{ url: img }] },
+    twitter: { card: "summary_large_image", title, description, images: [img] },
   };
 }
 

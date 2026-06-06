@@ -22,11 +22,13 @@ export const metadata: Metadata = {
     description: SITE_DESC,
     url: "https://wedo.gifts",
     locale: "es_GT",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "wedo." }],
   },
   twitter: {
     card: "summary_large_image",
     title: "wedo. · Invita, celebra, recibe",
     description: SITE_DESC,
+    images: ["/og.png"],
   },
 };
 
