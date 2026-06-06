@@ -151,3 +151,11 @@
 @media (min-width:760px){
   .wedo-std .stda .body, .wedo-std .stda .top{margin-left:auto; margin-right:auto;}
 }
+
+/* Opción C en escritorio: panel vertical centrado para que el fondo floral
+   (imagen raster) se muestre cerca de su resolución nativa y NO se vea borroso
+   al estirarse a todo el ancho. Solo afecta a C (la página que contiene .stdc). */
+@media (min-width:760px){
+  .wedo-std:has(.stdc){background:radial-gradient(120% 90% at 50% 30%, #d3d8c5 0%, #c4cab4 100%); display:flex; justify-content:center; align-items:stretch;}
+  .wedo-std .stdc{max-width:560px; width:100%; box-shadow:0 24px 70px rgba(48,56,40,.30);}
+}
