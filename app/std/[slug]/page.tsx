@@ -21,14 +21,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const fecha = p.fecha ? new Date(p.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : "";
   const title = `${n || "Nuestra boda"} · Save the date`;
   const description = ["Reserva la fecha", fecha, p.lugar].filter(Boolean).join(" · ");
-  // la foto solo aplica al estilo A; en los demás usamos el OG de marca
-  const img = (p.std_estilo === "a" && p.foto_hero) ? (p.foto_hero as string) : "/og.png";
+  // imagen = la "tarjeta de WhatsApp" del estilo elegido (póster vertical)
+  const estilo = (p.std_estilo || "c").toLowerCase();
+  let image: { url: string; width?: number; height?: number };
+  if (estilo === "a") image = { url: (p.foto_hero as string) || "/og.png" };
+  else if (estilo === "b") image = { url: "/og-std-b.png", width: 1080, height: 1350 };
+  else image = { url: "/og-std-c.png", width: 1080, height: 1350 };
   const url = `https://wedo.gifts/std/${slug}`;
   return {
     title,
     description,
-    openGraph: { title, description, type: "website", url, images: [{ url: img }] },
-    twitter: { card: "summary_large_image", title, description, images: [img] },
+    openGraph: { title, description, type: "website", url, images: [image] },
+    twitter: { card: "summary_large_image", title, description, images: [image.url] },
   };
 }
 
