@@ -131,7 +131,9 @@ export default function StdClient({ slug }: { slug: string }) {
   function addToCalendar() {
     if (!weddingDate) return;
     const start = weddingDate;
-    const end = new Date(start.getTime() + 5 * 3600000);
+    // fin: 1:00 AM del día siguiente a la fecha de la boda
+    const end = pareja.fecha ? new Date(`${pareja.fecha}T01:00:00`) : new Date(start.getTime() + 5 * 3600000);
+    if (pareja.fecha) end.setDate(end.getDate() + 1);
     const fmt = (dt: Date) => dt.getUTCFullYear() + pad(dt.getUTCMonth() + 1) + pad(dt.getUTCDate()) + "T" + pad(dt.getUTCHours()) + pad(dt.getUTCMinutes()) + "00Z";
     const p = new URLSearchParams({
       action: "TEMPLATE",
