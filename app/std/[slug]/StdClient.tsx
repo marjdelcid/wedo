@@ -140,7 +140,11 @@ export default function StdClient({ slug }: { slug: string }) {
       details: "¡Reserva la fecha! Save the date — wedo.",
       location: ciudad,
     });
-    window.open("https://calendar.google.com/calendar/render?" + p.toString(), "_blank", "noopener");
+    const gcal = "https://calendar.google.com/calendar/render?" + p.toString();
+    // en móvil, abrir tras un timeout cae fuera del gesto y el navegador bloquea
+    // window.open → si no abre, navegamos en la misma pestaña.
+    const w = window.open(gcal, "_blank", "noopener");
+    if (!w || w.closed || typeof w.closed === "undefined") window.location.href = gcal;
   }
 
   // estilo C: lluvia de orquídeas y luego abrir el calendario (~1.15s después)
