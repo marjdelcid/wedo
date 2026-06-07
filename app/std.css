@@ -84,7 +84,19 @@
   box-shadow:inset 0 0 0 1px rgba(41,40,0,.10), inset 0 0 80px rgba(41,40,0,.12);}
 /* fondo floral grabado sage — a sangre, multiply */
 .wedo-std .stdc .cbg{position:absolute; z-index:1; pointer-events:none;}
-.wedo-std .stdc .cbg-emboss-sage{inset:0; background:url("/assets/std-c-emboss-sage.png") center/cover; opacity:1; mix-blend-mode:multiply;}
+.wedo-std .stdc .cbg-emboss-sage{inset:0; background:url("/assets/std-c-emboss-sage-hd.jpg") center/cover; opacity:1; mix-blend-mode:multiply; image-rendering:auto;}
+
+/* lluvia de orquídeas al presionar "Agregar al calendario" */
+.wedo-std .petal-fall{position:absolute; inset:0; z-index:40; pointer-events:none; overflow:hidden;}
+.wedo-std .petal-fall .pf{position:absolute; top:0; will-change:transform,opacity; animation:petalDrop var(--dur,3s) cubic-bezier(.45,.05,.55,.95) var(--delay,0s) forwards;}
+.wedo-std .petal-fall .pf svg{display:block; filter:drop-shadow(0 3px 5px rgba(125,63,72,.28));}
+@keyframes petalDrop{
+  0%{transform:translateY(-60px) translateX(0) rotate(0deg); opacity:0;}
+  12%{opacity:var(--op,.9);}
+  90%{opacity:var(--op,.9);}
+  100%{transform:translateY(var(--fall,900px)) translateX(var(--sway,30px)) rotate(var(--rot,360deg)); opacity:0;}
+}
+@media (prefers-reduced-motion:reduce){ .wedo-std .petal-fall{display:none;} }
 .wedo-std .stdc .inner{position:relative; z-index:3; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:space-between; text-align:center; padding:64px 32px 72px; gap:clamp(20px,4vh,40px);}
 /* 3 zonas para distribuir: arriba (títulos+monograma) · centro (meta) · abajo (countdown+cta) */
 .wedo-std .stdc .z-top, .wedo-std .stdc .z-mid, .wedo-std .stdc .z-bot{display:flex; flex-direction:column; align-items:center;}
@@ -150,12 +162,4 @@
 /* ===== desktop: centra la composición en una columna tipo "tarjeta" ===== */
 @media (min-width:760px){
   .wedo-std .stda .body, .wedo-std .stda .top{margin-left:auto; margin-right:auto;}
-}
-
-/* Opción C en escritorio: panel vertical centrado para que el fondo floral
-   (imagen raster) se muestre cerca de su resolución nativa y NO se vea borroso
-   al estirarse a todo el ancho. Solo afecta a C (la página que contiene .stdc). */
-@media (min-width:760px){
-  .wedo-std:has(.stdc){background:radial-gradient(120% 90% at 50% 30%, #d3d8c5 0%, #c4cab4 100%); display:flex; justify-content:center; align-items:stretch;}
-  .wedo-std .stdc{max-width:560px; width:100%; box-shadow:0 24px 70px rgba(48,56,40,.30);}
 }

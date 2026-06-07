@@ -32,6 +32,42 @@ function parseHora(s: string): { h: number; m: number } | null {
   return { h, m: min };
 }
 
+// orquídea (estilo C) que cae al pulsar "Agregar al calendario"
+const ORCHID = (s: number) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}">
+  <g fill="#a15d66">
+    <ellipse cx="12" cy="4.4" rx="2.4" ry="3.6"/>
+    <ellipse cx="5.3" cy="8.2" rx="2.3" ry="4" transform="rotate(-52 5.3 8.2)"/>
+    <ellipse cx="18.7" cy="8.2" rx="2.3" ry="4" transform="rotate(52 18.7 8.2)"/>
+    <ellipse cx="6.4" cy="14.6" rx="3.6" ry="2.5" transform="rotate(-26 6.4 14.6)"/>
+    <ellipse cx="17.6" cy="14.6" rx="3.6" ry="2.5" transform="rotate(26 17.6 14.6)"/>
+    <path d="M12 12.2c-1.7 0-3 1.4-3 3.3 0 1.7 1 3.9 3 5.3 2-1.4 3-3.6 3-5.3 0-1.9-1.3-3.3-3-3.3z"/>
+  </g>
+  <path d="M12 13.4c-.9 0-1.6.8-1.6 1.9 0 1 .6 2.2 1.6 3.1 1-.9 1.6-2.1 1.6-3.1 0-1.1-.7-1.9-1.6-1.9z" fill="#e7b6bf"/>
+  <circle cx="12" cy="11.8" r="1.1" fill="#f0d9b8"/>
+  <circle cx="12" cy="11.8" r="0.5" fill="#7d3f48"/>
+</svg>`;
+function spawnOrchids(host: HTMLElement) {
+  let layer = host.querySelector(".petal-fall") as HTMLElement | null;
+  if (!layer) { layer = document.createElement("div"); layer.className = "petal-fall"; layer.setAttribute("aria-hidden", "true"); host.appendChild(layer); }
+  const N = 16;
+  const fallPx = (host.offsetHeight || 840) + 80;
+  for (let i = 0; i < N; i++) {
+    const p = document.createElement("span");
+    p.className = "pf";
+    const size = 13 + Math.random() * 16;
+    p.style.left = (6 + Math.random() * 88) + "%";
+    p.style.setProperty("--fall", fallPx + "px");
+    p.style.setProperty("--dur", (2.6 + Math.random() * 1.9).toFixed(2) + "s");
+    p.style.setProperty("--delay", (Math.random() * 0.5).toFixed(2) + "s");
+    p.style.setProperty("--sway", (18 + Math.random() * 46).toFixed(0) + "px");
+    p.style.setProperty("--rot", (Math.random() * 720 - 360).toFixed(0) + "deg");
+    p.style.setProperty("--op", (0.7 + Math.random() * 0.3).toFixed(2));
+    p.innerHTML = ORCHID(size);
+    layer.appendChild(p);
+    setTimeout(() => p.remove(), 5200);
+  }
+}
+
 export default function StdClient({ slug }: { slug: string }) {
   const [pareja, setPareja] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -105,6 +141,14 @@ export default function StdClient({ slug }: { slug: string }) {
       location: ciudad,
     });
     window.open("https://calendar.google.com/calendar/render?" + p.toString(), "_blank", "noopener");
+  }
+
+  // estilo C: lluvia de orquídeas y luego abrir el calendario (~1.15s después)
+  function addToCalendarC(e: React.MouseEvent) {
+    const reduce = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const host = (e.currentTarget as HTMLElement).closest(".stdc") as HTMLElement | null;
+    if (!reduce && host) { spawnOrchids(host); setTimeout(addToCalendar, 1150); }
+    else addToCalendar();
   }
 
   const Mark = () => <span className="mk">wedo<span className="dot">.</span></span>;
@@ -204,7 +248,7 @@ export default function StdClient({ slug }: { slug: string }) {
               <span className="sep" />
               <div className="u"><span className="n">{pad(cd.m)}</span><span className="l">min</span></div>
             </div>
-            <button className="cta-link" onClick={addToCalendar}><span>＋ Agregar al calendario</span></button>
+            <button className="cta-link" onClick={addToCalendarC}><span>＋ Agregar al calendario</span></button>
           </div>
           <div className="foot"><Mark /></div>
         </div>
