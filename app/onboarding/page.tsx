@@ -1,75 +1,112 @@
 "use client";
 /* =====================================================================
    wedo. — app/onboarding/page.tsx
-   Host onboarding wizard (4 steps incl. success), wired to Supabase.
-   Brand: wedo. — see app-ui.css (.wedo-app) + onboarding.css.
+   Host onboarding wizard multi-evento, wired a Supabase.
+   Paso 0: selección de tipo de evento.
+   Pasos 1..n: se renderizan dinámicamente desde EVENT_TYPES
+   (app/lib/eventTypes.ts). Agregar un tipo nuevo NO requiere
+   tocar este archivo.
+   Brand: wedo. — app-ui.css (.wedo-app) + onboarding.css + onboarding-tipos.css
    ===================================================================== */
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  EVENT_TYPES,
+  getEventType,
+  COLUMNAS_PAREJAS,
+  type EventType,
+  type Campo,
+} from "../lib/eventTypes";
 import "../app-ui.css";
 import "../onboarding.css";
-
-const KICKERS = [
-  "Cuéntanos de su boda",
-  "Detalles del evento",
-  "Su historia",
-  "¡Bienvenidos!",
-];
+import "../onboarding-tipos.css";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
+
+  // tipo === null → estamos en el selector de tipo de evento (paso 0)
+  const [tipo, setTipo] = useState<EventType | null>(null);
+  // índice del paso dentro de tipo.pasos (0-based). El paso "listo" es pasos.length
+  const [paso, setPaso] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    nombre1: "",
-    nombre2: "",
-    fecha: "",
-    lugar: "",
-    hora: "",
-    ceremonia: "",
-    recepcion: "",
-    dresscode: "",
-    historia: "",
-  });
+  const [form, setForm] = useState<Record<string, string>>({});
+
+  const totalPasos = tipo ? tipo.pasos.length : 0;
+  const done = tipo !== null && paso >= totalPasos;
+  const pasoActual = tipo && !done ? tipo.pasos[paso] : null;
 
   function updateForm(key: string, value: string) {
-    setForm(prev => ({ ...prev, [key]: value }));
+    setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function generateSlug(n1: string, n2: string) {
-    return `${n1}-y-${n2}`
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "");
+  function elegirTipo(t: EventType) {
+    setTipo(t);
+    setPaso(0);
+    setForm({});
+    setError("");
+  }
+
+  function puedeAvanzar(): boolean {
+    if (!pasoActual) return false;
+    return pasoActual.campos
+      .filter((c) => c.requerido)
+      .every((c) => !!(form[c.key] || "").trim());
+  }
+
+  /** Garantiza slug único agregando -2, -3… si ya existe */
+  async function slugUnico(base: string): Promise<string> {
+    const limpio = base || "mi-evento";
+    const { data } = await supabase
+      .from("parejas")
+      .select("slug")
+      .like("slug", `${limpio}%`);
+    const usados = new Set((data || []).map((r: any) => r.slug));
+    if (!usados.has(limpio)) return limpio;
+    let n = 2;
+    while (usados.has(`${limpio}-${n}`)) n++;
+    return `${limpio}-${n}`;
   }
 
   async function handleCreate() {
-    if (loading) return;
+    if (loading || !tipo) return;
     setLoading(true);
     setError("");
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
 
-    const slug = generateSlug(form.nombre1, form.nombre2);
+    // Separar campos: columnas de `parejas` vs detalles_evento (jsonb)
+    const columnas: Record<string, any> = {};
+    const detalles: Record<string, string> = {};
+    for (const p of tipo.pasos) {
+      for (const c of p.campos) {
+        const v = (form[c.key] || "").trim();
+        if (!v) continue;
+        if (c.detalle || !COLUMNAS_PAREJAS.has(c.key)) detalles[c.key] = v;
+        else columnas[c.key] = v;
+      }
+    }
+
+    const slug = await slugUnico(tipo.slugBase(form));
 
     const { error: insertErr } = await supabase.from("parejas").insert({
       user_id: user.id,
-      nombre1: form.nombre1,
-      nombre2: form.nombre2,
-      fecha: form.fecha || null,
-      lugar: form.lugar,
       slug,
-      historia: form.historia,
-      dresscode: form.dresscode,
-      ceremonia: form.ceremonia,
-      recepcion: form.recepcion,
-      hora: form.hora,
+      tipo_evento: tipo.id,
+      detalles_evento: detalles,
+      frase_portada: tipo.frasePortada,
+      nombre1: columnas.nombre1 || "",
+      nombre2: columnas.nombre2 || null,
+      fecha: columnas.fecha || null,
+      lugar: columnas.lugar || "",
+      hora: columnas.hora || "",
+      ceremonia: columnas.ceremonia || "",
+      recepcion: columnas.recepcion || "",
+      dresscode: columnas.dresscode || "",
+      historia: columnas.historia || "",
     });
 
     if (insertErr) {
@@ -77,11 +114,82 @@ export default function OnboardingPage() {
       setLoading(false);
     } else {
       setLoading(false);
-      setStep(4);
+      setPaso(totalPasos); // pantalla de éxito
     }
   }
 
-  const canAdvance1 = !!form.nombre1.trim() && !!form.nombre2.trim();
+  function siguiente() {
+    if (paso === totalPasos - 1) handleCreate();
+    else setPaso(paso + 1);
+  }
+  function atras() {
+    if (paso === 0) { setTipo(null); setForm({}); }
+    else setPaso(paso - 1);
+  }
+
+  const kicker = !tipo
+    ? "¿Qué vamos a celebrar?"
+    : done
+    ? "¡Bienvenidos!"
+    : tipo.pasos[paso].kicker;
+
+  const esUltimo = tipo !== null && paso === totalPasos - 1;
+
+  function renderCampo(c: Campo) {
+    const label = (
+      <label>
+        {c.label}
+        {c.opcional && <span className="opt"> · opcional</span>}
+      </label>
+    );
+    if (c.tipo === "textarea") {
+      return (
+        <div className="field" key={c.key}>
+          {label}
+          <textarea
+            className="inp"
+            placeholder={c.placeholder}
+            value={form[c.key] || ""}
+            onChange={(e) => updateForm(c.key, e.target.value)}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="field" key={c.key}>
+        {label}
+        <input
+          className="inp"
+          type={c.tipo === "date" ? "date" : "text"}
+          placeholder={c.placeholder}
+          value={form[c.key] || ""}
+          onChange={(e) => updateForm(c.key, e.target.value)}
+        />
+      </div>
+    );
+  }
+
+  /** Agrupa campos: los `medio` consecutivos se emparejan en .ob-grid2 */
+  function renderCampos(campos: Campo[]) {
+    const out: React.ReactNode[] = [];
+    let i = 0;
+    while (i < campos.length) {
+      const c = campos[i];
+      if (c.medio && campos[i + 1]?.medio) {
+        out.push(
+          <div className="ob-grid2" key={`g-${c.key}`}>
+            {renderCampo(c)}
+            {renderCampo(campos[i + 1])}
+          </div>
+        );
+        i += 2;
+      } else {
+        out.push(renderCampo(c));
+        i += 1;
+      }
+    }
+    return out;
+  }
 
   return (
     <div className="wedo-app">
@@ -93,123 +201,97 @@ export default function OnboardingPage() {
         <div className="ob-inner">
           <div className="ob-head">
             <span className="ob-logo">wedo<span className="dot">.</span></span>
-            <div className="ob-kicker">{KICKERS[step - 1]}</div>
-            <div className="ob-prog">
-              {[0, 1, 2].map(i => (
-                <i
-                  key={i}
-                  className={
-                    i < step - 1
-                      ? "done"
-                      : i === step - 1 && step <= 3
-                      ? "active"
-                      : ""
-                  }
-                />
-              ))}
-            </div>
+            <div className="ob-kicker">{kicker}</div>
+            {tipo && !done && (
+              <div className="ob-prog">
+                {tipo.pasos.map((_, i) => (
+                  <i key={i} className={i < paso ? "done" : i === paso ? "active" : ""} />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="ob-card">
 
-            {/* STEP 1 · Los novios */}
-            {step === 1 && (
+            {/* PASO 0 · Tipo de evento */}
+            {!tipo && (
               <section className="ob-step on">
-                <h2 className="ob-title">Los novios</h2>
-                <p className="ob-sub">Lo esencial para empezar su página. Podrán editar todo después.</p>
+                <h2 className="ob-title">¿Qué evento quieres crear?</h2>
+                <p className="ob-sub">
+                  Elige el tipo de celebración y armamos tu página con lo que necesitas:
+                  invitación, confirmaciones y mesa de regalos.
+                </p>
 
-                <div className="ob-grid2">
-                  <div className="field">
-                    <label>Nombre 1</label>
-                    <input className="inp" type="text" placeholder="Andrea" value={form.nombre1} onChange={e => updateForm("nombre1", e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label>Nombre 2</label>
-                    <input className="inp" type="text" placeholder="Diego" value={form.nombre2} onChange={e => updateForm("nombre2", e.target.value)} />
-                  </div>
-                </div>
-                <div className="ob-grid2">
-                  <div className="field">
-                    <label>Fecha de la boda</label>
-                    <input className="inp" type="date" value={form.fecha} onChange={e => updateForm("fecha", e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label>Ciudad</label>
-                    <input className="inp" type="text" placeholder="Guatemala City" value={form.lugar} onChange={e => updateForm("lugar", e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="ob-foot single">
-                  <button className="btn btn-pink" onClick={() => setStep(2)} disabled={!canAdvance1}>Siguiente</button>
+                <div className="ob-tipos">
+                  {EVENT_TYPES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className="ob-tipo-card"
+                      onClick={() => elegirTipo(t)}
+                    >
+                      <span className="ob-tipo-emoji" aria-hidden="true">{t.emoji}</span>
+                      <span className="ob-tipo-txt">
+                        <b>{t.label}</b>
+                        <span>{t.desc}</span>
+                      </span>
+                      <span className="ob-tipo-arrow" aria-hidden="true">→</span>
+                    </button>
+                  ))}
                 </div>
               </section>
             )}
 
-            {/* STEP 2 · El gran día */}
-            {step === 2 && (
+            {/* PASOS DINÁMICOS según tipo de evento */}
+            {tipo && pasoActual && (
               <section className="ob-step on">
-                <h2 className="ob-title">El gran día</h2>
-                <p className="ob-sub">Los detalles que verán sus invitados en la invitación.</p>
+                <h2 className="ob-title">{pasoActual.titulo}</h2>
+                <p className="ob-sub">{pasoActual.sub}</p>
 
-                <div className="ob-grid2">
-                  <div className="field">
-                    <label>Hora de la ceremonia</label>
-                    <input className="inp" type="text" placeholder="6:00 PM" value={form.hora} onChange={e => updateForm("hora", e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label>Lugar de la ceremonia</label>
-                    <input className="inp" type="text" placeholder="Catedral Metropolitana" value={form.ceremonia} onChange={e => updateForm("ceremonia", e.target.value)} />
-                  </div>
-                </div>
-                <div className="field">
-                  <label>Lugar de la recepción</label>
-                  <input className="inp" type="text" placeholder="Casa Santo Domingo, Antigua" value={form.recepcion} onChange={e => updateForm("recepcion", e.target.value)} />
-                </div>
-                <div className="field">
-                  <label>Dress code <span className="opt">· opcional</span></label>
-                  <input className="inp" type="text" placeholder="Formal de jardín · tonos suaves" value={form.dresscode} onChange={e => updateForm("dresscode", e.target.value)} />
-                  <button className="ob-skip" type="button" onClick={() => setStep(3)}>Omitir por ahora →</button>
-                </div>
+                {renderCampos(pasoActual.campos)}
 
-                <div className="ob-foot">
-                  <button className="btn btn-ghost" onClick={() => setStep(1)}>Atrás</button>
-                  <button className="btn btn-pink grow2" onClick={() => setStep(3)}>Siguiente</button>
-                </div>
-              </section>
-            )}
-
-            {/* STEP 3 · Su historia */}
-            {step === 3 && (
-              <section className="ob-step on">
-                <h2 className="ob-title">Su historia</h2>
-                <p className="ob-sub">Cuéntenles a sus invitados cómo se conocieron. Es opcional —pueden agregarla luego.</p>
-
-                <div className="field">
-                  <label>Su historia <span className="opt">· opcional</span></label>
-                  <textarea className="inp" placeholder="Nos conocimos en Antigua hace seis años…" value={form.historia} onChange={e => updateForm("historia", e.target.value)} />
-                  <button className="ob-skip" type="button" onClick={handleCreate} disabled={loading}>Omitir por ahora →</button>
-                </div>
+                {pasoActual.omitible && !esUltimo && (
+                  <button className="ob-skip" type="button" onClick={() => setPaso(paso + 1)}>
+                    Omitir por ahora →
+                  </button>
+                )}
+                {pasoActual.omitible && esUltimo && (
+                  <button className="ob-skip" type="button" onClick={handleCreate} disabled={loading}>
+                    Omitir por ahora →
+                  </button>
+                )}
 
                 {error && (
-                  <p className="ob-sub" style={{ color: "var(--coral)", margin: "0 0 8px", textAlign: "center" }}>{error}</p>
+                  <p className="ob-sub" style={{ color: "var(--coral)", margin: "0 0 8px", textAlign: "center" }}>
+                    {error}
+                  </p>
                 )}
 
                 <div className="ob-foot">
-                  <button className="btn btn-ghost" onClick={() => setStep(2)} disabled={loading}>Atrás</button>
-                  <button className="btn btn-pink grow2" onClick={handleCreate} disabled={loading}>
-                    {loading ? "Creando…" : "Crear mi página"}
+                  <button className="btn btn-ghost" onClick={atras} disabled={loading}>
+                    Atrás
+                  </button>
+                  <button
+                    className="btn btn-pink grow2"
+                    onClick={siguiente}
+                    disabled={loading || !puedeAvanzar()}
+                  >
+                    {esUltimo ? (loading ? "Creando…" : "Crear mi página") : "Siguiente"}
                   </button>
                 </div>
               </section>
             )}
 
-            {/* DONE */}
-            {step === 4 && (
+            {/* LISTO */}
+            {done && tipo && (
               <section className="ob-step on">
                 <div className="ob-done">
-                  <div className="seal">&amp;</div>
-                  <h2 className="ob-title" style={{ textAlign: "center" }}>¡Su página está lista!</h2>
-                  <p>Ya pueden personalizar la portada, armar su mesa de regalos en quetzales y enviar las invitaciones.</p>
+                  <div className="seal">{tipo.emoji}</div>
+                  <h2 className="ob-title" style={{ textAlign: "center" }}>¡Tu página está lista!</h2>
+                  <p>
+                    Ya puedes personalizar la portada, armar tu mesa de regalos en quetzales
+                    y enviar las invitaciones de tu {tipo.label.toLowerCase()}.
+                  </p>
                   <div className="ob-foot single">
                     <Link className="btn btn-pink" href="/editor">Ir al editor</Link>
                   </div>
@@ -219,8 +301,8 @@ export default function OnboardingPage() {
 
           </div>
 
-          {step <= 3 && (
-            <div className="ob-count">Paso {step} de 3</div>
+          {tipo && !done && (
+            <div className="ob-count">Paso {paso + 1} de {totalPasos}</div>
           )}
         </div>
       </div>
