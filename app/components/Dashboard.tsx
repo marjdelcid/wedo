@@ -83,6 +83,20 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [host, setHost] = useState("");
   const [copied, setCopied] = useState(false);
+  const [esAdminUser, setEsAdminUser] = useState(false);
+
+  /** Chequeo ligero contra /api/admin/me (la tabla admins no es legible desde el cliente) */
+  async function esAdminCliente(): Promise<boolean> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return false;
+      const res = await fetch("/api/admin/me", { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const j = await res.json().catch(() => ({}));
+      return !!j.admin;
+    } catch {
+      return false;
+    }
+  }
 
   useEffect(() => {
     setHost(window.location.host);
@@ -105,8 +119,12 @@ export default function Dashboard() {
       .eq("user_id", user.id)
       .single();
 
+    const admin = await esAdminCliente();
+    setEsAdminUser(admin);
+
     if (!parejaData) {
-      router.push("/onboarding");
+      // los admins sin evento propio van a su panel, no al onboarding
+      router.push(admin ? "/admin" : "/onboarding");
       return;
     }
     setPareja(parejaData);
@@ -241,6 +259,11 @@ export default function Dashboard() {
             <span className="chev">▾</span>
           </button>
           <div className="topbar-r">
+            {esAdminUser && (
+              <Link className="btn btn-ghost btn-sm" href="/admin">
+                Admin
+              </Link>
+            )}
             {slug && (
               <a
                 className="btn btn-ghost btn-sm"
