@@ -76,3 +76,22 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* spinner del diseñador IA ("Diseñando…") */
+.ob-ia-spin {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(35, 23, 18, 0.2);
+  border-top-color: var(--pink, #e84b8a);
+  border-radius: 50%;
+  margin-right: 2px;
+  vertical-align: -2px;
+  animation: obIaSpin 0.8s linear infinite;
+}
+@keyframes obIaSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-ia-spin { animation: none; }
+}

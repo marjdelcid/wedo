@@ -19,6 +19,8 @@ import {
   type EventType,
   type Campo,
 } from "../lib/eventTypes";
+import { generarDisenoIA, DisenoIAError, type DisenoIA } from "../lib/disenoIA";
+import DisenoIAPreview from "../components/DisenoIAPreview";
 import "../app-ui.css";
 import "../onboarding.css";
 import "../onboarding-tipos.css";
@@ -34,6 +36,15 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState<Record<string, string>>({});
 
+  // diseñador IA (campos con disenoIA: true, ej. "tema")
+  const [ia, setIa] = useState<{
+    loading: boolean;
+    error: string;
+    diseno: DisenoIA | null;
+    usado: boolean;
+    restantes: number | null;
+  }>({ loading: false, error: "", diseno: null, usado: false, restantes: null });
+
   const totalPasos = tipo ? tipo.pasos.length : 0;
   const done = tipo !== null && paso >= totalPasos;
   const pasoActual = tipo && !done ? tipo.pasos[paso] : null;
@@ -47,6 +58,25 @@ export default function OnboardingPage() {
     setPaso(0);
     setForm({});
     setError("");
+    setIa({ loading: false, error: "", diseno: null, usado: false, restantes: null });
+  }
+
+  async function generarIA(campoKey: string, nocache = false) {
+    if (!tipo || ia.loading) return;
+    const tema = (form[campoKey] || "").trim();
+    if (!tema) return;
+    setIa((s) => ({ ...s, loading: true, error: "" }));
+    try {
+      const d = await generarDisenoIA({ tema, tipoEvento: tipo.id, nocache });
+      setIa({ loading: false, error: "", diseno: d, usado: false, restantes: d.restantes ?? null });
+    } catch (e: any) {
+      setIa((s) => ({
+        ...s,
+        loading: false,
+        error: e?.message || "No pudimos generar el diseño. Intenta de nuevo.",
+        restantes: e instanceof DisenoIAError && typeof e.restantes === "number" ? e.restantes : s.restantes,
+      }));
+    }
   }
 
   function puedeAvanzar(): boolean {
@@ -107,6 +137,18 @@ export default function OnboardingPage() {
       recepcion: columnas.recepcion || "",
       dresscode: columnas.dresscode || "",
       historia: columnas.historia || "",
+      // diseño generado con IA (si el usuario eligió "Usar este diseño")
+      ...(ia.usado && ia.diseno
+        ? {
+            paleta: "personalizado",
+            paleta_colores: ia.diseno.colores,
+            color_acento: ia.diseno.colores[0],
+            tipografia: ia.diseno.tipografia,
+            tipografia_titulos: ia.diseno.tipografia_titulos,
+            foto_hero: ia.diseno.foto_hero || null,
+            frase_portada: ia.diseno.frase_portada,
+          }
+        : {}),
     });
 
     if (insertErr) {
@@ -165,6 +207,60 @@ export default function OnboardingPage() {
           value={form[c.key] || ""}
           onChange={(e) => updateForm(c.key, e.target.value)}
         />
+        {c.disenoIA && renderDisenoIA(c)}
+      </div>
+    );
+  }
+
+  /** Bloque "✨ Generar diseño" bajo los campos con disenoIA (ej. tema) */
+  function renderDisenoIA(c: Campo) {
+    const tema = (form[c.key] || "").trim();
+    const agotado = ia.restantes === 0;
+    return (
+      <div style={{ marginTop: 8 }}>
+        {tema && !ia.diseno && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => generarIA(c.key)} disabled={ia.loading || agotado}>
+            {ia.loading ? <><span className="ob-ia-spin" aria-hidden="true" /> Diseñando…</> : "✨ Generar diseño"}
+          </button>
+        )}
+        {ia.error && (
+          <p style={{ fontFamily: "'Archivo',sans-serif", fontSize: 12.5, color: "var(--coral)", margin: "8px 0 0" }}>
+            {ia.error}{" "}
+            {!agotado && (
+              <button type="button" className="ob-skip" onClick={() => generarIA(c.key)} disabled={ia.loading}>Reintentar</button>
+            )}
+          </p>
+        )}
+        {ia.diseno && (
+          <DisenoIAPreview diseno={ia.diseno}>
+            <button
+              type="button"
+              className={"btn btn-sm " + (ia.usado ? "btn-ghost" : "btn-pink")}
+              onClick={() => setIa((s) => ({ ...s, usado: !s.usado }))}
+            >
+              {ia.usado ? "✓ Se usará este diseño" : "Usar este diseño"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => generarIA(c.key, true)}
+              disabled={ia.loading || agotado}
+              title={agotado ? "Ya usaste tus 3 diseños con IA" : undefined}
+            >
+              {ia.loading ? <><span className="ob-ia-spin" aria-hidden="true" /> Diseñando…</> : "Regenerar"}
+            </button>
+            {ia.restantes != null && (
+              <span style={{ fontFamily: "'Archivo',sans-serif", fontSize: 11.5, color: "var(--ink-faint)" }}>
+                {agotado ? "Sin generaciones disponibles" : `${ia.restantes} ${ia.restantes === 1 ? "generación disponible" : "generaciones disponibles"}`}
+              </span>
+            )}
+            {ia.usado && (
+              <span style={{ flexBasis: "100%", fontFamily: "'Archivo',sans-serif", fontSize: 11.5, color: "var(--ink-faint)" }}>
+                Puedes ajustar colores, tipografía y foto cuando quieras en Diseño.
+              </span>
+            )}
+          </DisenoIAPreview>
+        )}
       </div>
     );
   }

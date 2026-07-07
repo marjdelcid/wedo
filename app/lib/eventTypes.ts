@@ -31,6 +31,7 @@ export interface Campo {
   medio?: boolean;           // ocupa media fila (ob-grid2)
   requerido?: boolean;       // bloquea "Siguiente" si está vacío
   detalle?: boolean;         // true → guardar en detalles_evento (jsonb)
+  disenoIA?: boolean;        // true → ofrece "✨ Generar diseño" con IA a partir de este campo
 }
 
 export interface PasoOnboarding {
@@ -181,7 +182,7 @@ export const EVENT_TYPES: EventType[] = [
         campos: [
           { key: "hora", label: "Hora", placeholder: "3:00 PM", medio: true },
           { key: "recepcion", label: "Lugar de la fiesta", placeholder: "Parque Kids Planet", medio: true },
-          { key: "tema", label: "Tema de la fiesta", opcional: true, placeholder: "Dinosaurios, princesas, superhéroes…", detalle: true },
+          { key: "tema", label: "Tema de la fiesta", opcional: true, placeholder: "Dinosaurios, princesas, superhéroes…", detalle: true, disenoIA: true },
         ],
       },
       pasoMensaje("Un mensaje para los invitados y sus papás. Es opcional.", "¡Los esperamos para celebrar juntos!"),
@@ -245,7 +246,7 @@ export const EVENT_TYPES: EventType[] = [
         campos: [
           { key: "hora", label: "Hora", placeholder: "4:00 PM", medio: true },
           { key: "recepcion", label: "Lugar del baby shower", placeholder: "Jardines de San Isidro", medio: true },
-          { key: "tema", label: "Tema o colores", opcional: true, placeholder: "Safari · tonos tierra", detalle: true },
+          { key: "tema", label: "Tema o colores", opcional: true, placeholder: "Safari · tonos tierra", detalle: true, disenoIA: true },
           { key: "organiza", label: "¿Quién organiza?", opcional: true, placeholder: "Las tías de Emilia", detalle: true },
         ],
       },
@@ -277,7 +278,7 @@ export const EVENT_TYPES: EventType[] = [
         campos: [
           { key: "hora", label: "Hora", placeholder: "6:00 PM", medio: true },
           { key: "recepcion", label: "Lugar de la despedida", placeholder: "Casa en Antigua", medio: true },
-          { key: "tema", label: "Tema o dress code", opcional: true, placeholder: "Todas de blanco, la novia de color", detalle: true },
+          { key: "tema", label: "Tema o dress code", opcional: true, placeholder: "Todas de blanco, la novia de color", detalle: true, disenoIA: true },
           { key: "organiza", label: "¿Quién organiza?", opcional: true, placeholder: "Las damas de honor", detalle: true },
         ],
       },

@@ -166,6 +166,8 @@ export async function POST(req: Request) {
     const tema: string = (body?.tema || "").toString().slice(0, 120);
     const tipoEvento: string = (body?.tipoEvento || "otro").toString();
     const parejaId: string | null = body?.parejaId || null;
+    // "Regenerar" salta la lectura de caché (sí respeta el límite)
+    const nocache: boolean = !!body?.nocache;
     if (!tema.trim()) return NextResponse.json({ error: "Escribe un tema para tu diseño." }, { status: 400 });
 
     const admin = supabaseAdmin();
@@ -185,12 +187,14 @@ export async function POST(req: Request) {
 
     // caché — no llama proveedores ni descuenta límite
     const temaNorm = normalizarTema(tema);
-    const { data: cacheHit } = await admin
-      .from("disenos_ia")
-      .select("resultado,foto_hero")
-      .eq("tema_normalizado", temaNorm)
-      .eq("tipo_evento", tipoEvento)
-      .maybeSingle();
+    const { data: cacheHit } = nocache
+      ? { data: null }
+      : await admin
+          .from("disenos_ia")
+          .select("resultado,foto_hero")
+          .eq("tema_normalizado", temaNorm)
+          .eq("tipo_evento", tipoEvento)
+          .maybeSingle();
     if (cacheHit) {
       return NextResponse.json({
         ...(cacheHit.resultado as object),
@@ -241,14 +245,17 @@ export async function POST(req: Request) {
       frase_portada: diseno.frase_portada,
     };
 
-    // persistencia (cache global) + descuento del límite
-    await admin.from("disenos_ia").insert({
-      tema_normalizado: temaNorm,
-      tipo_evento: tipoEvento,
-      resultado,
-      foto_hero: fotoHero,
-      creado_por: user.id,
-    });
+    // persistencia (cache global; upsert para que Regenerar reemplace) + descuento del límite
+    await admin.from("disenos_ia").upsert(
+      {
+        tema_normalizado: temaNorm,
+        tipo_evento: tipoEvento,
+        resultado,
+        foto_hero: fotoHero,
+        creado_por: user.id,
+      },
+      { onConflict: "tema_normalizado,tipo_evento" }
+    );
     if (pareja) {
       await admin.from("parejas").update({ disenos_ia_usados: usados + 1 }).eq("id", pareja.id);
     }
