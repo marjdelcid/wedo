@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getEventType } from "../lib/eventTypes";
 import "../app-ui.css";
 
 const AVA_COLORS = [
@@ -178,6 +179,17 @@ export default function Dashboard() {
 
   const nombre1 = pareja?.nombre1 || "";
   const nombre2 = pareja?.nombre2 || "";
+  const evtType = getEventType(pareja?.tipo_evento);
+  const esBoda = evtType.id === "boda";
+  // "Andrea & Diego" para bodas; solo el festejado cuando no hay nombre2
+  const tituloEvento = nombre2 ? (
+    <>
+      {nombre1} <span className="it">&amp;</span> {nombre2}
+    </>
+  ) : (
+    <>{nombre1}</>
+  );
+  const kickerEvento = esBoda ? "Tu boda" : `Tu ${evtType.label.toLowerCase()}`;
   const fechaTxt = fmtFecha(pareja?.fecha);
   const dias = pareja?.fecha
     ? Math.ceil((new Date(pareja.fecha).getTime() - Date.now()) / 86400000)
@@ -224,7 +236,7 @@ export default function Dashboard() {
           <button className="evt-switch" type="button" title="Tu evento">
             <span className="tag">Evento</span>
             <span>
-              {nombre1} &amp; {nombre2} · Boda
+              {nombre2 ? `${nombre1} & ${nombre2}` : nombre1} · {evtType.label}
             </span>
             <span className="chev">▾</span>
           </button>
@@ -265,10 +277,10 @@ export default function Dashboard() {
           <div>
             <span className="kick">
               <span className="bdot" />
-              {fechaTxt ? `Tu boda · ${fechaTxt}` : "Tu boda"}
+              {fechaTxt ? `${kickerEvento} · ${fechaTxt}` : kickerEvento}
             </span>
             <h1 className="greet" style={{ marginTop: 12 }}>
-              {nombre1} <span className="it">&amp;</span> {nombre2}
+              {tituloEvento}
               <span style={{ color: "var(--pink)" }}>.</span>
             </h1>
             <p className="greet-sub">{greetSub}</p>
@@ -302,7 +314,7 @@ export default function Dashboard() {
               Tu invitación
             </span>
             <div className="preview-title serif">
-              {nombre1} <span className="it">&amp;</span> {nombre2}
+              {tituloEvento}
               <span style={{ color: "var(--pink)" }}>.</span>
             </div>
             <div className="preview-url" onClick={copyLink}>

@@ -322,6 +322,22 @@ export function getEventType(id?: string | null): EventType {
   return EVENT_TYPES.find((t) => t.id === id) || EVENT_TYPES[0];
 }
 
+/** Busca un campo del tipo por key. Es la fuente de verdad para saber si un
+ *  campo aplica al tipo (p. ej. nombre2 o ceremonia) y con qué etiqueta —
+ *  el editor la usa para ocultar/re-etiquetar sin condicionales por tipo. */
+export function getCampo(t: EventType, key: string): Campo | undefined {
+  for (const p of t.pasos) {
+    const c = p.campos.find((x) => x.key === key);
+    if (c) return c;
+  }
+  return undefined;
+}
+
+/** Etiqueta de un campo para el tipo, con fallback. */
+export function campoLabel(t: EventType, key: string, fallback: string): string {
+  return getCampo(t, key)?.label || fallback;
+}
+
 /** Columnas reales de `parejas` — todo lo demás va a detalles_evento */
 export const COLUMNAS_PAREJAS = new Set([
   "nombre1", "nombre2", "fecha", "lugar", "hora",

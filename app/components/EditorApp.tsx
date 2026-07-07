@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getEventType, getCampo, campoLabel } from "../lib/eventTypes";
 import "../app-ui.css";
 
 type Pane = "info" | "diseno" | "regalos" | "invitacion" | "invitados" | "secciones";
@@ -166,6 +167,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     invitacion_url: "",
     frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, confeti_regalo: false,
     std_estilo: "c",
+    tipo_evento: "boda", detalles_evento: {} as Record<string, string>,
   });
   const setField = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const addAgenda = () => setF((p: any) => ({ ...p, agenda: [...(p.agenda || []), { hora: "", evento: "" }] }));
@@ -220,9 +222,11 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       agenda: Array.isArray(p.agenda) ? p.agenda : [],
       rsvp_fecha_limite: p.rsvp_fecha_limite || "",
       invitacion_url: p.invitacion_url || "",
-      frase_portada: p.frase_portada ?? "Nos casamos", estilo_portada: p.estilo_portada || "clasica",
+      frase_portada: p.frase_portada ?? getEventType(p.tipo_evento).frasePortada, estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, confeti_regalo: !!p.confeti_regalo,
       std_estilo: p.std_estilo || "c",
+      tipo_evento: p.tipo_evento || "boda",
+      detalles_evento: (p.detalles_evento && typeof p.detalles_evento === "object") ? p.detalles_evento : {},
     });
     setRsvpCodigo(p.rsvp_codigo_requerido || false);
     if (p.secciones) setSecciones((s) => ({ ...s, ...p.secciones }));
@@ -254,6 +258,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     dresscode: f.dresscode, dresscode_notas: f.dresscode_notas, dresscode_fotos: f.dresscode_fotos,
     galeria_fotos: f.galeria_fotos, historia: f.historia, musica: f.musica, hashtag: f.hashtag, fotos_url: f.fotos_url, mensaje_gracias: f.mensaje_gracias,
     frase_portada: f.frase_portada, agenda: f.agenda, rsvp_fecha_limite: f.rsvp_fecha_limite || null,
+    detalles_evento: f.detalles_evento || {},
   }, "info");
   const saveDiseno = () => savePareja({
     foto_hero: f.foto_hero || null, tipografia: f.tipografia, tipografia_titulos: f.tipografia_titulos,
@@ -272,6 +277,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     paleta: f.paleta, hero_oscuridad: f.hero_oscuridad, color_acento: f.color_acento, color_fondo: f.color_fondo, color_superficie: f.color_superficie, paleta_colores: f.paleta_colores,
     frase_portada: f.frase_portada, estilo_portada: f.estilo_portada, animaciones_estilo: f.animaciones_estilo, petalos: f.petalos, confeti_regalo: f.confeti_regalo,
     agenda: f.agenda, rsvp_fecha_limite: f.rsvp_fecha_limite || null, std_estilo: f.std_estilo,
+    detalles_evento: f.detalles_evento || {},
     invitacion_url: f.invitacion_url || null, secciones, secciones_orden: orden,
   }, "all");
 
@@ -388,6 +394,16 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const slug = pareja?.slug || "";
   const palObj = PALETAS.find((p) => p.id === f.paleta);
   const accent = f.paleta === "personalizado" ? f.color_acento : (palObj?.accent || f.color_acento);
+
+  // tipo de evento — la config (eventTypes.ts) decide qué campos aplican y sus etiquetas
+  const evtType = getEventType(f.tipo_evento);
+  const esBoda = evtType.id === "boda";
+  const campoN2 = getCampo(evtType, "nombre2");
+  const campoCer = getCampo(evtType, "ceremonia");
+  const campoHist = getCampo(evtType, "historia");
+  // campos propios del tipo (detalle:true) → se editan sobre detalles_evento
+  const camposDetalle = evtType.pasos.flatMap((p) => p.campos.filter((c) => c.detalle));
+  const setDetalle = (k: string, v: string) => setF((p: any) => ({ ...p, detalles_evento: { ...(p.detalles_evento || {}), [k]: v } }));
   const totalAsientos = invitados.reduce((s, i) => s + (i.asientos || 1), 0);
   const confSi = rsvps.filter((r) => r.asistencia === "si").length;
   const confNo = rsvps.filter((r) => r.asistencia === "no").length;
@@ -396,7 +412,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   invitados.forEach((i) => { const g = i.grupo || "Sin grupo"; (grupos[g] = grupos[g] || []).push(i); });
   const seccActivas = Object.keys(SECCIONES_META).filter((k) => secciones[k]).length;
   const completeness = (() => {
-    let c = 0; const checks = [f.nombre1 && f.nombre2, f.fecha, f.foto_hero, fondos.length > 0, invitados.length > 0]; checks.forEach((x) => x && c++); return Math.round((c / checks.length) * 100);
+    let c = 0; const checks = [f.nombre1 && (!campoN2 || f.nombre2), f.fecha, f.foto_hero, fondos.length > 0, invitados.length > 0]; checks.forEach((x) => x && c++); return Math.round((c / checks.length) * 100);
   })();
 
   async function logout() { await supabase.auth.signOut(); router.push("/"); }
@@ -413,7 +429,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
           <Link className="logo" href="/">wedo<span className="dot">.</span></Link>
           <button className="evt-switch" type="button">
             <span className="tag">Evento</span>
-            <span>{f.nombre1 || "Tu evento"} &amp; {f.nombre2} · Boda</span>
+            <span>{f.nombre2 ? `${f.nombre1 || "Tu evento"} & ${f.nombre2}` : (f.nombre1 || "Tu evento")} · {evtType.label}</span>
             <span className="chev">▾</span>
           </button>
           <div className="topbar-r">
@@ -451,12 +467,12 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
             {pane === "info" && (
               <Pane num="i" title="Información" desc="Todos los detalles de tu evento. Esto arma tu invitación y sus secciones.">
                 <div className="ecard">
-                  <div className="ecard-h">Los novios</div>
+                  <div className="ecard-h">{esBoda ? "Los novios" : evtType.pasos[0]?.titulo || "El festejado"}</div>
                   <div className="frow">
-                    <div className="field grow"><label>Nombre 1</label><input className="inp" value={f.nombre1} onChange={(e) => setField("nombre1", e.target.value)} placeholder="Andrea" /></div>
-                    <div className="field grow"><label>Nombre 2</label><input className="inp" value={f.nombre2} onChange={(e) => setField("nombre2", e.target.value)} placeholder="Diego" /></div>
+                    <div className="field grow"><label>{campoLabel(evtType, "nombre1", "Nombre 1")}</label><input className="inp" value={f.nombre1} onChange={(e) => setField("nombre1", e.target.value)} placeholder={getCampo(evtType, "nombre1")?.placeholder || "Andrea"} /></div>
+                    {campoN2 && <div className="field grow"><label>{campoN2.label}</label><input className="inp" value={f.nombre2} onChange={(e) => setField("nombre2", e.target.value)} placeholder={campoN2.placeholder || "Diego"} /></div>}
                   </div>
-                  <div className="field" style={{ marginBottom: 0 }}><label>Frase de portada</label><input className="inp" value={f.frase_portada} onChange={(e) => setField("frase_portada", e.target.value)} placeholder="Nos casamos" /><p className="hint" style={{ margin: "6px 0 0" }}>El texto pequeño arriba de sus nombres en la invitación (ej. “Nos casamos”, “Nos comprometimos”, “¡Nos vamos!”).</p></div>
+                  <div className="field" style={{ marginBottom: 0 }}><label>Frase de portada</label><input className="inp" value={f.frase_portada} onChange={(e) => setField("frase_portada", e.target.value)} placeholder={evtType.frasePortada} /><p className="hint" style={{ margin: "6px 0 0" }}>El texto pequeño arriba {esBoda ? "de sus nombres" : "del nombre"} en la invitación (ej. “{evtType.frasePortada}”).</p></div>
                 </div>
 
                 <div className="ecard">
@@ -477,8 +493,20 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   )}
                 </div>
 
+                {camposDetalle.length > 0 && (
+                  <div className="ecard">
+                    <div className="ecard-h">Detalles de tu {evtType.label.toLowerCase()}</div>
+                    {camposDetalle.map((c, i) => (
+                      <div className="field" key={c.key} style={i === camposDetalle.length - 1 ? { marginBottom: 0 } : undefined}>
+                        <label>{c.label}</label>
+                        <input className="inp" value={(f.detalles_evento || {})[c.key] || ""} onChange={(e) => setDetalle(c.key, e.target.value)} placeholder={c.placeholder} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="ecard">
-                  <div className="ecard-h">El gran día</div>
+                  <div className="ecard-h">{esBoda ? "El gran día" : evtType.pasos[1]?.titulo || "La celebración"}</div>
                   <div className="field"><label>Fecha</label><input className="inp" type="date" value={f.fecha || ""} onChange={(e) => setField("fecha", e.target.value)} /></div>
                   <div className="frow">
                     <div className="field grow"><label>Ciudad</label><input className="inp" value={f.lugar} onChange={(e) => setField("lugar", e.target.value)} placeholder="Antigua Guatemala" /></div>
@@ -502,11 +530,15 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
                 <div className="ecard">
                   <div className="ecard-h">Venues</div>
-                  <div className="field"><label>Ceremonia</label><input className="inp" value={f.ceremonia} onChange={(e) => setField("ceremonia", e.target.value)} placeholder="Iglesia La Merced" /></div>
-                  <div className="field"><label>Link de Google Maps — Ceremonia</label><input className="inp" value={f.ceremonia_maps} onChange={(e) => setField("ceremonia_maps", e.target.value)} placeholder="https://maps.app.goo.gl/..." /></div>
-                  <div className="divline" />
-                  <div className="field"><label>Recepción</label><input className="inp" value={f.recepcion} onChange={(e) => setField("recepcion", e.target.value)} placeholder="Casa Santo Domingo" /></div>
-                  <div className="field" style={{ marginBottom: 0 }}><label>Link de Google Maps — Recepción</label><input className="inp" value={f.recepcion_maps} onChange={(e) => setField("recepcion_maps", e.target.value)} placeholder="https://maps.app.goo.gl/..." /></div>
+                  {campoCer && (
+                    <>
+                      <div className="field"><label>{campoCer.label}</label><input className="inp" value={f.ceremonia} onChange={(e) => setField("ceremonia", e.target.value)} placeholder={campoCer.placeholder || "Iglesia La Merced"} /></div>
+                      <div className="field"><label>Link de Google Maps — {campoCer.label}</label><input className="inp" value={f.ceremonia_maps} onChange={(e) => setField("ceremonia_maps", e.target.value)} placeholder="https://maps.app.goo.gl/..." /></div>
+                      <div className="divline" />
+                    </>
+                  )}
+                  <div className="field"><label>{campoLabel(evtType, "recepcion", "Recepción")}</label><input className="inp" value={f.recepcion} onChange={(e) => setField("recepcion", e.target.value)} placeholder={getCampo(evtType, "recepcion")?.placeholder || "Casa Santo Domingo"} /></div>
+                  <div className="field" style={{ marginBottom: 0 }}><label>Link de Google Maps — {campoLabel(evtType, "recepcion", "Recepción")}</label><input className="inp" value={f.recepcion_maps} onChange={(e) => setField("recepcion_maps", e.target.value)} placeholder="https://maps.app.goo.gl/..." /></div>
                 </div>
 
                 <div className="ecard">
@@ -530,14 +562,14 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                 </div>
 
                 <div className="ecard">
-                  <div className="ecard-h">Su historia</div>
-                  <div className="field" style={{ marginBottom: 0 }}><label>Cuéntales a sus invitados cómo se conocieron</label><textarea className="inp area" value={f.historia} onChange={(e) => setField("historia", e.target.value)} placeholder="Nos conocimos en Antigua hace seis años…" /></div>
+                  <div className="ecard-h">{esBoda ? "Su historia" : "Mensaje"}</div>
+                  <div className="field" style={{ marginBottom: 0 }}><label>{esBoda ? "Cuéntales a sus invitados cómo se conocieron" : "Un mensaje que verán tus invitados"}</label><textarea className="inp area" value={f.historia} onChange={(e) => setField("historia", e.target.value)} placeholder={campoHist?.placeholder || "Nos conocimos en Antigua hace seis años…"} /></div>
                 </div>
 
                 <div className="ecard">
                   <div className="ecard-h">Detalles especiales</div>
                   <div className="field"><label>Canción favorita</label><input className="inp" value={f.musica} onChange={(e) => setField("musica", e.target.value)} placeholder="Perfect — Ed Sheeran" /></div>
-                  <div className="field"><label>Hashtag de la boda</label><input className="inp" value={f.hashtag} onChange={(e) => setField("hashtag", e.target.value)} placeholder="#MaríayJosé2026" /></div>
+                  <div className="field"><label>{esBoda ? "Hashtag de la boda" : "Hashtag del evento"}</label><input className="inp" value={f.hashtag} onChange={(e) => setField("hashtag", e.target.value)} placeholder="#MaríayJosé2026" /></div>
                   <div className="field"><label>Link para compartir fotos</label><input className="inp" value={f.fotos_url} onChange={(e) => setField("fotos_url", e.target.value)} placeholder="https://photos.app.goo.gl/... (álbum compartido)" /><p className="hint" style={{ margin: "6px 0 0" }}>Un álbum compartido (Google Fotos, Drive…) para que tus invitados suban y vean fotos.</p></div>
                   <div className="field" style={{ marginBottom: 0 }}><label>Mensaje de agradecimiento a quienes regalan</label><p className="hint">Aparece tras hacer un regalo. Si lo dejas vacío, usamos uno por defecto.</p><textarea className="inp area" style={{ minHeight: 72 }} value={f.mensaje_gracias} onChange={(e) => setField("mensaje_gracias", e.target.value)} placeholder="Con todo nuestro amor, gracias por ser parte de este momento." /></div>
                 </div>
@@ -624,7 +656,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     {COVER_STYLES.map((c) => (
                       <div key={c.id} className={"cover-opt" + (f.estilo_portada === c.id ? " sel" : "")} onClick={() => setField("estilo_portada", c.id)}>
                         <span style={{ fontFamily: ff(f.tipografia), fontSize: c.id === "fecha" ? 22 : 24, color: "var(--ink)" }}>
-                          {c.id === "minimalista" ? "M · J" : c.id === "fecha" ? "15·02" : c.id === "editorial" ? <em>{f.frase_portada || "Nos casamos"}</em> : "M & J"}
+                          {c.id === "minimalista" ? "M · J" : c.id === "fecha" ? "15·02" : c.id === "editorial" ? <em>{f.frase_portada || evtType.frasePortada}</em> : "M & J"}
                         </span>
                         <span className="ttl">{c.label}</span>
                       </div>
