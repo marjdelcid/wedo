@@ -13,6 +13,7 @@ import Link from "next/link";
 import { getEventType, getCampo, campoLabel } from "../lib/eventTypes";
 import { TIPOGRAFIAS } from "../lib/tipografias";
 import { generarDisenoIA, DisenoIAError, type DisenoIA } from "../lib/disenoIA";
+import { featureEnabled } from "../lib/featureFlags";
 import DisenoIAPreview from "./DisenoIAPreview";
 import "../app-ui.css";
 import "../onboarding-tipos.css"; // spinner .ob-ia-spin del diseñador IA
@@ -165,6 +166,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [ia, setIa] = useState<{ loading: boolean; error: string; diseno: DisenoIA | null; aplicado: boolean; restantes: number | null }>({
     loading: false, error: "", diseno: null, aplicado: false, restantes: null,
   });
+  const [iaEnabled, setIaEnabled] = useState(true);
+  useEffect(() => { featureEnabled("diseno_ia").then(setIaEnabled); }, []);
 
   useEffect(() => { loadAll(); /* eslint-disable-next-line */ }, []);
 
@@ -587,7 +590,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
             {/* DISEÑO */}
             {pane === "diseno" && (
               <Pane num="ii" title="Diseño" desc="Personaliza el look de tu invitación: foto, paleta y tipografías. Estas opciones son para tu evento —no cambian la marca wedo.">
-                <div className="ecard">
+                {iaEnabled && <div className="ecard">
                   <div className="ecard-h">✨ Diseñador IA</div>
                   <p className="hint">Escribe el tema de tu {evtType.label.toLowerCase()} (ej. “dinosaurios”, “safari tonos tierra”) y la IA propone paleta, tipografía, frase y foto de portada.</p>
                   <div className="frow" style={{ alignItems: "flex-end" }}>
@@ -621,7 +624,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       )}
                     </DisenoIAPreview>
                   )}
-                </div>
+                </div>}
 
                 <div className="ecard">
                   <div className="ecard-h">Foto de portada</div>

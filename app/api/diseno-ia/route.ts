@@ -172,6 +172,15 @@ export async function POST(req: Request) {
 
     const admin = supabaseAdmin();
 
+    // feature flag: el super admin puede apagar el diseñador IA
+    const { data: flag } = await admin.from("feature_flags").select("enabled").eq("key", "diseno_ia").maybeSingle();
+    if (flag && !flag.enabled) {
+      return NextResponse.json(
+        { error: "El diseñador IA está desactivado por el momento. Puedes personalizar colores, tipografía y foto a mano en Diseño." },
+        { status: 503 }
+      );
+    }
+
     // ownership + límite
     let pareja: any = null;
     if (parejaId) {

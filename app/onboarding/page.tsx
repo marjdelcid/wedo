@@ -8,8 +8,9 @@
    tocar este archivo.
    Brand: wedo. — app-ui.css (.wedo-app) + onboarding.css + onboarding-tipos.css
    ===================================================================== */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { featureEnabled } from "../lib/featureFlags";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -44,6 +45,8 @@ export default function OnboardingPage() {
     usado: boolean;
     restantes: number | null;
   }>({ loading: false, error: "", diseno: null, usado: false, restantes: null });
+  const [iaEnabled, setIaEnabled] = useState(true);
+  useEffect(() => { featureEnabled("diseno_ia").then(setIaEnabled); }, []);
 
   const totalPasos = tipo ? tipo.pasos.length : 0;
   const done = tipo !== null && paso >= totalPasos;
@@ -214,6 +217,7 @@ export default function OnboardingPage() {
 
   /** Bloque "✨ Generar diseño" bajo los campos con disenoIA (ej. tema) */
   function renderDisenoIA(c: Campo) {
+    if (!iaEnabled) return null;
     const tema = (form[c.key] || "").trim();
     const agotado = ia.restantes === 0;
     return (

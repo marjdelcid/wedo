@@ -17,6 +17,13 @@ export function supabaseAdmin(): SupabaseClient {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
+/** ¿El usuario está en la tabla admins? (consultada con service role) */
+export async function esAdmin(userId: string): Promise<boolean> {
+  const admin = supabaseAdmin();
+  const { data } = await admin.from("admins").select("user_id").eq("user_id", userId).maybeSingle();
+  return !!data;
+}
+
 /** Valida el token Bearer del request y devuelve el usuario (o null). */
 export async function getUserFromRequest(req: Request): Promise<User | null> {
   const header = req.headers.get("authorization") || "";
