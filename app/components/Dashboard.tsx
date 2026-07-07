@@ -85,17 +85,24 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [esAdminUser, setEsAdminUser] = useState(false);
 
-  /** Chequeo ligero contra /api/admin/me (la tabla admins no es legible desde el cliente) */
+  /** Chequeo ligero contra /api/admin/me (la tabla admins no es legible desde el
+   *  cliente). Reintenta una vez: justo después del callback de OAuth la sesión
+   *  puede tardar unos ms en persistirse y un solo intento daba falso negativo. */
   async function esAdminCliente(): Promise<boolean> {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return false;
-      const res = await fetch("/api/admin/me", { headers: { Authorization: `Bearer ${session.access_token}` } });
-      const j = await res.json().catch(() => ({}));
-      return !!j.admin;
-    } catch {
-      return false;
+    for (let intento = 0; intento < 2; intento++) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          const res = await fetch("/api/admin/me", { headers: { Authorization: `Bearer ${session.access_token}` } });
+          if (res.ok) {
+            const j = await res.json().catch(() => ({}));
+            return !!j.admin;
+          }
+        }
+      } catch { /* reintenta */ }
+      await new Promise((r) => setTimeout(r, 700));
     }
+    return false;
   }
 
   useEffect(() => {
