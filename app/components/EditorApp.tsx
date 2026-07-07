@@ -12,7 +12,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getEventType, getCampo, campoLabel } from "../lib/eventTypes";
 import { TIPOGRAFIAS } from "../lib/tipografias";
+import { generarDisenoIA, DisenoIAError, type DisenoIA } from "../lib/disenoIA";
+import DisenoIAPreview from "./DisenoIAPreview";
 import "../app-ui.css";
+import "../onboarding-tipos.css"; // spinner .ob-ia-spin del diseñador IA
 
 type Pane = "info" | "diseno" | "regalos" | "invitacion" | "invitados" | "secciones";
 
@@ -157,6 +160,12 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+  // diseñador IA (pane diseno)
+  const [iaTema, setIaTema] = useState("");
+  const [ia, setIa] = useState<{ loading: boolean; error: string; diseno: DisenoIA | null; aplicado: boolean; restantes: number | null }>({
+    loading: false, error: "", diseno: null, aplicado: false, restantes: null,
+  });
+
   useEffect(() => { loadAll(); /* eslint-disable-next-line */ }, []);
 
   async function loadAll() {
@@ -187,6 +196,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       tipo_evento: p.tipo_evento || "boda",
       detalles_evento: (p.detalles_evento && typeof p.detalles_evento === "object") ? p.detalles_evento : {},
     });
+    setIaTema((p.detalles_evento && p.detalles_evento.tema) || "");
+    setIa((s) => ({ ...s, restantes: Math.max(0, 3 - (p.disenos_ia_usados || 0)) }));
     setRsvpCodigo(p.rsvp_codigo_requerido || false);
     if (p.secciones) setSecciones((s) => ({ ...s, ...p.secciones }));
     if (Array.isArray(p.secciones_orden) && p.secciones_orden.length) {
@@ -353,6 +364,42 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const slug = pareja?.slug || "";
   const palObj = PALETAS.find((p) => p.id === f.paleta);
   const accent = f.paleta === "personalizado" ? f.color_acento : (palObj?.accent || f.color_acento);
+
+  // diseñador IA
+  async function generarIAEditor(nocache: boolean) {
+    if (!pareja || ia.loading) return;
+    const tema = iaTema.trim();
+    if (!tema) return;
+    setIa((s) => ({ ...s, loading: true, error: "" }));
+    try {
+      const d = await generarDisenoIA({ parejaId: pareja.id, tema, tipoEvento: f.tipo_evento, nocache });
+      setIa({ loading: false, error: "", diseno: d, aplicado: false, restantes: d.restantes ?? null });
+    } catch (e: any) {
+      setIa((s) => ({
+        ...s,
+        loading: false,
+        error: e?.message || "No pudimos generar el diseño. Intenta de nuevo.",
+        restantes: e instanceof DisenoIAError && typeof e.restantes === "number" ? e.restantes : s.restantes,
+      }));
+    }
+  }
+  async function aplicarDisenoIA() {
+    const d = ia.diseno;
+    if (!d) return;
+    setF((p: any) => ({
+      ...p,
+      paleta: "personalizado", paleta_colores: d.colores, color_acento: d.colores[0],
+      tipografia: d.tipografia, tipografia_titulos: d.tipografia_titulos,
+      foto_hero: d.foto_hero || p.foto_hero, frase_portada: d.frase_portada,
+    }));
+    await savePareja({
+      paleta: "personalizado", paleta_colores: d.colores, color_acento: d.colores[0],
+      tipografia: d.tipografia, tipografia_titulos: d.tipografia_titulos,
+      ...(d.foto_hero ? { foto_hero: d.foto_hero } : {}),
+      frase_portada: d.frase_portada,
+    }, "diseno");
+    setIa((s) => ({ ...s, aplicado: true }));
+  }
 
   // tipo de evento — la config (eventTypes.ts) decide qué campos aplican y sus etiquetas
   const evtType = getEventType(f.tipo_evento);
@@ -540,6 +587,42 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
             {/* DISEÑO */}
             {pane === "diseno" && (
               <Pane num="ii" title="Diseño" desc="Personaliza el look de tu invitación: foto, paleta y tipografías. Estas opciones son para tu evento —no cambian la marca wedo.">
+                <div className="ecard">
+                  <div className="ecard-h">✨ Diseñador IA</div>
+                  <p className="hint">Escribe el tema de tu {evtType.label.toLowerCase()} (ej. “dinosaurios”, “safari tonos tierra”) y la IA propone paleta, tipografía, frase y foto de portada.</p>
+                  <div className="frow" style={{ alignItems: "flex-end" }}>
+                    <div className="field grow" style={{ marginBottom: 0 }}><label>Tema</label><input className="inp" value={iaTema} onChange={(e) => setIaTema(e.target.value)} placeholder="Dinosaurios, jardín encantado, safari…" /></div>
+                    <button className="btn btn-ghost btn-sm" style={{ marginBottom: 2 }} onClick={() => generarIAEditor(false)} disabled={ia.loading || !iaTema.trim() || ia.restantes === 0}>
+                      {ia.loading ? <><span className="ob-ia-spin" aria-hidden="true" /> Diseñando…</> : "✨ Generar diseño"}
+                    </button>
+                  </div>
+                  {ia.restantes === 0 && !ia.diseno && <p className="hint" style={{ margin: "8px 0 0" }}>Ya usaste tus 3 diseños con IA para este evento. Puedes ajustar todo a mano aquí en Diseño.</p>}
+                  {ia.error && (
+                    <p className="hint" style={{ margin: "8px 0 0", color: "var(--coral)" }}>
+                      {ia.error}{" "}
+                      {ia.restantes !== 0 && <button type="button" className="btn btn-ghost btn-sm" onClick={() => generarIAEditor(false)} disabled={ia.loading}>Reintentar</button>}
+                    </p>
+                  )}
+                  {ia.diseno && (
+                    <DisenoIAPreview diseno={ia.diseno}>
+                      <button className={"btn btn-sm " + (ia.aplicado ? "btn-ghost" : "btn-pink")} onClick={aplicarDisenoIA} disabled={ia.aplicado || savingPane === "diseno"}>
+                        {ia.aplicado ? "✓ Diseño aplicado" : "Usar este diseño"}
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => generarIAEditor(true)} disabled={ia.loading || ia.restantes === 0} title={ia.restantes === 0 ? "Ya usaste tus 3 diseños con IA" : undefined}>
+                        {ia.loading ? <><span className="ob-ia-spin" aria-hidden="true" /> Diseñando…</> : "Regenerar"}
+                      </button>
+                      {ia.restantes != null && (
+                        <span className="hint" style={{ margin: 0 }}>
+                          {ia.restantes === 0 ? "Sin generaciones disponibles" : `${ia.restantes} ${ia.restantes === 1 ? "generación disponible" : "generaciones disponibles"}`}
+                        </span>
+                      )}
+                      {ia.aplicado && (
+                        <span className="hint" style={{ margin: 0, flexBasis: "100%" }}>Puedes ajustar colores, tipografía y foto cuando quieras aquí en Diseño.</span>
+                      )}
+                    </DisenoIAPreview>
+                  )}
+                </div>
+
                 <div className="ecard">
                   <div className="ecard-h">Foto de portada</div>
                   <input ref={(el) => { fileRefs.current.hero = el; }} type="file" accept="image/*" onChange={onHero} style={{ display: "none" }} />
