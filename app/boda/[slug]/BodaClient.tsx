@@ -9,6 +9,7 @@
    ===================================================================== */
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
+import { getEventType } from "../../lib/eventTypes";
 import "../../inv-pay.css";
 import "../../inv-public.css";
 
@@ -258,7 +259,13 @@ export default function BodaClient({ slug }: { slug: string }) {
   } as React.CSSProperties;
 
   const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
-  const frasePortada = pareja.frase_portada || "Nos casamos";
+  // multi-evento: la ruta sigue siendo /boda/[slug] para no romper links.
+  // TODO: evaluar /evento/[slug] con redirect desde /boda en una fase posterior.
+  const evtType = getEventType(pareja.tipo_evento);
+  const esBoda = evtType.id === "boda";
+  const nombresTxt = n2 ? `${n1} & ${n2}` : n1;
+  const anfitrionTxt = esBoda ? "los novios" : "el anfitrión";
+  const frasePortada = pareja.frase_portada || evtType.frasePortada;
   const estiloPortada = pareja.estilo_portada || "clasica";
   const animEstilo = pareja.animaciones_estilo || "elegante";
   const petalos = !!pareja.petalos;
@@ -284,7 +291,8 @@ export default function BodaClient({ slug }: { slug: string }) {
   const histFused = orderedSecs.includes("historia");
   if (histFused) orderedSecs = orderedSecs.filter((x) => x !== "galeria");
   const firstSec = orderedSecs[0];
-  const cvNextLabel = firstSec ? (firstSec === "historia" ? "Nuestra historia" : PUB_LABELS[firstSec]) : "";
+  const pubLabel = (s: string) => (s === "historia" && !esBoda ? "Mensaje" : PUB_LABELS[s]);
+  const cvNextLabel = firstSec ? (firstSec === "historia" ? (esBoda ? "Nuestra historia" : "Un mensaje para ti") : pubLabel(firstSec)) : "";
 
   // countdown on the cover (when the section is enabled and the date is future)
   const cd = (secs.countdown && pareja.fecha) ? (() => {
@@ -346,9 +354,9 @@ export default function BodaClient({ slug }: { slug: string }) {
   function renderSection(id: string) {
     if (id === "historia") return (
       <div className="sec">
-        <div className="sec-k">Nuestra historia</div>
-        <h2 className="sec-h">Cómo empezó todo</h2>
-        <p className="body">{pareja.historia || "Pronto compartiremos cómo empezó todo."}</p>
+        <div className="sec-k">{esBoda ? "Nuestra historia" : "Mensaje"}</div>
+        <h2 className="sec-h">{esBoda ? "Cómo empezó todo" : "Un mensaje para ti"}</h2>
+        <p className="body">{pareja.historia || (esBoda ? "Pronto compartiremos cómo empezó todo." : "Pronto compartiremos un mensaje contigo.")}</p>
         {pareja.musica && <div className="song"><div className="k">Nuestra canción</div><div className="v">♪ {pareja.musica}</div></div>}
         {galeriaFotos.length > 0 && <Carousel photos={galeriaFotos} />}
       </div>
@@ -365,7 +373,7 @@ export default function BodaClient({ slug }: { slug: string }) {
         <div className="sec-k">Mesa de regalos</div>
         <h2 className="sec-h">Tu cariño es nuestro mejor regalo</h2>
         {fondos.length === 0
-          ? <p className="body">Los novios aún no han agregado regalos.</p>
+          ? <p className="body">{esBoda ? "Los novios aún no han agregado regalos." : "Aún no hay regalos agregados."}</p>
           : <div className="gifts-wrap">{fondos.map((g, i) => <GiftCard key={g.id || i} g={g} i={i} />)}</div>}
         <div style={{ textAlign: "center", marginTop: 18, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)" }}>Pagos vía <span style={{ color: "var(--c-accent)" }}>Recurrente</span> · Guatemala</div>
       </div>
@@ -473,7 +481,7 @@ export default function BodaClient({ slug }: { slug: string }) {
             <div className="rsvp-ico">&amp;</div>
             <input value={rsvpQuery} onChange={(e) => setRsvpQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && searchRsvp()} placeholder="Escribe tu nombre…" />
             <button onClick={searchRsvp} className="rbtn">Buscar mi invitación</button>
-            <div className="rsvp-note">Tu confirmación llega directo a {n1} &amp; {n2}.</div>
+            <div className="rsvp-note">Tu confirmación llega directo a {nombresTxt}.</div>
             {rsvpSearched && rsvpResults.length === 0 && <div style={{ textAlign: "center", color: "var(--c-muted)", fontSize: 13, padding: "12px 0 0" }}>No encontramos tu nombre. Intenta con otro término.</div>}
             {rsvpResults.length > 0 && <div style={{ marginTop: 14 }}>{rsvpResults.map((inv, i) => (
               <div key={i} onClick={() => { setRsvpSelected(inv); setRsvpCodigoInput(""); setRsvpCodigoError(false); if (pareja.rsvp_codigo_requerido && inv.tiene_codigo) { setRsvpCodigoStep(true); } else { setRsvpCodigoStep(false); setRsvpForm({ telefono: "", asistencia: "", acompanantes: "0", restricciones: "", mensaje: "" }); } }} style={{ background: "#fff", border: "1px solid var(--c-line)", borderRadius: 12, padding: "14px 18px", marginBottom: 8, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left" }}>
@@ -509,7 +517,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                   </div>
                 )}
                 {rsvpForm.asistencia === "si" && <div style={{ marginBottom: 12 }}><input value={rsvpForm.restricciones} onChange={(e) => setRsvpForm((p) => ({ ...p, restricciones: e.target.value }))} placeholder="Restricciones alimentarias (opcional)" style={inpStyle} /></div>}
-                <textarea value={rsvpForm.mensaje} onChange={(e) => setRsvpForm((p) => ({ ...p, mensaje: e.target.value }))} placeholder="Mensaje para los novios (opcional)" style={{ ...inpStyle, minHeight: 64, resize: "vertical", marginBottom: 14 }} />
+                <textarea value={rsvpForm.mensaje} onChange={(e) => setRsvpForm((p) => ({ ...p, mensaje: e.target.value }))} placeholder={`Mensaje para ${anfitrionTxt} (opcional)`} style={{ ...inpStyle, minHeight: 64, resize: "vertical", marginBottom: 14 }} />
                 <button onClick={handleRsvpSubmit} disabled={!rsvpForm.asistencia || rsvpSubmitting} className="rbtn" style={{ opacity: !rsvpForm.asistencia ? 0.5 : 1 }}>{rsvpSubmitting ? "Enviando..." : "Confirmar asistencia"}</button>
               </>
             )}
@@ -555,7 +563,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                     )}
 
                     <div className="cover-text">
-                      <div className="names"><span className="n1">{n1}</span><span className="amp">&amp;</span><span className="n2">{n2}</span></div>
+                      <div className="names"><span className="n1">{n1}</span>{n2 && <><span className="amp">&amp;</span><span className="n2">{n2}</span></>}</div>
                       <div className="cv-div" aria-hidden="true"><svg viewBox="0 0 160 16"><path d="M4 8C34 1 54 1 70 8" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /><path d="M90 8C106 15 126 15 156 8" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /><circle cx="80" cy="8" r="3.4" fill="var(--c-accent)" /></svg></div>
                       {dateLine && <div className="date">{dateLine}</div>}
                       {pareja.lugar && <div className="place">{pareja.lugar}</div>}
@@ -578,7 +586,7 @@ export default function BodaClient({ slug }: { slug: string }) {
 
           <nav className="inv-nav">
             <a className={activeSection === "portada" ? "on" : ""} onClick={() => setActiveSection("portada")}>Portada</a>
-            {orderedSecs.map((s) => <a key={s} className={activeSection === s ? "on" : ""} onClick={() => setActiveSection(s)}>{PUB_LABELS[s]}</a>)}
+            {orderedSecs.map((s) => <a key={s} className={activeSection === s ? "on" : ""} onClick={() => setActiveSection(s)}>{pubLabel(s)}</a>)}
           </nav>
 
           <footer className="inv-foot">
@@ -613,7 +621,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                 ) : (
                   <>
                     <h3>{f.nombre}</h3>
-                    <p className="sub">Tu aporte le llega directo a {pareja.nombre1} &amp; {pareja.nombre2}.</p>
+                    <p className="sub">Tu aporte le llega directo a {nombresTxt}.</p>
                     {f.modo === "completo" ? (
                       <>
                         <div className="amt-label">Regalo completo</div>
@@ -634,12 +642,12 @@ export default function BodaClient({ slug }: { slug: string }) {
                       </>
                     )}
                     <input className="name-field" placeholder="Tu nombre (opcional)" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-                    <textarea className="msg-field" placeholder="Escribe un mensaje para los novios (opcional)…" value={mensajeRegalo} onChange={(e) => setMensajeRegalo(e.target.value)} />
+                    <textarea className="msg-field" placeholder={`Escribe un mensaje para ${anfitrionTxt} (opcional)…`} value={mensajeRegalo} onChange={(e) => setMensajeRegalo(e.target.value)} />
                     <div className="amt-label">Resumen</div>
                     <div className="breakdown">
                       <div className="bd-row"><span>Tu aporte</span><span className="v">{fmtQ(gross)}</span></div>
                       <div className="bd-row"><span>Comisión wedo. (3.5%)</span><span className="v">– {fmtQ(fee)}</span></div>
-                      <div className="bd-row net"><span>{pareja.nombre1} &amp; {pareja.nombre2} reciben</span><span className="v">{fmtQ(net)}</span></div>
+                      <div className="bd-row net"><span>{nombresTxt} {n2 ? "reciben" : "recibe"}</span><span className="v">{fmtQ(net)}</span></div>
                     </div>
                     <div className="bd-note"><span className="d" />La comisión cubre el procesamiento del pago en quetzales. El dinero llega a su cuenta bancaria en 2–3 días hábiles.</div>
                     <button className="pay-btn" onClick={handlePay} disabled={gross <= 0}>Aportar {fmtQ(gross)}</button>
@@ -659,7 +667,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                   <div className="state-view">
                     <div className="state-ico ok">✓</div>
                     <h3>¡Gracias por tu regalo!</h3>
-                    <p>Tu aporte de <strong>{fmtQ(gross)}</strong> va en camino a {pareja.nombre1} &amp; {pareja.nombre2}.</p>
+                    <p>Tu aporte de <strong>{fmtQ(gross)}</strong> va en camino a {nombresTxt}.</p>
                     <div className="gracias" style={{ color: accent }}>“{pareja.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial."}”</div>
                     <button className="pay-btn" onClick={closeGift}>Volver a la invitación</button>
                   </div>
