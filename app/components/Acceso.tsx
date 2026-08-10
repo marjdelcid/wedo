@@ -64,7 +64,7 @@ export default function Acceso({ initialView = "login" }: { initialView?: "login
     clearMsg();
     if (!email) { setErr("Escribe tu correo arriba y te enviamos el enlace para restablecerla."); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/login` : undefined,
+      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/restablecer` : undefined,
     });
     if (error) setErr("No pudimos enviar el correo. Revisa la dirección e intenta de nuevo.");
     else setOk("Listo. Te enviamos un enlace para restablecer tu contraseña.");
