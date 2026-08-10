@@ -29,6 +29,9 @@ export default function AdminPage() {
   const [data, setData] = useState<AdminData | null>(null);
   const [error, setError] = useState("");
   const [savingFlag, setSavingFlag] = useState<string | null>(null);
+  // landing propia del admin: "cargando" | "login" | "noAdmin" | "panel"
+  const [estado, setEstado] = useState<"cargando" | "login" | "noAdmin" | "panel">("cargando");
+  const [emailSesion, setEmailSesion] = useState("");
 
   useEffect(() => { cargar(); /* eslint-disable-next-line */ }, []);
 
@@ -37,14 +40,47 @@ export default function AdminPage() {
     return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
   }
 
+  /** La sesión puede tardar unos ms en persistirse tras el callback de OAuth. */
+  async function esperarSesion() {
+    for (let i = 0; i < 8; i++) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) return session;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    return null;
+  }
+
   async function cargar() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push("/login"); return; }
-    const res = await fetch("/api/admin", { headers: await authHeaders() });
-    if (res.status === 401) { router.push("/login"); return; }
-    if (res.status === 403) { router.push("/dashboard"); return; }
-    if (!res.ok) { setError("No pudimos cargar el panel. Recarga la página."); return; }
-    setData(await res.json());
+    setEstado("cargando");
+    const session = await esperarSesion();
+    if (!session) { setEstado("login"); return; }
+    setEmailSesion(session.user?.email || "");
+    // reintento por si el API tropieza justo tras el login
+    for (let intento = 0; intento < 2; intento++) {
+      const res = await fetch("/api/admin", { headers: await authHeaders() }).catch(() => null);
+      if (res?.status === 401) { setEstado("login"); return; }
+      if (res?.status === 403) { setEstado("noAdmin"); return; }
+      if (res?.ok) { setData(await res.json()); setEstado("panel"); return; }
+      await new Promise((r) => setTimeout(r, 800));
+    }
+    setError("No pudimos cargar el panel. Recarga la página.");
+  }
+
+  /** Login de Google que regresa DIRECTO a /admin (sin pasar por dashboard/onboarding) */
+  async function entrarConGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: typeof window !== "undefined" ? `${window.location.origin}/admin` : undefined,
+        queryParams: { prompt: "select_account" }, // siempre muestra el selector de cuentas
+      },
+    });
+  }
+
+  async function cambiarCuenta() {
+    await supabase.auth.signOut();
+    setData(null);
+    setEstado("login");
   }
 
   async function toggleFlag(key: string, enabled: boolean) {
@@ -65,9 +101,41 @@ export default function AdminPage() {
     setSavingFlag(null);
   }
 
+  const centrado: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 24 };
+  const cardLanding: React.CSSProperties = { background: "#FFFDF8", border: "1px solid var(--line)", borderRadius: 22, padding: "38px 34px", maxWidth: 420, width: "100%", textAlign: "center", boxShadow: "0 30px 70px -28px rgba(58,46,40,.3)" };
+
+  // LANDING DE ADMIN — sesión no iniciada
+  if (estado === "login")
+    return (
+      <div className="wedo-app" style={centrado}>
+        <div style={cardLanding}>
+          <div className="logo" style={{ fontSize: 40 }}>wedo<span className="dot">.</span></div>
+          <div className="kick" style={{ justifyContent: "center", display: "inline-flex", margin: "14px 0 6px" }}><span className="bdot" />Panel de administración</div>
+          <p style={{ fontSize: 13.5, color: "var(--ink-soft)", margin: "0 0 22px" }}>Acceso solo para administradores de wedo.</p>
+          <button className="btn btn-pink" style={{ width: "100%" }} onClick={entrarConGoogle}>Entrar con Google</button>
+          <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 14 }}>Usa la cuenta de administrador (desarrollo@…)</p>
+        </div>
+      </div>
+    );
+
+  // sesión iniciada pero SIN permisos de admin
+  if (estado === "noAdmin")
+    return (
+      <div className="wedo-app" style={centrado}>
+        <div style={cardLanding}>
+          <div className="logo" style={{ fontSize: 40 }}>wedo<span className="dot">.</span></div>
+          <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 6px" }}>Esta cuenta no es admin</h2>
+          <p style={{ fontSize: 13.5, color: "var(--ink-soft)", margin: "0 0 4px" }}>Entraste como <strong>{emailSesion || "otra cuenta"}</strong>.</p>
+          <p style={{ fontSize: 13.5, color: "var(--ink-soft)", margin: "0 0 22px" }}>El panel es solo para la cuenta de administrador.</p>
+          <button className="btn btn-pink" style={{ width: "100%", marginBottom: 10 }} onClick={cambiarCuenta}>Cambiar de cuenta</button>
+          <Link className="btn btn-ghost" style={{ width: "100%" }} href="/dashboard">Ir a mi dashboard</Link>
+        </div>
+      </div>
+    );
+
   if (error && !data)
     return (
-      <div className="wedo-app" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <div className="wedo-app" style={centrado}>
         <div style={{ textAlign: "center" }}>
           <div className="serif it" style={{ fontSize: 24, marginBottom: 10 }}>{error}</div>
           <button className="btn btn-ghost btn-sm" onClick={() => { setError(""); cargar(); }}>Reintentar</button>
@@ -77,7 +145,7 @@ export default function AdminPage() {
 
   if (!data)
     return (
-      <div className="wedo-app" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <div className="wedo-app" style={centrado}>
         <div className="serif it" style={{ fontSize: 26, color: "var(--ink-faint)" }}>
           Cargando<span style={{ color: "var(--pink)" }}>.</span>
         </div>
