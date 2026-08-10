@@ -18,11 +18,17 @@ const fmtFecha = (s?: string | null) =>
   s ? new Date(s.includes("T") ? s : s + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 interface AdminData {
-  stats: { eventos: number; eventosMes: number; recaudado: number; comision: number; aportes: number; disenosIA: number };
+  stats: {
+    eventos: number; eventosMes: number; recaudado: number; comision: number;
+    recaudadoMes: number; comisionMes: number; aportesMes: number;
+    aportes: number; disenosIA: number;
+  };
   eventos: any[];
   actividad: any[];
   flags: { key: string; nombre: string; descripcion: string | null; enabled: boolean }[];
 }
+
+const fmtQ2 = (n: number) => "Q " + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function AdminPage() {
   const router = useRouter();
@@ -172,27 +178,27 @@ export default function AdminPage() {
         <h1 className="greet" style={{ marginBottom: 6 }}>Todo wedo<span style={{ color: "var(--pink)" }}>.</span></h1>
         <p className="greet-sub" style={{ marginBottom: 26 }}>Lo que está pasando en la plataforma, en vivo.</p>
 
-        {/* MÉTRICAS GLOBALES */}
+        {/* MÉTRICAS GLOBALES — lo primero: cuánto ha recolectado wedo. */}
         <section className="stats" style={{ marginBottom: 26 }}>
           <div className="stat s1">
-            <span className="lab"><span className="d" />Recaudado</span>
-            <div className="val">{fmtQ(stats.recaudado)}</div>
-            <div className="delta">{stats.aportes} aportes · comisión wedo. {fmtQ(stats.comision)}</div>
+            <span className="lab"><span className="d" />wedo. ha recolectado</span>
+            <div className="val">{fmtQ2(stats.comision)}</div>
+            <div className="delta">comisión 3.5% de {fmtQ(stats.recaudado)} movidos · {stats.aportes} aportes</div>
           </div>
           <div className="stat s2">
+            <span className="lab"><span className="d" />Últimos 30 días</span>
+            <div className="val">{fmtQ2(stats.comisionMes)}</div>
+            <div className="delta">de {fmtQ(stats.recaudadoMes)} movidos · {stats.aportesMes} {stats.aportesMes === 1 ? "aporte" : "aportes"}</div>
+          </div>
+          <div className="stat s3">
             <span className="lab"><span className="d" />Eventos</span>
             <div className="val">{stats.eventos}</div>
             <div className="delta">{stats.eventosMes} creados en los últimos 30 días</div>
           </div>
-          <div className="stat s3">
+          <div className="stat s4">
             <span className="lab"><span className="d" />Diseños IA</span>
             <div className="val">{stats.disenosIA}</div>
             <div className="delta">generaciones usadas (costo por uso)</div>
-          </div>
-          <div className="stat s4">
-            <span className="lab"><span className="d" />Funciones</span>
-            <div className="val">{flags.filter((f) => f.enabled).length}/{flags.length}</div>
-            <div className="delta">funcionalidades encendidas</div>
           </div>
         </section>
 
@@ -231,6 +237,7 @@ export default function AdminPage() {
                 <th style={th}>Dueño</th>
                 <th style={th}>Fecha evento</th>
                 <th style={th}>Recaudado</th>
+                <th style={th}>Comisión wedo.</th>
                 <th style={th}>Aportes</th>
                 <th style={th}>RSVP</th>
                 <th style={th}>IA</th>
@@ -248,6 +255,7 @@ export default function AdminPage() {
                   <td style={{ ...td, fontSize: 12.5, color: "var(--ink-soft)" }}>{e.email || "—"}</td>
                   <td style={td}>{fmtFecha(e.fecha)}</td>
                   <td style={{ ...td, fontWeight: 600 }}>{fmtQ(e.recaudado)}</td>
+                  <td style={{ ...td, color: "var(--pink)", fontWeight: 600 }}>{fmtQ2(Math.round(e.recaudado * 0.035 * 100) / 100)}</td>
                   <td style={td}>{e.aportes}</td>
                   <td style={td}>{e.confirmados}/{e.invitados}</td>
                   <td style={td}>{e.disenos_ia_usados}/3</td>
@@ -255,7 +263,7 @@ export default function AdminPage() {
                 </tr>
               ))}
               {eventos.length === 0 && (
-                <tr><td style={{ ...td, color: "var(--ink-faint)" }} colSpan={9}>Aún no hay eventos.</td></tr>
+                <tr><td style={{ ...td, color: "var(--ink-faint)" }} colSpan={10}>Aún no hay eventos.</td></tr>
               )}
             </tbody>
           </table>

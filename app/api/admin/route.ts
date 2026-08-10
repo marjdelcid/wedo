@@ -66,11 +66,16 @@ export async function GET(req: Request) {
 
     const totalRecaudado = eventos.reduce((s, e) => s + e.recaudado, 0);
     const hace30 = Date.now() - 30 * 86400000;
+    const aportesMes = (contribuciones || []).filter((c) => new Date(c.created_at).getTime() > hace30);
+    const recaudadoMes = aportesMes.reduce((s, c) => s + (c.monto || 0), 0);
     const stats = {
       eventos: eventos.length,
       eventosMes: eventos.filter((e) => new Date(e.created_at).getTime() > hace30).length,
       recaudado: totalRecaudado,
       comision: Math.round(totalRecaudado * 0.035 * 100) / 100,
+      recaudadoMes,
+      comisionMes: Math.round(recaudadoMes * 0.035 * 100) / 100,
+      aportesMes: aportesMes.length,
       aportes: (contribuciones || []).length,
       disenosIA: eventos.reduce((s, e) => s + e.disenos_ia_usados, 0),
     };
