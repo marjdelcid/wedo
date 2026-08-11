@@ -548,8 +548,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
             </div>
 
             <article className="dress">
-              {/* interino: el asset paisaje-sepia.webp no vino en el handoff; sepia sobre la pintura de crisantemos */}
-              <div className="bg" style={{ backgroundImage: "url('/am/mat/crisantemo-suenos.jpg')", filter: "sepia(.68) saturate(.55) brightness(.5) contrast(1.05)" }} />
+              <div className="bg" style={{ backgroundImage: "url('/am/mat/paisaje-sepia.webp')" }} />
               <div className="grain" />
               <div className="dress-in">
                 <h3 className="lock dress-lock"><span className="lock-main hf">Dress code</span></h3>
