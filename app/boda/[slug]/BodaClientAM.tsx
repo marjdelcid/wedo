@@ -347,6 +347,17 @@ export default function BodaClientAM({ slug }: { slug: string }) {
 
   useEffect(() => { load(); }, [slug]);
 
+  // Precalienta todas las fuentes al montar: las secciones ocultas (display:none)
+  // no disparan la descarga y la primera visita a cada pantalla mostraba el fallback.
+  useEffect(() => {
+    const familias = [
+      "'Monsieur La Doulaise'", "'Pinyon Script'", "'Bodoni Moda'", "'Marcellus'",
+      "'Marcellus SC'", "'EB Garamond'", "'Mr Dafoe'", "'Instrument Serif'",
+      "'Vogue'", "'Handflair'",
+    ];
+    familias.forEach(f => { document.fonts.load(`1em ${f}`).catch(() => {}); document.fonts.load(`italic 1em ${f}`).catch(() => {}); });
+  }, []);
+
   async function load() {
     const { data: p } = await supabase.from("parejas").select("*").eq("slug", slug).single();
     if (p) {
@@ -438,6 +449,9 @@ export default function BodaClientAM({ slug }: { slug: string }) {
     <div className="am-root">
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preload" href="/am/fonts/Vogue.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+      <link rel="preload" href="/am/fonts/Handflair.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+      <link rel="preload" href="/am/fonts/MrDafoe-Regular.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
       <link href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Pinyon+Script&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500&family=Marcellus&family=Marcellus+SC&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Mr+Dafoe&family=Instrument+Serif:ital@1&family=Italiana&family=Norican&display=swap" rel="stylesheet" />
       <style dangerouslySetInnerHTML={{ __html: AM_CSS }} />
 
