@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { getEventType } from "../../lib/eventTypes";
 import BodaClient from "./BodaClient";
+import BodaClientAM from "./BodaClientAM";
+
+const AM_SLUG = "andre-gonzalez-y-marjorie-del-cid";
 
 async function getPareja(slug: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -37,5 +40,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BodaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (slug === AM_SLUG) return <BodaClientAM slug={slug} />;
   return <BodaClient slug={slug} />;
 }
