@@ -316,6 +316,31 @@ function fmtQ(n: number) {
   return `Q ${Math.round(n).toLocaleString("en-US")}`;
 }
 
+// Markdown mínimo del editor (negritas, itálicas) sobre la tarjeta oscura
+function amInline(text: string): React.ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*|_[^_]+_)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**"))
+      return <strong key={i} style={{ fontWeight: 500, fontStyle: "normal", fontFamily: "'Marcellus SC', serif", letterSpacing: ".14em", textTransform: "uppercase" as const, fontSize: "0.82em", color: "#F3EED7" }}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("_") && part.endsWith("_") && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function amDresscodeNotas(text: string) {
+  return text.split("\n").map((line, i) => {
+    const t = line.trim();
+    if (!t) return <div key={i} style={{ height: 8 }} />;
+    if (t.startsWith("* ")) return (
+      <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "flex-start", textAlign: "left" as const }}>
+        <span style={{ color: "#DFD6A4", flexShrink: 0, lineHeight: 1.7 }}>·</span>
+        <span>{amInline(t.slice(2))}</span>
+      </div>
+    );
+    return <div key={i} style={{ marginBottom: 6 }}>{amInline(t)}</div>;
+  });
+}
+
 export default function BodaClientAM({ slug }: { slug: string }) {
   const [pareja, setPareja] = useState<any>(null);
   const [fondos, setFondos] = useState<any[]>([]);
@@ -523,17 +548,32 @@ export default function BodaClientAM({ slug }: { slug: string }) {
             </div>
 
             <article className="dress">
+              {/* interino: el asset paisaje-sepia.webp no vino en el handoff; sepia sobre la pintura de crisantemos */}
+              <div className="bg" style={{ backgroundImage: "url('/am/mat/crisantemo-suenos.jpg')", filter: "sepia(.68) saturate(.55) brightness(.5) contrast(1.05)" }} />
               <div className="grain" />
               <div className="dress-in">
                 <h3 className="lock dress-lock"><span className="lock-main hf">Dress code</span></h3>
-                <p className="dress-detail">Black tie</p>
-                <p className="body lt">Nuestra boda será una noche muy especial y elegante para nosotros; nos encantaría que nos acompañaran a mantener la estética y formalidad del evento.</p>
+                <p className="dress-detail">{pareja?.dresscode || "Black tie"}</p>
+                {pareja?.dresscode_notas ? (
+                  <div className="body lt" style={{ width: "100%" }}>{amDresscodeNotas(pareja.dresscode_notas)}</div>
+                ) : (
+                  <p className="body lt">Nuestra boda será una noche muy especial y elegante para nosotros; nos encantaría que nos acompañaran a mantener la estética y formalidad del evento.</p>
+                )}
                 <div className="swatches" aria-hidden="true">
                   <span style={{ background: "var(--am-vino-profundo)" }} />
                   <span style={{ background: "var(--am-malva)" }} />
                   <span style={{ background: "var(--am-rosa-empolvado)" }} />
                   <span style={{ background: "var(--am-salvia-palida)" }} />
                 </div>
+                {Array.isArray(pareja?.dresscode_fotos) && pareja.dresscode_fotos.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: `repeat(3, 1fr)`, gap: 8, width: "100%", marginTop: 22 }}>
+                    {pareja.dresscode_fotos.map((url: string, i: number) => (
+                      <div key={i} style={{ aspectRatio: "3/4", overflow: "hidden", boxShadow: "0 0 0 1px rgba(243,238,215,.25), 0 10px 24px -14px rgba(0,0,0,.7)" }}>
+                        <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </article>
             <p className="pw sec-foot"><span className="wd">wedo<i>.</i></span></p>
