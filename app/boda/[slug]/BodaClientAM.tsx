@@ -304,7 +304,7 @@ textarea.rinput{resize:vertical; min-height:64px;}
   .venues{grid-template-columns:1fr;}
   .timeline{grid-template-columns:auto 24px auto;}
   .pill a{padding:9px 12px; font-size:10px; letter-spacing:.08em;}
-  /* la cala a `cover` queda pequeña en viewport vertical; se amplía para verse como en desktop */
+  /* la cala a cover queda pequeña en viewport vertical; se amplía para verse como en desktop */
   .rsvp{background-size:auto, 220px 220px, auto 165%; background-position:center, top left, center 12%;}
 }
 @media (prefers-reduced-motion:reduce){
