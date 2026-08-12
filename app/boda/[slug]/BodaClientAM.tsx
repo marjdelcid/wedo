@@ -263,11 +263,12 @@ textarea.rinput{resize:vertical; min-height:64px;}
 
 /* nav pastilla */
 .pill{position:fixed; left:50%; bottom:max(22px, calc(env(safe-area-inset-bottom) + 12px)); transform:translateX(-50%); z-index:40;
-  display:flex; gap:2px; padding:5px; border-radius:100px;
+  display:flex; align-items:center; gap:2px; padding:5px; border-radius:100px; max-width:calc(100vw - 24px);
   background:linear-gradient(165deg, rgba(169,120,133,.34), rgba(74,29,43,.62) 62%); backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2);
   box-shadow:0 12px 32px -12px rgba(30,25,14,.72), inset 0 1px 0 rgba(255,255,255,.28), inset 0 0 0 1px rgba(184,150,74,.24);}
 .pill a{font-family:'Marcellus',var(--am-label),serif; font-style:normal; font-weight:400; text-transform:uppercase; font-size:11px; letter-spacing:.1em;
   padding:9px 18px; border-radius:100px; text-decoration:none; color:rgba(243,238,215,.82); cursor:pointer;
+  white-space:nowrap; line-height:1; display:inline-flex; align-items:center; justify-content:center;
   transition:background 200ms ease, color 200ms ease, transform 160ms var(--ease-out);}
 @media (hover:hover) and (pointer:fine){ .pill a:hover{color:var(--am-crema);} }
 .pill a:active{transform:scale(.97);}
@@ -302,7 +303,7 @@ textarea.rinput{resize:vertical; min-height:64px;}
 @media (max-width:640px){
   .venues{grid-template-columns:1fr;}
   .timeline{grid-template-columns:auto 24px auto;}
-  .pill a{padding:9px 13px; font-size:10px;}
+  .pill a{padding:9px 12px; font-size:10px; letter-spacing:.08em;}
 }
 @media (prefers-reduced-motion:reduce){
   .rv{transform:none !important; transition:opacity 200ms ease !important;}
