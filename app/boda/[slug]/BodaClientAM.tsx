@@ -549,14 +549,16 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <p className="body">Jardín principal · El Mayab</p>
                 <a className="btn-cap" href={pareja?.recepcion_maps || "https://maps.google.com"} target="_blank" rel="noopener noreferrer">Ver en Maps ↗</a>
               </article>
-            </div>
 
-            {pareja?.nota_adultos && (
-              <div style={{ textAlign: "center", margin: "30px 0 6px" }}>
-                <p className="label" style={{ marginBottom: 6 }}>Toma en cuenta</p>
-                <p className="body" style={{ margin: 0 }}>{pareja.nota_adultos}</p>
-              </div>
-            )}
+              {pareja?.nota_adultos && (
+                <article className="vcard" style={{ gridColumn: "1 / -1", paddingTop: 28, paddingBottom: 24 }}>
+                  <div className="vbg" style={{ backgroundImage: "url('/am/tex/piedra.webp')" }} />
+                  <p className="label vlabel">Solo adultos</p>
+                  <p className="vsub">Toma en cuenta</p>
+                  <p className="body">{pareja.nota_adultos}</p>
+                </article>
+              )}
+            </div>
 
             <article className="dress">
               <div className="bg" style={{ backgroundImage: "url('/am/mat/paisaje-sepia.webp')" }} />
