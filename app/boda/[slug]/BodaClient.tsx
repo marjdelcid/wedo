@@ -406,6 +406,13 @@ export default function BodaClient({ slug }: { slug: string }) {
           {pareja.recepcion_maps && <a className="ic-map" href={pareja.recepcion_maps} target="_blank" rel="noreferrer">Ver en Maps ↗</a>}
         </div>
       );
+      if (pareja.nota_adultos) cards.push(
+        <div className="info-card" key="adultos">
+          <div className="ic-k">Toma en cuenta</div>
+          <div className="ic-v">Solo adultos</div>
+          <div className="ic-s">{pareja.nota_adultos}</div>
+        </div>
+      );
       if (pareja.rsvp_fecha_limite) {
         const dl = new Date(pareja.rsvp_fecha_limite + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" });
         cards.push(
