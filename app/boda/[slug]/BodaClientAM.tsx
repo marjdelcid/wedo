@@ -551,6 +551,13 @@ export default function BodaClientAM({ slug }: { slug: string }) {
               </article>
             </div>
 
+            {pareja?.nota_adultos && (
+              <div style={{ textAlign: "center", margin: "30px 0 6px" }}>
+                <p className="label" style={{ marginBottom: 6 }}>Toma en cuenta</p>
+                <p className="body" style={{ margin: 0 }}>{pareja.nota_adultos}</p>
+              </div>
+            )}
+
             <article className="dress">
               <div className="bg" style={{ backgroundImage: "url('/am/mat/paisaje-sepia.webp')" }} />
               <div className="grain" />
