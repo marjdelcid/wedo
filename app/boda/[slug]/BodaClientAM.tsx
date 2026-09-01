@@ -175,6 +175,14 @@ const AM_CSS = `
   backdrop-filter:blur(9px) saturate(1.12); -webkit-backdrop-filter:blur(9px) saturate(1.12);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(94,30,46,.1), 0 18px 40px -30px rgba(74,66,50,.5);}
 .gifts .shead .lock .script.over{position:relative; z-index:2; margin-bottom:-.34em; transform:translateX(-.14em);}
+/* nota de la mesa (gracias + cómo funcionan los aportes) — papel legible sobre el fondo floral */
+.gifts .gnote{max-width:600px; margin:-8px auto 36px; padding:22px 28px 24px; text-align:center; border-radius:2px;
+  background:rgba(251,248,238,.93);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75), inset 0 -1px 0 rgba(94,30,46,.08), 0 18px 40px -28px rgba(74,66,50,.55);}
+.gifts .gnote .gnote-tag{font-family:'Marcellus',var(--am-label),serif; font-style:normal; font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--am-malva); margin:0 0 12px;}
+.gifts .gnote .gnote-tag::after{content:""; display:block; width:34px; height:1px; margin:9px auto 0; background:rgba(161,93,102,.45);}
+.gifts .gnote p{margin:0; color:var(--am-vino-profundo); font-size:15.5px; line-height:1.75;}
+.gifts .gnote p + p{margin-top:9px;}
 .gifts .shead .lock .lock-main{position:relative; z-index:1; font-family:var(--am-display); font-weight:400; letter-spacing:.08em; text-transform:uppercase; font-style:normal;}
 .gifts{justify-content:flex-start; padding-top:76px;}
 .gcards{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:18px; width:100%;}
@@ -602,9 +610,10 @@ export default function BodaClientAM({ slug }: { slug: string }) {
               <h2 className="lock"><span className="script over">Sin listas de regalos</span><span className="lock-main">CON LISTA DE SUEÑOS</span></h2>
             </header>
 
-            <div style={{ maxWidth: 560, margin: "0 auto 30px", textAlign: "center" }}>
-              <p className="body" style={{ margin: 0 }}>Gracias por decir que sí a celebrar con nosotros — <em>that&rsquo;s the real gift</em>.</p>
-              <p className="body" style={{ margin: "10px 0 0" }}>Para quienes quieran sumarse a nuestros sueños, preparamos esta mesa: cada regalo es una meta que se completa entre muchas manos. Cualquier aporte, del tamaño que sea, nos llena de gratitud.</p>
+            <div className="gnote">
+              <p className="gnote-tag">Una nota de nosotros</p>
+              <p>Gracias por decir que sí a celebrar con nosotros — <em>that&rsquo;s the real gift</em>.</p>
+              <p>Para quienes quieran sumarse a nuestros sueños, preparamos esta mesa: cada regalo es una meta que se completa entre muchas manos. Cualquier aporte, del tamaño que sea, nos llena de gratitud.</p>
             </div>
 
             <div className="gcards">
