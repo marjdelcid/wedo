@@ -191,6 +191,8 @@ const AM_CSS = `
 .gph{display:block; width:100%; height:150px; background:#EDE7D2; object-fit:cover;}
 .gbody{padding:16px 16px 18px; display:flex; flex-direction:column; gap:8px; flex:1;}
 .grow{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
+/* encabezado del regalo: título a lo ancho y la meta debajo (títulos largos ya no se estrujan) */
+.ghead{display:flex; flex-direction:column; gap:3px;}
 .gname{font-family:var(--am-body); font-style:italic; font-weight:500; font-size:19px; letter-spacing:0;
   text-transform:none; color:var(--am-vino-profundo); margin:0; line-height:1.25;}
 .gmeta{font-family:var(--am-label); font-style:normal; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--am-oliva); white-space:nowrap;}
@@ -624,7 +626,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                       ? <img className="gph" src={f.foto} alt={f.nombre} />
                       : <div className="gph" />}
                     <div className="gbody">
-                      <div className="grow"><h3 className="gname">{f.nombre}</h3><span className="gmeta">{(f.meta || 0) > 0 ? `Meta ${fmtQ(f.meta)}` : "Aporte libre"}</span></div>
+                      <div className="ghead"><h3 className="gname">{f.nombre}</h3><span className="gmeta">{(f.meta || 0) > 0 ? `Meta ${fmtQ(f.meta)}` : "Aporte libre"}</span></div>
                       {f.descripcion && <p className="body sm">{f.descripcion}</p>}
                       {f.modo !== "completo" && f.mostrar_progreso !== false && (
                         <>
