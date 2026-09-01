@@ -626,7 +626,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                     <div className="gbody">
                       <div className="grow"><h3 className="gname">{f.nombre}</h3><span className="gmeta">Meta {fmtQ(f.meta || 0)}</span></div>
                       {f.descripcion && <p className="body sm">{f.descripcion}</p>}
-                      {f.modo !== "completo" && (
+                      {f.modo !== "completo" && f.mostrar_progreso !== false && (
                         <>
                           <div className="bar"><i style={{ width: `${pct}%` }} /></div>
                           <div className="grow"><span className="gpct">{pct}% recaudado</span><span className="gsum">{fmtQ(f.recaudado || 0)}</span></div>
