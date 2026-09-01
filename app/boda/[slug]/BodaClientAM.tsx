@@ -747,7 +747,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
 
       {/* nav pastilla */}
       <nav className="pill" aria-label="Secciones">
-        {[["portada", "Nosotros"], ["detalles", "El día"], ["regalos", "Regalos"], ["rsvp", "RSVP"]].map(([id, label]) => (
+        {[["portada", "Nosotros"], ["detalles", "El día"], ["rsvp", "RSVP"], ["regalos", "Regalos"]].map(([id, label]) => (
           <a key={id} className={active === id ? "on" : ""} onClick={e => { e.preventDefault(); show(id); }} href={`#${id}`}>{label}</a>
         ))}
       </nav>
