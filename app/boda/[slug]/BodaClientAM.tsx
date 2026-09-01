@@ -176,13 +176,12 @@ const AM_CSS = `
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(94,30,46,.1), 0 18px 40px -30px rgba(74,66,50,.5);}
 .gifts .shead .lock .script.over{position:relative; z-index:2; margin-bottom:-.34em; transform:translateX(-.14em);}
 /* nota de la mesa (gracias + cómo funcionan los aportes) — papel legible sobre el fondo floral */
-.gifts .gnote{max-width:600px; margin:-8px auto 36px; padding:22px 28px 24px; text-align:center; border-radius:2px;
+.gifts .gnote{max-width:560px; margin:-14px auto 28px; padding:13px 22px 15px; text-align:center; border-radius:2px;
   background:rgba(251,248,238,.93);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.75), inset 0 -1px 0 rgba(94,30,46,.08), 0 18px 40px -28px rgba(74,66,50,.55);}
-.gifts .gnote .gnote-tag{font-family:'Marcellus',var(--am-label),serif; font-style:normal; font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--am-malva); margin:0 0 12px;}
-.gifts .gnote .gnote-tag::after{content:""; display:block; width:34px; height:1px; margin:9px auto 0; background:rgba(161,93,102,.45);}
-.gifts .gnote p{margin:0; color:var(--am-vino-profundo); font-size:15.5px; line-height:1.75;}
-.gifts .gnote p + p{margin-top:9px;}
+.gifts .gnote .gnote-tag{font-family:'Marcellus',var(--am-label),serif; font-style:normal; font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:var(--am-malva); margin:0 0 7px;}
+.gifts .gnote p{margin:0; color:var(--am-vino-profundo); font-size:13px; line-height:1.6;}
+.gifts .gnote p + p{margin-top:5px;}
 .gifts .shead .lock .lock-main{position:relative; z-index:1; font-family:var(--am-display); font-weight:400; letter-spacing:.08em; text-transform:uppercase; font-style:normal;}
 .gifts{justify-content:flex-start; padding-top:76px;}
 .gcards{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:18px; width:100%;}
