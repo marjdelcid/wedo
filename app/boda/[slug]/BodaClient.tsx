@@ -608,9 +608,11 @@ export default function BodaClient({ slug }: { slug: string }) {
       {/* CONTRIBUTION MODAL — wedo. brand */}
       {open && f && (() => {
         const gross = f.modo === "completo" ? (f.meta || 0) : amount;
-        const fee = Math.round(gross * 0.035 * 100) / 100;
-        const net = Math.round((gross - fee) * 100) / 100;
-        const chips = f.chips && f.chips.length ? f.chips : [100, 200, 500, 1000];
+        // comisión al invitado: Recurrente ~4.5% + Q2 por transacción + wedo. 3.5%;
+        // el aporte le llega COMPLETO a la pareja
+        const fee = Math.round((gross * 0.08 + 2) * 100) / 100;
+        const total = Math.round((gross + fee) * 100) / 100;
+        const chips = f.chips && f.chips.length ? f.chips : [200, 500, 1000];
         return (
           <div className="wedo-pay">
             <div className="overlay" onClick={(e) => e.target === e.currentTarget && closeGift()}>
@@ -655,11 +657,11 @@ export default function BodaClient({ slug }: { slug: string }) {
                     <div className="amt-label">Resumen</div>
                     <div className="breakdown">
                       <div className="bd-row"><span>Tu aporte</span><span className="v">{fmtQ(gross)}</span></div>
-                      <div className="bd-row"><span>Comisión wedo. (3.5%)</span><span className="v">– {fmtQ(fee)}</span></div>
-                      <div className="bd-row net"><span>{nombresTxt} {n2 ? "reciben" : "recibe"}</span><span className="v">{fmtQ(net)}</span></div>
+                      <div className="bd-row"><span>Comisión de servicio</span><span className="v">+ {fmtQ(fee)}</span></div>
+                      <div className="bd-row net"><span>Total a pagar</span><span className="v">{fmtQ(total)}</span></div>
                     </div>
-                    <div className="bd-note"><span className="d" />La comisión cubre el procesamiento del pago en quetzales. El dinero llega a su cuenta bancaria en 2–3 días hábiles.</div>
-                    <button className="pay-btn" onClick={handlePay} disabled={gross <= 0}>Aportar {fmtQ(gross)}</button>
+                    <div className="bd-note"><span className="d" />La comisión cubre el procesamiento del pago en quetzales y el servicio de wedo. Tu aporte le llega <strong>completo</strong> a {nombresTxt}.</div>
+                    <button className="pay-btn" onClick={handlePay} disabled={gross <= 0}>Pagar {fmtQ(total)}</button>
                     <div className="secure"><span>🔒</span> Pago seguro con Recurrente · Visa &amp; Mastercard</div>
                   </>
                 ))}

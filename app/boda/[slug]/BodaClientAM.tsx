@@ -304,6 +304,9 @@ textarea.rinput{resize:vertical; min-height:64px;}
 .gov-chips button{padding:10px 16px; cursor:pointer; border-radius:0; font-family:var(--am-label); font-style:normal; font-size:10px; letter-spacing:.14em;
   background:transparent; border:1px solid rgba(161,93,102,.35); color:var(--am-malva); transition:all 180ms ease;}
 .gov-chips button.sel{background:var(--am-malva); color:var(--am-crema); border-color:var(--am-malva);}
+/* chip "Otro" resaltado: elige tu propio monto */
+.gov-chips button.otro{border:1.5px dashed var(--am-vino-profundo); color:var(--am-vino-profundo); font-weight:700; background:rgba(94,30,46,.05);}
+.gov-chips button.otro.sel{background:var(--am-vino-profundo); color:var(--am-crema); border-style:solid; border-color:var(--am-vino-profundo);}
 .gov-fee{font-family:var(--am-label); font-style:normal; font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--am-oliva); margin:0;}
 .gov-thanks{font-family:var(--am-body); font-style:italic; font-size:16px; line-height:1.8; color:var(--am-malva); margin:0;}
 
@@ -786,7 +789,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                       {(giftOpen.chips || [100, 200, 500, 1000]).map((a: number) => (
                         <button key={a} className={!giftCustom && giftMonto === a ? "sel" : ""} onClick={() => { setGiftMonto(a); setGiftCustom(false); }}>{fmtQ(a)}</button>
                       ))}
-                      <button className={giftCustom ? "sel" : ""} onClick={() => { setGiftCustom(true); setGiftMonto(0); }}>Otro</button>
+                      <button className={"otro" + (giftCustom ? " sel" : "")} onClick={() => { setGiftCustom(true); setGiftMonto(0); }}>✎ Otro monto</button>
                     </div>
                     {giftCustom && (
                       <input className="gov-input" type="number" placeholder="Escribe tu monto en Q…" onChange={e => setGiftMonto(parseInt(e.target.value) || 0)} />
@@ -796,9 +799,18 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                     </button>
                   </>
                 )}
-                {giftMonto > 0 && (
-                  <p className="gov-fee">Comisión wedo 3.5% · Los novios reciben {fmtQ(giftMonto * 0.965)}</p>
-                )}
+                {giftMonto > 0 && (() => {
+                  // comisión al invitado: Recurrente ~4.5% + Q2 por transacción + wedo. 3.5%
+                  const servicio = Math.round((giftMonto * 0.08 + 2) * 100) / 100;
+                  const total = Math.round((giftMonto + servicio) * 100) / 100;
+                  const q2 = (n: number) => "Q " + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  return (
+                    <>
+                      <p className="gov-fee">Total a pagar {q2(total)} · incluye {q2(servicio)} de servicio</p>
+                      <p className="gov-fee">André &amp; Marjorie reciben tu aporte completo ✓</p>
+                    </>
+                  );
+                })()}
               </>
             )}
           </div>
