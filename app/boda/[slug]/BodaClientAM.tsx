@@ -624,7 +624,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                       ? <img className="gph" src={f.foto} alt={f.nombre} />
                       : <div className="gph" />}
                     <div className="gbody">
-                      <div className="grow"><h3 className="gname">{f.nombre}</h3><span className="gmeta">Meta {fmtQ(f.meta || 0)}</span></div>
+                      <div className="grow"><h3 className="gname">{f.nombre}</h3><span className="gmeta">{(f.meta || 0) > 0 ? `Meta ${fmtQ(f.meta)}` : "Aporte libre"}</span></div>
                       {f.descripcion && <p className="body sm">{f.descripcion}</p>}
                       {f.modo !== "completo" && f.mostrar_progreso !== false && (
                         <>
