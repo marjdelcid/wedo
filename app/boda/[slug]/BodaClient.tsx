@@ -192,7 +192,9 @@ export default function BodaClient({ slug }: { slug: string }) {
     setSelected(i);
     setNombre(""); setMensajeRegalo(""); setCustomStr("");
     setPayState("choose");
-    setAmount(g?.modo === "completo" ? (g.meta || 0) : ((g?.chips && g.chips[0]) || 100));
+    // preselecciona el chip del MEDIO, no el mínimo (anclaje/compromise effect)
+    const chips: number[] = Array.isArray(g?.chips) && g.chips.length ? g.chips : [200, 500, 1000];
+    setAmount(g?.modo === "completo" ? (g.meta || 0) : chips[Math.floor((chips.length - 1) / 2)]);
     setOpen(true);
   }
   function closeGift() {
