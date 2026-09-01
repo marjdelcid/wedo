@@ -602,6 +602,11 @@ export default function BodaClientAM({ slug }: { slug: string }) {
               <h2 className="lock"><span className="script over">Sin listas de regalos</span><span className="lock-main">CON LISTA DE SUEÑOS</span></h2>
             </header>
 
+            <div style={{ maxWidth: 560, margin: "0 auto 30px", textAlign: "center" }}>
+              <p className="body" style={{ margin: 0 }}>Gracias por decir que sí a celebrar con nosotros — <em>that&rsquo;s the real gift</em>.</p>
+              <p className="body" style={{ margin: "10px 0 0" }}>Para quienes quieran sumarse a nuestros sueños, preparamos esta mesa: cada regalo es una meta que se completa entre muchas manos. Cualquier aporte, del tamaño que sea, nos llena de gratitud.</p>
+            </div>
+
             <div className="gcards">
               {fondos.map((f, i) => {
                 const pct = f.meta > 0 ? Math.min(Math.round(((f.recaudado || 0) / f.meta) * 100), 100) : 0;
