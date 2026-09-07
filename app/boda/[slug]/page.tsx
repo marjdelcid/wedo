@@ -28,7 +28,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const fecha = p.fecha ? new Date(p.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long", year: "numeric" }) : "";
   const title = `${n || (evtType.id === "boda" ? "Nuestra boda" : "Nuestro evento")} · ${p.frase_portada || evtType.frasePortada}`;
   const description = [fecha, p.lugar].filter(Boolean).join(" · ") || "Te invitamos a celebrar con nosotros.";
-  const images = [{ url: (p.foto_hero as string) || "/og.png" }];
+  // el template exclusivo A&M comparte su propia tarjeta (portada de terciopelo)
+  const images = [{ url: slug === AM_SLUG ? "/og-am.jpg" : ((p.foto_hero as string) || "/og.png") }];
   const url = `https://wedo.gifts/boda/${slug}`;
   return {
     title,

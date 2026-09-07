@@ -667,7 +667,11 @@ export default function BodaClientAM({ slug }: { slug: string }) {
           <div className="wrap narrow night">
             <div className="nhead">
               <span className="nrule" aria-hidden="true" />
-              <p className="label lt nsp">Por favor, confírmanos antes del 30 de septiembre</p>
+              <p className="label lt nsp">
+                {pareja?.rsvp_fecha_limite
+                  ? `Por favor, confírmanos antes del ${new Date(pareja.rsvp_fecha_limite + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long" })}`
+                  : "Por favor, confírmanos tu asistencia"}
+              </p>
               <p className="nsc ink">¿nos acompañas?</p>
             </div>
 
