@@ -192,9 +192,8 @@ export default function BodaClient({ slug }: { slug: string }) {
     setSelected(i);
     setNombre(""); setMensajeRegalo(""); setCustomStr("");
     setPayState("choose");
-    // preselecciona el chip del MEDIO, no el mínimo (anclaje/compromise effect)
-    const chips: number[] = Array.isArray(g?.chips) && g.chips.length ? g.chips : [200, 500, 1000];
-    setAmount(g?.modo === "completo" ? (g.meta || 0) : chips[Math.floor((chips.length - 1) / 2)]);
+    // monto libre: sin sugerencias — el invitado escribe lo que desea aportar
+    setAmount(g?.modo === "completo" ? (g.meta || 0) : 0);
     setOpen(true);
   }
   function closeGift() {
@@ -612,7 +611,6 @@ export default function BodaClient({ slug }: { slug: string }) {
         // el aporte le llega COMPLETO a la pareja
         const fee = Math.round((gross * 0.08 + 2) * 100) / 100;
         const total = Math.round((gross + fee) * 100) / 100;
-        const chips = f.chips && f.chips.length ? f.chips : [200, 500, 1000];
         return (
           <div className="wedo-pay">
             <div className="overlay" onClick={(e) => e.target === e.currentTarget && closeGift()}>
@@ -640,15 +638,11 @@ export default function BodaClient({ slug }: { slug: string }) {
                       </>
                     ) : (
                       <>
-                        <div className="amt-label">Elige un monto</div>
-                        <div className="amt-chips">
-                          {chips.map((a: number) => (
-                            <button key={a} className={"amt-chip" + (!customStr && amount === a ? " sel" : "")} onClick={() => { setAmount(a); setCustomStr(""); }}>Q{a.toLocaleString()}</button>
-                          ))}
-                        </div>
+                        <div className="amt-label">Tu aporte</div>
+                        <p className="amt-libre">El monto es libre: aporta lo que tú desees — cualquier aporte suma y se agradece de corazón.</p>
                         <div className="amt-custom">
                           <span className="q">Q</span>
-                          <input inputMode="numeric" placeholder="Otro monto" value={customStr} onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ""); setCustomStr(v); if (v) setAmount(parseInt(v)); }} />
+                          <input inputMode="numeric" placeholder="Escribe tu aporte" value={customStr} onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ""); setCustomStr(v); setAmount(v ? parseInt(v) : 0); }} autoFocus />
                         </div>
                       </>
                     )}

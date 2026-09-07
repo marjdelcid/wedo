@@ -301,14 +301,8 @@ textarea.rinput{resize:vertical; min-height:64px;}
   font-family:var(--am-body); font-style:italic; font-size:15px; color:var(--am-vino-profundo); text-align:center;}
 .gov-input:focus{outline:none; border-color:var(--am-malva);}
 .gov-chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
-/* montos en EB Garamond itálica (como los números del resto de la invitación);
-   el relleno de color solo aparece en hover, la selección es subrayado + vino */
-.gov-chips button{padding:9px 18px; cursor:pointer; border-radius:0; font-family:var(--am-body); font-style:italic; font-size:15px; letter-spacing:.03em;
-  background:transparent; border:1px solid rgba(161,93,102,.35); color:var(--am-malva); transition:all 180ms ease;}
-@media (hover:hover){
-  .gov-chips button:hover{background:var(--am-malva); color:var(--am-crema); border-color:var(--am-malva);}
-}
-.gov-chips button.sel{background:transparent; border-color:var(--am-vino-profundo); color:var(--am-vino-profundo); font-weight:600; box-shadow:inset 0 -2px 0 var(--am-vino-profundo);}
+/* aporte libre: sin chips de montos sugeridos — solo la nota y el campo */
+.gov-libre{font-family:var(--am-body); font-style:italic; font-size:14.5px; line-height:1.6; color:var(--am-malva); margin:0; text-align:center;}
 .gov-fee{font-family:var(--am-label); font-style:normal; font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--am-oliva); margin:0;}
 .gov-thanks{font-family:var(--am-body); font-style:italic; font-size:16px; line-height:1.8; color:var(--am-malva); margin:0;}
 
@@ -466,9 +460,8 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   function openGift(f: any) {
     setGiftOpen(f);
     setGiftNombre(""); setGiftMensaje(""); setGiftPaid(false); setGiftCustom(false);
-    // preselecciona el chip del MEDIO, no el mínimo (anclaje/compromise effect)
-    const chips: number[] = Array.isArray(f.chips) && f.chips.length ? f.chips : [200, 500, 1000];
-    setGiftMonto(f.modo === "completo" ? f.meta : chips[Math.floor((chips.length - 1) / 2)]);
+    // monto libre: sin sugerencias — el invitado escribe lo que desea aportar
+    setGiftMonto(f.modo === "completo" ? f.meta : 0);
   }
 
   async function payGift() {
@@ -787,17 +780,10 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                   <button className="btn" onClick={payGift}>Regalar {fmtQ(giftOpen.meta || 0)} — completo</button>
                 ) : (
                   <>
-                    <div className="gov-chips">
-                      {(giftOpen.chips || [100, 200, 500, 1000]).map((a: number) => (
-                        <button key={a} className={!giftCustom && giftMonto === a ? "sel" : ""} onClick={() => { setGiftMonto(a); setGiftCustom(false); }}>{fmtQ(a)}</button>
-                      ))}
-                      <button className={giftCustom ? "sel" : ""} onClick={() => { setGiftCustom(true); setGiftMonto(0); }}>Otro monto</button>
-                    </div>
-                    {giftCustom && (
-                      <input className="gov-input" type="number" placeholder="Escribe tu monto en Q…" onChange={e => setGiftMonto(parseInt(e.target.value) || 0)} />
-                    )}
+                    <p className="gov-libre">El monto es libre: aporta lo que tú desees — cualquier aporte suma y nos llena de gratitud.</p>
+                    <input className="gov-input" type="number" min={1} placeholder="Escribe tu aporte en Q…" onChange={e => setGiftMonto(parseInt(e.target.value) || 0)} />
                     <button className="btn" onClick={payGift} disabled={giftMonto <= 0}>
-                      {giftMonto > 0 ? `Aportar ${fmtQ(giftMonto)}` : "Selecciona un monto"}
+                      {giftMonto > 0 ? `Aportar ${fmtQ(giftMonto)}` : "Escribe tu aporte"}
                     </button>
                   </>
                 )}
