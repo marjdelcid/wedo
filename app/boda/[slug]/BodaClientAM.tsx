@@ -470,9 +470,11 @@ export default function BodaClientAM({ slug }: { slug: string }) {
     if (monto <= 0) return;
     setGiftPaid(true);
     await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: giftNombre || "Anónimo", monto, mensaje: giftMensaje || null });
+    // modo completo con cantidad: "tomado" solo cuando se regalan TODAS las unidades
+    const totalCompleto = (f.meta || 0) * (f.cantidad || 1);
     await supabase.from("fondos").update({
       recaudado: (f.recaudado || 0) + monto,
-      ...(f.modo === "completo" ? { tomado: true } : {}),
+      ...(f.modo === "completo" && (f.recaudado || 0) + monto >= totalCompleto ? { tomado: true } : {}),
     }).eq("id", f.id);
     load();
   }
@@ -621,14 +623,18 @@ export default function BodaClientAM({ slug }: { slug: string }) {
 
             <div className="gcards">
               {fondos.map((f, i) => {
-                const pct = f.meta > 0 ? Math.min(Math.round(((f.recaudado || 0) / f.meta) * 100), 100) : 0;
+                const cant = f.cantidad || 1;
+                const metaTotal = (f.meta || 0) * cant;
+                const pct = metaTotal > 0 ? Math.min(Math.round(((f.recaudado || 0) / metaTotal) * 100), 100) : 0;
+                // unidades ya regaladas (modo completo): cada regalo aporta exactamente `meta`
+                const dadas = f.modo === "completo" ? (f.tomado ? cant : Math.min(Math.floor((f.recaudado || 0) / (f.meta || 1)), cant)) : 0;
                 return (
                   <article className="gcard" key={i}>
                     {f.foto
                       ? <img className="gph" src={f.foto} alt={f.nombre} />
                       : <div className="gph" />}
                     <div className="gbody">
-                      <div className="ghead"><h3 className="gname">{f.nombre}</h3><span className="gmeta">{(f.meta || 0) > 0 ? `Meta ${fmtQ(f.meta)}` : "Aporte libre"}</span></div>
+                      <div className="ghead"><h3 className="gname">{f.nombre}</h3><span className="gmeta">{(f.meta || 0) > 0 ? `Meta ${fmtQ(f.meta)}${cant > 1 ? ` × ${cant}` : ""}` : "Aporte libre"}</span></div>
                       {f.descripcion && <p className="body sm">{f.descripcion}</p>}
                       {f.modo !== "completo" && f.mostrar_progreso !== false && (
                         <>
@@ -636,9 +642,16 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                           <div className="grow"><span className="gpct">{pct}% recaudado</span><span className="gsum">{fmtQ(f.recaudado || 0)}</span></div>
                         </>
                       )}
-                      {f.modo === "completo" && f.tomado
+                      {f.modo === "completo" && dadas >= cant
                         ? <span className="gpct" style={{ color: "var(--am-oliva)" }}>✦ Ya regalado</span>
-                        : <a className="btn" onClick={e => { e.preventDefault(); openGift(f); }} href="#">Aportar</a>}
+                        : (
+                          <>
+                            {f.modo === "completo" && cant > 1 && (
+                              <span className="gpct">{cant - dadas} de {cant} disponibles</span>
+                            )}
+                            <a className="btn" onClick={e => { e.preventDefault(); openGift(f); }} href="#">Aportar</a>
+                          </>
+                        )}
                     </div>
                   </article>
                 );

@@ -209,9 +209,11 @@ export default function BodaClient({ slug }: { slug: string }) {
     try {
       const { error: e1 } = await supabase.from("contribuciones").insert({ fondo_id: g.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
       if (e1) throw e1;
+      // modo completo con cantidad: "tomado" solo cuando se regalan TODAS las unidades
+      const totalCompleto = (g.meta || 0) * (g.cantidad || 1);
       await supabase.from("fondos").update({
         recaudado: (g.recaudado || 0) + montoFinal,
-        ...(g.modo === "completo" ? { tomado: true } : {})
+        ...(g.modo === "completo" && (g.recaudado || 0) + montoFinal >= totalCompleto ? { tomado: true } : {})
       }).eq("id", g.id);
       setPayState("ok");
       if (pareja?.confeti_regalo) fireConfetti();
@@ -334,18 +336,26 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   function GiftCard({ g, i }: { g: any; i: number }) {
     const meta = g.meta || 0;
-    const pct = meta > 0 ? Math.min(Math.round(((g.recaudado || 0) / meta) * 100), 100) : 0;
-    const showBar = g.modo !== "completo" && meta > 0 && g.mostrar_progreso !== false;
+    const cant = g.cantidad || 1;
+    const metaTotal = meta * cant;
+    const pct = metaTotal > 0 ? Math.min(Math.round(((g.recaudado || 0) / metaTotal) * 100), 100) : 0;
+    const showBar = g.modo !== "completo" && metaTotal > 0 && g.mostrar_progreso !== false;
+    // unidades ya regaladas (modo completo): cada regalo aporta exactamente `meta`
+    const dadas = g.modo === "completo" ? (g.tomado ? cant : Math.min(Math.floor((g.recaudado || 0) / (meta || 1)), cant)) : 0;
+    const agotado = g.modo === "completo" && dadas >= cant;
     return (
-      <div className={"gift" + (g.tomado ? " done" : "")}>
+      <div className={"gift" + (agotado ? " done" : "")}>
         {g.foto && <div className="gthumb"><img src={g.foto} alt={g.nombre} /></div>}
-        <div className="gh"><span className="gn">{g.nombre}</span><span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}` : "Aporte libre"}</span></div>
+        <div className="gh"><span className="gn">{g.nombre}</span><span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}${cant > 1 ? ` × ${cant}` : ""}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}${cant > 1 ? ` × ${cant}` : ""}` : "Aporte libre"}</span></div>
         {g.descripcion && <p className="gd">{g.descripcion}</p>}
         {showBar && (<>
           <div className="bar"><span style={{ width: `${pct}%` }} /></div>
           <div className="gp"><span>{pct}% recaudado</span><span>Q {(g.recaudado || 0).toLocaleString()}</span></div>
         </>)}
-        {g.tomado
+        {g.modo === "completo" && cant > 1 && !agotado && (
+          <p className="gd" style={{ marginTop: 0 }}>{cant - dadas} de {cant} disponibles</p>
+        )}
+        {agotado
           ? <button className="gbtn done" disabled>Ya regalado</button>
           : <button className="gbtn" onClick={() => openGift(i)}>Aportar</button>}
       </div>
@@ -620,7 +630,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                   <button className="x" onClick={closeGift}>✕</button>
                 </div>
 
-                {payState === "choose" && (f.tomado ? (
+                {payState === "choose" && ((f.modo === "completo" && (f.tomado || (f.recaudado || 0) >= (f.meta || 0) * (f.cantidad || 1))) ? (
                   <div className="state-view">
                     <div className="state-ico ok">✓</div>
                     <h3>Ya fue regalado</h3>

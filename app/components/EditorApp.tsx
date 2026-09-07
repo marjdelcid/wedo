@@ -146,7 +146,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [fondos, setFondos] = useState<any[]>([]);
   const [showGiftForm, setShowGiftForm] = useState(false);
   const [editingGift, setEditingGift] = useState<any>(null);
-  const [gForm, setGForm] = useState<any>({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: true });
+  const [gForm, setGForm] = useState<any>({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: true, cantidad: "1" });
   const [savingGift, setSavingGift] = useState(false);
 
   // invitados
@@ -297,10 +297,10 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const pick = (id: string) => fileRefs.current[id]?.click();
 
   // ---- gifts ----
-  function openNewGift() { setEditingGift(null); setGForm({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: true }); setShowGiftForm(true); }
+  function openNewGift() { setEditingGift(null); setGForm({ nombre: "", descripcion: "", historia: "", meta: "", foto: "", modo: "libre", chips: [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: true, cantidad: "1" }); setShowGiftForm(true); }
   function openEditGift(g: any) {
     setEditingGift(g);
-    setGForm({ nombre: g.nombre || "", descripcion: g.descripcion || "", historia: g.historia || "", meta: g.meta?.toString() || "", foto: g.foto || "", modo: g.modo || "libre", chips: g.chips || [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: g.mostrar_progreso !== false });
+    setGForm({ nombre: g.nombre || "", descripcion: g.descripcion || "", historia: g.historia || "", meta: g.meta?.toString() || "", foto: g.foto || "", modo: g.modo || "libre", chips: g.chips || [100, 200, 500, 1000], nuevoChip: "", mostrar_progreso: g.mostrar_progreso !== false, cantidad: (g.cantidad || 1).toString() });
     setShowGiftForm(true);
   }
   function addChip() {
@@ -311,7 +311,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   async function saveGift() {
     if (!gForm.nombre) return;
     setSavingGift(true);
-    const data = { nombre: gForm.nombre, descripcion: gForm.descripcion, historia: gForm.historia, meta: parseFloat(gForm.meta) || 0, foto: gForm.foto || null, modo: gForm.modo, chips: gForm.chips, mostrar_progreso: gForm.mostrar_progreso !== false };
+    const data = { nombre: gForm.nombre, descripcion: gForm.descripcion, historia: gForm.historia, meta: parseFloat(gForm.meta) || 0, foto: gForm.foto || null, modo: gForm.modo, chips: gForm.chips, mostrar_progreso: gForm.mostrar_progreso !== false, cantidad: Math.max(1, parseInt(gForm.cantidad) || 1) };
     if (editingGift) await supabase.from("fondos").update(data).eq("id", editingGift.id);
     else await supabase.from("fondos").insert({ pareja_id: pareja.id, ...data, recaudado: 0, orden: fondos.length, tomado: false });
     setShowGiftForm(false); setEditingGift(null); setSavingGift(false);
@@ -773,6 +773,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       <div className={"gtype" + (gForm.modo === "completo" ? " sel" : "")} onClick={() => setGForm((p: any) => ({ ...p, modo: "completo" }))}><div className="tt">Regalo completo</div><div className="td">Un precio fijo, se marca como "Ya regalado" al comprarse</div></div>
                     </div>
                     <div className="field"><label>{gForm.modo === "completo" ? "Precio en Quetzales *" : "Meta en Quetzales (opcional)"}</label><div className="qwrap"><span className="qsign">Q</span><input className="inp with-q" type="number" value={gForm.meta} onChange={(e) => setGForm((p: any) => ({ ...p, meta: e.target.value }))} placeholder="12000" /></div></div>
+                    <div className="field"><label>Cantidad</label><input className="inp" type="number" min={1} max={99} value={gForm.cantidad} onChange={(e) => setGForm((p: any) => ({ ...p, cantidad: e.target.value }))} placeholder="1" /><p className="hint" style={{ margin: "6px 0 0" }}>¿Cuántas veces se puede regalar? Ej. 10 cenitas. {gForm.modo === "completo" ? "Se marca “Ya regalado” al completarse todas." : "La meta total será precio × cantidad."}</p></div>
                     {gForm.modo === "libre" && (
                       <>
                         <div className="field"><label>Chips de monto</label></div>
