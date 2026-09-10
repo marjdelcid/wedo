@@ -11,7 +11,7 @@ async function getPareja(slug: string) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   try {
-    const sb = createClient(url, key);
+    const sb = createClient(url, key, { global: { fetch: (i: any, o?: any) => fetch(i, { ...o, cache: "no-store" }) } });
     const { data } = await sb.from("parejas").select("id,nombre1,nombre2,fecha,lugar,foto_hero,frase_portada,tipo_evento").eq("slug", slug).single();
     return data;
   } catch { return null; }
@@ -23,7 +23,7 @@ async function getNombresInvitacion(parejaId: string, token: string): Promise<st
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return "";
   try {
-    const sb = createClient(url, key);
+    const sb = createClient(url, key, { global: { fetch: (i: any, o?: any) => fetch(i, { ...o, cache: "no-store" }) } });
     const { data } = await sb.from("invitados").select("miembros")
       .eq("pareja_id", parejaId)
       .contains("miembros", JSON.stringify([{ token }]))
