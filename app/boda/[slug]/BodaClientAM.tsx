@@ -843,30 +843,12 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 )}
               </div>
             ) : (
-              <form className="rcard" onSubmit={e => { e.preventDefault(); searchGuests(); }}>
+              <div className="rcard">
+                {/* la confirmación es SOLO por link personal: sin búsqueda por nombre */}
                 <div className="foil-mono rseal" role="img" aria-label="A&M" />
-                <p className="rlead">Busca tu nombre en la lista de invitados</p>
-                <input className="rinput" type="text" value={rq} onChange={e => setRq(e.target.value)} placeholder="Escribe tu nombre…" aria-label="Tu nombre" />
-                <button className="btn night-btn" type="submit">Buscar mi invitación</button>
-
-                {rSearched && rResults.length === 0 && (
-                  <p className="rerr">No encontramos tu nombre. Intenta con otro término.</p>
-                )}
-                {rResults.length > 0 && (
-                  <div className="rres">
-                    {rResults.map((inv, i) => (
-                      <button type="button" className="rres-item" key={i} onClick={() => pickGuest(inv)}>
-                        <span>
-                          <span className="rres-name">{inv.nombre}</span>
-                          <span className="rres-sub" style={{ display: "block" }}>{inv.asientos} {inv.asientos === 1 ? "lugar" : "lugares"}{inv.confirmado ? " · ya confirmó" : ""}</span>
-                        </span>
-                        <span style={{ color: "var(--am-salvia-foto)" }}>→</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <p className="nmono">Tu confirmación llega directo a André &amp; Marjorie</p>
-              </form>
+                <p className="rlead">Tu confirmación es con tu link personal</p>
+                <p className="nmono" style={{ margin: 0 }}>Abre el enlace que recibiste con tu invitación.<br />¿No lo encuentras? Escríbeles a André &amp; Marjorie y te lo reenvían.</p>
+              </div>
             )}
             <p className="pw sec-foot lt"><span className="wd">wedo<i>.</i></span></p>
           </div>

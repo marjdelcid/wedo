@@ -329,10 +329,18 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   async function addGuest() {
     if (!guestForm.nombre.trim()) return;
     setSavingGuest(true);
-    // un miembro con token único por asiento; el primero lleva el nombre de la invitación
+    // un miembro con token único por asiento; el token lleva el nombre para que
+    // el link sea legible (ej. rafael-del-cid-a1b2 / acompanante-rafael-c3d4)
     const asientosN = Math.max(1, parseInt(guestForm.asientos) || 1);
-    const token8 = () => Math.random().toString(36).slice(2, 10).padEnd(8, "0");
-    const miembros = Array.from({ length: asientosN }, (_, i) => ({ nombre: i === 0 ? guestForm.nombre.trim() : null, token: token8() }));
+    const slugify = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const rand4 = () => Math.random().toString(36).slice(2, 6).padEnd(4, "0");
+    const nombreInv = guestForm.nombre.trim();
+    const primer = slugify(nombreInv.split(" ")[0] || "invitado");
+    const miembros = Array.from({ length: asientosN }, (_, i) => (
+      i === 0
+        ? { nombre: nombreInv, token: `${slugify(nombreInv)}-${rand4()}` }
+        : { nombre: null, token: `acompanante-${primer}-${rand4()}` }
+    ));
     await supabase.from("invitados").insert({ pareja_id: pareja.id, nombre: guestForm.nombre.trim(), asientos: asientosN, grupo: guestForm.grupo.trim() || null, miembros });
     setGuestForm({ nombre: "", asientos: "1", grupo: "" }); setShowGuestForm(false); setSavingGuest(false);
     const { data: inv } = await supabase.from("invitados").select("*").eq("pareja_id", pareja.id).order("grupo").order("nombre");
@@ -921,6 +929,15 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="gn">{inv.nombre}</div>
                               <div className="gm">{inv.asientos} {inv.asientos === 1 ? "asiento" : "asientos"}{rsvp ? ` · ${(rsvp.acompanantes || 0) + 1} confirman` : " · pendiente"}</div>
+                              {Array.isArray(inv.miembros) && inv.miembros.length > 1 && (() => {
+                                const nombrados = inv.miembros.filter((m: any) => m.nombre).map((m: any) => m.nombre);
+                                const sinNombre = inv.miembros.length - nombrados.length;
+                                return (
+                                  <div className="gm" style={{ opacity: .8 }}>
+                                    {nombrados.join(" · ")}{sinNombre > 0 ? `${nombrados.length ? " · " : ""}${sinNombre} por nombrar` : ""}
+                                  </div>
+                                );
+                              })()}
                             </div>
                             <span className="gs" style={{ color: rsvp?.asistencia === "si" ? "#7e8a30" : rsvp?.asistencia === "no" ? "var(--coral)" : "var(--peri)" }}>{rsvp ? (rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste") : "Pendiente"}</span>
                             <button className="gx" onClick={() => deleteGuest(inv.id)}>✕</button>
