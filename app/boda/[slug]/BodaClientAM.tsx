@@ -535,7 +535,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#4A1D2B", fontFamily: "'EB Garamond', serif", fontStyle: "italic", fontSize: 20, color: "#F3EED7" }}>
-      André &amp; Marjorie…
+      Marjorie &amp; André…
     </div>
   );
 
@@ -569,12 +569,12 @@ export default function BodaClientAM({ slug }: { slug: string }) {
           <div className="grain" />
           <div className="cov-in hero">
             <div className="par-credits rv">
-              <div className="pc-col pc-l"><span>Juan Felipe González</span><span>Anna Mónica Cobos</span></div>
-              <div className="pc-col pc-r"><span>Carlos Rafael Del Cid</span><span>Ana Isabel Conde</span></div>
+              <div className="pc-col pc-l"><span>Carlos Rafael Del Cid</span><span>Ana Isabel Conde</span></div>
+              <div className="pc-col pc-r"><span>Juan Felipe González</span><span>Anna Mónica Cobos</span></div>
             </div>
             <div className="hero-mid">
               <p className="bless rv d1">By His grace, and with the blessing of those who raised us</p>
-              <h1 className="hero-names rv d3"><span className="hn-a">André <span className="amp">&amp;</span></span> <span className="hn-b">Marjorie</span></h1>
+              <h1 className="hero-names rv d3"><span className="hn-a">Marjorie <span className="amp">&amp;</span></span> <span className="hn-b">André</span></h1>
             </div>
             <div className="hero-date rv d4"><span className="hd-rule" aria-hidden="true" /><span className="hd-txt">24 · X · 2026</span></div>
             <div className="foil-mono hero-mono rv d4" role="img" aria-label="Monograma A&M" />
@@ -733,7 +733,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
               <div className="rcard">
                 <div className="foil-mono rseal" role="img" aria-label="A&M" />
                 <p className="rlead">{rAsis === "si" ? "Tu lugar está guardado. ¡Nos vemos el 24 de octubre!" : "Gracias por avisarnos. Te vamos a extrañar."}</p>
-                <p className="nmono">Tu confirmación llegó directo a André &amp; Marjorie</p>
+                <p className="nmono">Tu confirmación llegó directo a Marjorie &amp; André</p>
               </div>
             ) : rInv ? (() => {
               // ---- RSVP personalizado por link único ----
@@ -765,7 +765,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                           ✦ {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
                           {rInv.asistira === "si" ? " — ¡los esperamos el 24 de octubre!" : rInv.asistira === "no" ? " — lamentamos que no puedan acompañarnos." : "."}
                         </p>
-                        <p className="nmono">Si algo cambia, escríbeles directo a André &amp; Marjorie</p>
+                        <p className="nmono">Si algo cambia, escríbeles directo a Marjorie &amp; André</p>
                       </>
                     )
                   ) : (
@@ -876,7 +876,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 {/* la confirmación es SOLO por link personal: sin búsqueda por nombre */}
                 <div className="foil-mono rseal" role="img" aria-label="A&M" />
                 <p className="rlead">Tu confirmación es con tu link personal</p>
-                <p className="nmono" style={{ margin: 0 }}>Abre el enlace que recibiste con tu invitación.<br />¿No lo encuentras? Escríbeles a André &amp; Marjorie y te lo reenvían.</p>
+                <p className="nmono" style={{ margin: 0 }}>Abre el enlace que recibiste con tu invitación.<br />¿No lo encuentras? Escríbeles a Marjorie &amp; André y te lo reenvían.</p>
               </div>
             )}
             <p className="pw sec-foot lt"><span className="wd">wedo<i>.</i></span></p>
@@ -901,7 +901,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <div className="foil-mono" style={{ width: 96, height: 96, margin: "0 auto" }} role="img" aria-label="A&M" />
                 <p className="gov-name">¡Gracias{giftNombre ? `, ${giftNombre.split(" ")[0]}` : ""}!</p>
                 <p className="gov-thanks">{pareja?.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial para nosotros."}</p>
-                <p className="gov-fee">— André &amp; Marjorie</p>
+                <p className="gov-fee">— Marjorie &amp; André</p>
                 <button className="btn" onClick={() => setGiftOpen(null)}>Cerrar</button>
               </>
             ) : (
@@ -930,7 +930,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                   return (
                     <>
                       <p className="gov-fee">Total a pagar {q2(total)} · incluye {q2(servicio)} de servicio</p>
-                      <p className="gov-fee">André &amp; Marjorie reciben tu aporte completo ✓</p>
+                      <p className="gov-fee">Marjorie &amp; André reciben tu aporte completo ✓</p>
                     </>
                   );
                 })()}
