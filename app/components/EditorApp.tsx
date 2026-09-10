@@ -941,24 +941,25 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                             </div>
                             <span className="gs" style={{ color: rsvp?.asistencia === "si" ? "#7e8a30" : rsvp?.asistencia === "no" ? "var(--coral)" : "var(--peri)" }}>{rsvp ? (rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste") : "Pendiente"}</span>
                             <button className="gx" onClick={() => deleteGuest(inv.id)}>✕</button>
-                            {Array.isArray(inv.miembros) && inv.miembros.length > 0 && (
+                            {Array.isArray(inv.miembros) && inv.miembros.some((m: any) => m.nombre) && (
                               <div className="codebar" style={{ flexWrap: "wrap" }}>
                                 <span>Links únicos</span>
-                                {inv.miembros.map((m: any, mi: number) => (
+                                {/* solo personas con nombre: el +1 no tiene link, lo confirma el principal */}
+                                {inv.miembros.filter((m: any) => m.nombre).map((m: any) => (
                                   <button
                                     key={m.token}
                                     className="btn btn-ghost btn-sm"
                                     style={{ padding: "4px 10px", textTransform: "none", letterSpacing: 0 }}
                                     title="Copiar link personalizado"
                                     onClick={() => {
-                                      const url = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}#rsvp`;
+                                      const url = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}`;
                                       navigator.clipboard?.writeText(url).then(() => {
                                         setCopiadoToken(m.token);
                                         setTimeout(() => setCopiadoToken(""), 1600);
                                       });
                                     }}
                                   >
-                                    {copiadoToken === m.token ? "✓ Copiado" : `⧉ ${m.nombre ? m.nombre.split(" ")[0] : `Acompañante ${mi > 0 ? mi : ""}`.trim()}`}
+                                    {copiadoToken === m.token ? "✓ Copiado" : `⧉ ${m.nombre.split(" ")[0]}`}
                                   </button>
                                 ))}
                               </div>

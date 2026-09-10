@@ -249,6 +249,11 @@ const AM_CSS = `
 .rseats button{width:44px; height:44px; cursor:pointer; border-radius:0; font-family:var(--am-display); font-style:normal; font-size:16px;
   background:rgba(169,174,143,.08); border:1px solid rgba(169,174,143,.34); color:var(--am-salvia-foto); transition:all 200ms ease;}
 .rseats button.sel{background:var(--am-salvia-foto); color:var(--am-verde-noche); border-color:var(--am-salvia-foto);}
+/* quiénes del grupo asisten (una persona confirma por todos) */
+.rquienes{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+.rquienes button{padding:10px 16px; cursor:pointer; border-radius:0; font-family:var(--am-body); font-style:italic; font-size:15px;
+  background:rgba(169,174,143,.08); border:1px solid rgba(169,174,143,.34); color:var(--am-salvia-foto); transition:all 200ms ease;}
+.rquienes button.sel{background:var(--am-salvia-foto); color:var(--am-verde-noche); border-color:var(--am-salvia-foto);}
 .rerr{font-family:var(--am-body); font-style:italic; font-size:14px; color:var(--am-rosa-empolvado); margin:0; text-align:center;}
 textarea.rinput{resize:vertical; min-height:64px;}
 
@@ -388,6 +393,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   const [rInv, setRInv] = useState<any>(null);
   const [rYo, setRYo] = useState<any>(null);
   const [rMas1, setRMas1] = useState("");
+  const [rQuienes, setRQuienes] = useState<Record<string, boolean>>({});
 
   useEffect(() => { load(); }, [slug]);
 
@@ -417,9 +423,9 @@ export default function BodaClientAM({ slug }: { slug: string }) {
             .contains("miembros", JSON.stringify([{ token }]))
             .single();
           if (inv) {
+            // el link abre en la portada ("Nosotros"); el RSVP ya queda personalizado
             setRInv(inv);
             setRYo((inv.miembros || []).find((m: any) => m.token === token) || null);
-            setActive("rsvp");
           }
         }
       } catch { /* sin token o inválido: flujo normal de búsqueda */ }
@@ -477,20 +483,26 @@ export default function BodaClientAM({ slug }: { slug: string }) {
     setRDone(true);
   }
 
-  /** RSVP por link personalizado: responde por toda la invitación y, si escribió
-      el nombre de su acompañante, lo guarda en el primer slot vacío. */
+  /** RSVP por link personalizado: una persona confirma por TODO su grupo
+      (checklist de quiénes asisten, incluido el +1); si nombró a su
+      acompañante, se guarda en el primer slot vacío que haya marcado. */
   async function submitRsvpLink() {
     if (!rInv || !rYo || !rAsis) return;
     setRSending(true);
     let nombrado = false;
     const miembros = (rInv.miembros || []).map((m: any) => {
-      if (!m.nombre && !nombrado && rMas1.trim() && m.token !== rYo.token) { nombrado = true; return { ...m, nombre: rMas1.trim() }; }
+      if (!m.nombre && !nombrado && rMas1.trim() && rQuienes[m.token]) { nombrado = true; return { ...m, nombre: rMas1.trim() }; }
       return m;
     });
+    const seleccion = (rInv.miembros || []).length > 1
+      ? miembros.filter((m: any) => rQuienes[m.token])
+      : miembros;
+    const asistentes = rAsis === "si" ? seleccion.map((m: any) => m.nombre || "Acompañante") : [];
     const quien = rYo.nombre || rInv.nombre;
     await supabase.from("rsvp").insert({
       invitado_id: rInv.id, pareja_id: pareja.id, nombre: quien,
-      asistencia: rAsis, acompanantes: rAsis === "si" ? rAcomp : 0, restricciones: rRestr, mensaje: rMsg,
+      asistencia: rAsis, acompanantes: rAsis === "si" ? Math.max(0, asistentes.length - 1) : 0,
+      restricciones: rRestr, mensaje: rMsg, asistentes,
     });
     await supabase.from("invitados").update({
       confirmado: true, asistira: rAsis, respondido_por: quien, miembros,
@@ -761,20 +773,37 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                       <p className="rres-name" style={{ fontSize: 24 }}>{rYo?.nombre ? `${primer(rYo.nombre)}, ¿podrás acompañarnos a nuestra celebración?` : "¿Podrás acompañarnos a nuestra celebración?"}</p>
                       <p className="nmono" style={{ margin: 0 }}>{compTxt}</p>
                       <div className="rchoice">
-                        <button className={rAsis === "si" ? "sel-si" : ""} onClick={() => { setRAsis("si"); setRAcomp(seatsInv - 1); }}>Sí, asistiré</button>
-                        <button className={rAsis === "no" ? "sel-no" : ""} onClick={() => { setRAsis("no"); setRAcomp(0); }}>No podré ir</button>
+                        <button
+                          className={rAsis === "si" ? "sel-si" : ""}
+                          onClick={() => {
+                            setRAsis("si");
+                            // preselección: yo + los que tienen nombre; el +1 lo marcan si lo llevan
+                            if (!Object.keys(rQuienes).length) {
+                              const init: Record<string, boolean> = {};
+                              (rInv.miembros || []).forEach((m: any) => { init[m.token] = m.token === rYo?.token ? true : !!m.nombre; });
+                              setRQuienes(init);
+                            }
+                          }}
+                        >{seatsInv > 1 ? "Sí, asistiremos" : "Sí, asistiré"}</button>
+                        <button className={rAsis === "no" ? "sel-no" : ""} onClick={() => setRAsis("no")}>No podré ir</button>
                       </div>
                       {rAsis === "si" && seatsInv > 1 && (
                         <>
-                          <p className="nmono" style={{ margin: "4px 0 0" }}>¿Cuántos asisten? (incluyéndote)</p>
-                          <div className="rseats">
-                            {Array.from({ length: seatsInv }, (_, i) => i + 1).map(n => (
-                              <button key={n} className={rAcomp + 1 === n ? "sel" : ""} onClick={() => setRAcomp(n - 1)}>{n}</button>
-                            ))}
+                          <p className="nmono" style={{ margin: "4px 0 0" }}>Confirma por tu grupo — ¿quiénes asisten?</p>
+                          <div className="rquienes">
+                            {(rInv.miembros || []).map((m: any) => {
+                              const esYo = m.token === rYo?.token;
+                              const label = m.nombre ? (esYo ? `${primer(m.nombre)} (tú)` : primer(m.nombre)) : "+1";
+                              return (
+                                <button key={m.token} className={rQuienes[m.token] ? "sel" : ""} onClick={() => setRQuienes(q => ({ ...q, [m.token]: !q[m.token] }))}>
+                                  {rQuienes[m.token] ? "✓ " : ""}{label}
+                                </button>
+                              );
+                            })}
                           </div>
                         </>
                       )}
-                      {rAsis === "si" && sinNombre > 0 && (
+                      {rAsis === "si" && (rInv.miembros || []).some((m: any) => !m.nombre && rQuienes[m.token]) && (
                         <input className="rinput" value={rMas1} onChange={e => setRMas1(e.target.value)} placeholder="Nombre de tu acompañante (opcional)…" />
                       )}
                       {rAsis === "si" && (
