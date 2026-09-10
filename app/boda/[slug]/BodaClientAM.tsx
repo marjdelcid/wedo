@@ -784,8 +784,8 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                               setRQuienes(init);
                             }
                           }}
-                        >{seatsInv > 1 ? "Sí, asistiremos" : "Sí, asistiré"}</button>
-                        <button className={rAsis === "no" ? "sel-no" : ""} onClick={() => setRAsis("no")}>No podré ir</button>
+                        >{seatsInv > 1 ? "Confirmar asistencia" : "Sí, asistiré"}</button>
+                        <button className={rAsis === "no" ? "sel-no" : ""} onClick={() => setRAsis("no")}>{seatsInv > 1 ? "Ninguno podrá ir" : "No podré ir"}</button>
                       </div>
                       {rAsis === "si" && seatsInv > 1 && (
                         <>
