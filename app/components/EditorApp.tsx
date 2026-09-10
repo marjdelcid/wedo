@@ -155,6 +155,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [rsvpCodigo, setRsvpCodigo] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [guestForm, setGuestForm] = useState({ nombre: "", asientos: "1", grupo: "" });
+  const [copiadoToken, setCopiadoToken] = useState("");
   const [savingGuest, setSavingGuest] = useState(false);
   const [editCodeId, setEditCodeId] = useState<string | null>(null);
   const [codeVal, setCodeVal] = useState("");
@@ -328,7 +329,11 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   async function addGuest() {
     if (!guestForm.nombre.trim()) return;
     setSavingGuest(true);
-    await supabase.from("invitados").insert({ pareja_id: pareja.id, nombre: guestForm.nombre.trim(), asientos: parseInt(guestForm.asientos) || 1, grupo: guestForm.grupo.trim() || null });
+    // un miembro con token único por asiento; el primero lleva el nombre de la invitación
+    const asientosN = Math.max(1, parseInt(guestForm.asientos) || 1);
+    const token8 = () => Math.random().toString(36).slice(2, 10).padEnd(8, "0");
+    const miembros = Array.from({ length: asientosN }, (_, i) => ({ nombre: i === 0 ? guestForm.nombre.trim() : null, token: token8() }));
+    await supabase.from("invitados").insert({ pareja_id: pareja.id, nombre: guestForm.nombre.trim(), asientos: asientosN, grupo: guestForm.grupo.trim() || null, miembros });
     setGuestForm({ nombre: "", asientos: "1", grupo: "" }); setShowGuestForm(false); setSavingGuest(false);
     const { data: inv } = await supabase.from("invitados").select("*").eq("pareja_id", pareja.id).order("grupo").order("nombre");
     setInvitados(inv || []);
@@ -919,6 +924,28 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                             </div>
                             <span className="gs" style={{ color: rsvp?.asistencia === "si" ? "#7e8a30" : rsvp?.asistencia === "no" ? "var(--coral)" : "var(--peri)" }}>{rsvp ? (rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste") : "Pendiente"}</span>
                             <button className="gx" onClick={() => deleteGuest(inv.id)}>✕</button>
+                            {Array.isArray(inv.miembros) && inv.miembros.length > 0 && (
+                              <div className="codebar" style={{ flexWrap: "wrap" }}>
+                                <span>Links únicos</span>
+                                {inv.miembros.map((m: any, mi: number) => (
+                                  <button
+                                    key={m.token}
+                                    className="btn btn-ghost btn-sm"
+                                    style={{ padding: "4px 10px", textTransform: "none", letterSpacing: 0 }}
+                                    title="Copiar link personalizado"
+                                    onClick={() => {
+                                      const url = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}#rsvp`;
+                                      navigator.clipboard?.writeText(url).then(() => {
+                                        setCopiadoToken(m.token);
+                                        setTimeout(() => setCopiadoToken(""), 1600);
+                                      });
+                                    }}
+                                  >
+                                    {copiadoToken === m.token ? "✓ Copiado" : `⧉ ${m.nombre ? m.nombre.split(" ")[0] : `Acompañante ${mi > 0 ? mi : ""}`.trim()}`}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                             {rsvpCodigo && (
                               <div className="codebar">
                                 <span>Código</span>

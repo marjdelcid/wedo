@@ -384,6 +384,11 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   const [rSending, setRSending] = useState(false);
   const [rDone, setRDone] = useState(false);
 
+  // rsvp personalizado por link único (?i=token): invitación, quién abre, nombre del +1
+  const [rInv, setRInv] = useState<any>(null);
+  const [rYo, setRYo] = useState<any>(null);
+  const [rMas1, setRMas1] = useState("");
+
   useEffect(() => { load(); }, [slug]);
 
   // Precalienta todas las fuentes al montar: las secciones ocultas (display:none)
@@ -403,6 +408,21 @@ export default function BodaClientAM({ slug }: { slug: string }) {
       setPareja(p);
       const { data: f } = await supabase.from("fondos").select("*").eq("pareja_id", p.id).order("orden");
       setFondos(f || []);
+      // link personalizado: ?i=token identifica a la persona y su invitación
+      try {
+        const token = new URLSearchParams(window.location.search).get("i");
+        if (token) {
+          const { data: inv } = await supabase.from("invitados")
+            .select("*").eq("pareja_id", p.id)
+            .contains("miembros", JSON.stringify([{ token }]))
+            .single();
+          if (inv) {
+            setRInv(inv);
+            setRYo((inv.miembros || []).find((m: any) => m.token === token) || null);
+            setActive("rsvp");
+          }
+        }
+      } catch { /* sin token o inválido: flujo normal de búsqueda */ }
     }
     setLoading(false);
   }
@@ -453,6 +473,28 @@ export default function BodaClientAM({ slug }: { slug: string }) {
       asistencia: rAsis, acompanantes: rAcomp, restricciones: rRestr, mensaje: rMsg,
     });
     await supabase.from("invitados").update({ confirmado: true }).eq("id", rSel.id);
+    setRSending(false);
+    setRDone(true);
+  }
+
+  /** RSVP por link personalizado: responde por toda la invitación y, si escribió
+      el nombre de su acompañante, lo guarda en el primer slot vacío. */
+  async function submitRsvpLink() {
+    if (!rInv || !rYo || !rAsis) return;
+    setRSending(true);
+    let nombrado = false;
+    const miembros = (rInv.miembros || []).map((m: any) => {
+      if (!m.nombre && !nombrado && rMas1.trim() && m.token !== rYo.token) { nombrado = true; return { ...m, nombre: rMas1.trim() }; }
+      return m;
+    });
+    const quien = rYo.nombre || rInv.nombre;
+    await supabase.from("rsvp").insert({
+      invitado_id: rInv.id, pareja_id: pareja.id, nombre: quien,
+      asistencia: rAsis, acompanantes: rAsis === "si" ? rAcomp : 0, restricciones: rRestr, mensaje: rMsg,
+    });
+    await supabase.from("invitados").update({
+      confirmado: true, asistira: rAsis, respondido_por: quien, miembros,
+    }).eq("id", rInv.id);
     setRSending(false);
     setRDone(true);
   }
@@ -681,7 +723,72 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <p className="rlead">{rAsis === "si" ? "Tu lugar está guardado. ¡Nos vemos el 24 de octubre!" : "Gracias por avisarnos. Te vamos a extrañar."}</p>
                 <p className="nmono">Tu confirmación llegó directo a André &amp; Marjorie</p>
               </div>
-            ) : rSel && rCodeStep ? (
+            ) : rInv ? (() => {
+              // ---- RSVP personalizado por link único ----
+              const primer = (n: string | null) => (n || "").trim().split(" ")[0];
+              const otros = (rInv.miembros || []).filter((m: any) => m.token !== rYo?.token);
+              const conNombre = otros.filter((m: any) => m.nombre).map((m: any) => primer(m.nombre));
+              const sinNombre = otros.length - conNombre.length;
+              const lista = conNombre.length === 0 ? "" : conNombre.length === 1 ? conNombre[0] : conNombre.slice(0, -1).join(", ") + " y " + conNombre[conNombre.length - 1];
+              const compTxt = otros.length === 0 ? "Esta invitación es para ti."
+                : sinNombre === 0 ? `Esta invitación es para ti y ${lista}.`
+                : conNombre.length === 0 ? `Esta invitación es para ti y ${sinNombre === 1 ? "un acompañante" : sinNombre + " acompañantes"}.`
+                : `Esta invitación es para ti, ${lista} y ${sinNombre === 1 ? "un acompañante" : sinNombre + " acompañantes"}.`;
+              const seatsInv = rInv.asientos || 1;
+              const yoRespondio = rInv.respondido_por && rYo?.nombre && rInv.respondido_por === rYo.nombre;
+              return (
+                <div className="rcard">
+                  <div className="foil-mono rseal" role="img" aria-label="A&M" />
+                  {rInv.confirmado ? (
+                    yoRespondio ? (
+                      <>
+                        <p className="rres-name" style={{ fontSize: 24 }}>{primer(rYo?.nombre)}</p>
+                        <p className="rlead">✦ Ya confirmaste por tu invitación. ¡Gracias!</p>
+                        <p className="nmono">{rInv.asistira === "si" ? "Nos vemos el 24 de octubre" : "Gracias por avisarnos"}</p>
+                      </>
+                    ) : (
+                      <>
+                        {rYo?.nombre && <p className="rres-name" style={{ fontSize: 24 }}>{primer(rYo.nombre)}</p>}
+                        <p className="rlead">
+                          ✦ {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
+                          {rInv.asistira === "si" ? " — ¡los esperamos el 24 de octubre!" : rInv.asistira === "no" ? " — lamentamos que no puedan acompañarnos." : "."}
+                        </p>
+                        <p className="nmono">Si algo cambia, escríbeles directo a André &amp; Marjorie</p>
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <p className="rres-name" style={{ fontSize: 24 }}>{rYo?.nombre ? `${primer(rYo.nombre)}, ¿podrás acompañarnos a nuestra celebración?` : "¿Podrás acompañarnos a nuestra celebración?"}</p>
+                      <p className="nmono" style={{ margin: 0 }}>{compTxt}</p>
+                      <div className="rchoice">
+                        <button className={rAsis === "si" ? "sel-si" : ""} onClick={() => { setRAsis("si"); setRAcomp(seatsInv - 1); }}>Sí, asistiré</button>
+                        <button className={rAsis === "no" ? "sel-no" : ""} onClick={() => { setRAsis("no"); setRAcomp(0); }}>No podré ir</button>
+                      </div>
+                      {rAsis === "si" && seatsInv > 1 && (
+                        <>
+                          <p className="nmono" style={{ margin: "4px 0 0" }}>¿Cuántos asisten? (incluyéndote)</p>
+                          <div className="rseats">
+                            {Array.from({ length: seatsInv }, (_, i) => i + 1).map(n => (
+                              <button key={n} className={rAcomp + 1 === n ? "sel" : ""} onClick={() => setRAcomp(n - 1)}>{n}</button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                      {rAsis === "si" && sinNombre > 0 && (
+                        <input className="rinput" value={rMas1} onChange={e => setRMas1(e.target.value)} placeholder="Nombre de tu acompañante (opcional)…" />
+                      )}
+                      {rAsis === "si" && (
+                        <input className="rinput" value={rRestr} onChange={e => setRRestr(e.target.value)} placeholder="Restricciones alimentarias (opcional)…" />
+                      )}
+                      <textarea className="rinput" value={rMsg} onChange={e => setRMsg(e.target.value)} placeholder="Un mensaje para los novios (opcional)…" />
+                      <button className="btn night-btn" onClick={submitRsvpLink} disabled={!rAsis || rSending}>
+                        {rSending ? "Enviando…" : "Enviar respuesta"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })() : rSel && rCodeStep ? (
               <div className="rcard">
                 <button className="rback" onClick={() => { setRSel(null); setRCodeStep(false); }}>← Volver</button>
                 <p className="rres-name" style={{ fontSize: 22 }}>{rSel.nombre}</p>
