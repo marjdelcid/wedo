@@ -702,7 +702,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <img className="ic sm" src="/am/ic/bola-disco.png" alt="" />
                 <p className="label vlabel">La celebración</p>
                 <p className="vsub">Recepción y cena</p>
-                <p className="vtime"><span className="vg">7</span><span className="vg vpm">PM</span></p>
+                <p className="vtime"><span className="vg">5</span><span className="vg vpm">PM</span></p>
                 <p className="body">Jardín principal · El Mayab</p>
                 <a className="btn-cap" href={pareja?.recepcion_maps || "https://maps.google.com"} target="_blank" rel="noopener noreferrer">Ver en Maps ↗</a>
               </article>
