@@ -19,8 +19,8 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { fondo_id, nombre, mensaje, monto } = body || {};
     const aporte = Math.round(Number(monto) * 100) / 100;
-    if (!fondo_id || !aporte || aporte < 5) {
-      return NextResponse.json({ error: "El aporte mínimo es Q5." }, { status: 400 });
+    if (!fondo_id || !aporte || aporte < 25) {
+      return NextResponse.json({ error: "El aporte mínimo es Q25." }, { status: 400 });
     }
 
     // Recurrente ya solo requiere la llave secreta (la pública quedó opcional)

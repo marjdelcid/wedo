@@ -661,7 +661,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                     ) : (
                       <>
                         <div className="amt-label">Tu aporte</div>
-                        <p className="amt-libre">El monto es libre: aporta lo que tú desees — cualquier aporte suma y se agradece de corazón.</p>
+                        <p className="amt-libre">El monto es libre desde Q25: aporta lo que tú desees, cualquier aporte suma y se agradece de corazón.</p>
                         <div className="amt-custom">
                           <span className="q">Q</span>
                           <input inputMode="numeric" placeholder="Escribe tu aporte" value={customStr} onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ""); setCustomStr(v); setAmount(v ? parseInt(v) : 0); }} autoFocus />
@@ -677,7 +677,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                       <div className="bd-row net"><span>Total a pagar</span><span className="v">{fmtQ(total)}</span></div>
                     </div>
                     <div className="bd-note"><span className="d" />La comisión cubre el procesamiento del pago en quetzales y el servicio de wedo. Tu aporte le llega <strong>completo</strong> a {nombresTxt}.</div>
-                    <button className="pay-btn" onClick={handlePay} disabled={gross <= 0}>Pagar {fmtQ(total)}</button>
+                    <button className="pay-btn" onClick={handlePay} disabled={f.modo !== "completo" && gross < 25}>{f.modo !== "completo" && gross > 0 && gross < 25 ? "El aporte mínimo es Q25" : `Pagar ${fmtQ(total)}`}</button>
                     <div className="secure"><span>🔒</span> Pago seguro con Recurrente · Visa &amp; Mastercard</div>
                   </>
                 ))}

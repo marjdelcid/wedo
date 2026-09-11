@@ -1012,10 +1012,10 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                   <button className="btn" onClick={payGift}>Regalar {fmtQ(giftOpen.meta || 0)} completo</button>
                 ) : (
                   <>
-                    <p className="gov-libre">El monto es libre: aporta lo que tú desees, cualquier aporte suma y nos llena de gratitud.</p>
+                    <p className="gov-libre">El monto es libre desde Q25: aporta lo que tú desees, cualquier aporte suma y nos llena de gratitud.</p>
                     <input className="gov-input" type="number" min={1} placeholder="Escribe tu aporte en Q…" onChange={e => setGiftMonto(parseInt(e.target.value) || 0)} />
-                    <button className="btn" onClick={payGift} disabled={giftMonto <= 0}>
-                      {giftMonto > 0 ? `Aportar ${fmtQ(giftMonto)}` : "Escribe tu aporte"}
+                    <button className="btn" onClick={payGift} disabled={giftMonto < 25}>
+                      {giftMonto >= 25 ? `Aportar ${fmtQ(giftMonto)}` : giftMonto > 0 ? "El aporte mínimo es Q25" : "Escribe tu aporte"}
                     </button>
                   </>
                 )}
