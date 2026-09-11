@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
+import { comisionServicio } from "../../lib/aportes";
 
 const AM_CSS = `
 :root{
@@ -1020,8 +1021,8 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                   </>
                 )}
                 {giftMonto > 0 && (() => {
-                  // comisión al invitado: Recurrente ~4.5% + Q2 por transacción + wedo. 3.5%
-                  const servicio = Math.round((giftMonto * 0.08 + 2) * 100) / 100;
+                  // comisión de servicio escalonada (misma función que cobra el API)
+                  const servicio = comisionServicio(giftMonto);
                   const total = Math.round((giftMonto + servicio) * 100) / 100;
                   const q2 = (n: number) => "Q " + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                   return (

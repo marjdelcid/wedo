@@ -9,6 +9,7 @@
    ===================================================================== */
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
+import { comisionServicio } from "../../lib/aportes";
 import { getEventType } from "../../lib/eventTypes";
 import "../../inv-pay.css";
 import "../../inv-public.css";
@@ -629,9 +630,9 @@ export default function BodaClient({ slug }: { slug: string }) {
       {/* CONTRIBUTION MODAL — wedo. brand */}
       {open && f && (() => {
         const gross = f.modo === "completo" ? (f.meta || 0) : amount;
-        // comisión al invitado: Recurrente ~4.5% + Q2 por transacción + wedo. 3.5%;
+        // comisión de servicio escalonada (misma función que cobra el API);
         // el aporte le llega COMPLETO a la pareja
-        const fee = Math.round((gross * 0.08 + 2) * 100) / 100;
+        const fee = comisionServicio(gross);
         const total = Math.round((gross + fee) * 100) / 100;
         return (
           <div className="wedo-pay">

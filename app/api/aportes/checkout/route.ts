@@ -9,6 +9,7 @@
    ===================================================================== */
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../lib/supabaseServer";
+import { APORTE_MINIMO, comisionServicio } from "../../../lib/aportes";
 
 export const runtime = "nodejs";
 
@@ -19,8 +20,8 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { fondo_id, nombre, mensaje, monto } = body || {};
     const aporte = Math.round(Number(monto) * 100) / 100;
-    if (!fondo_id || !aporte || aporte < 25) {
-      return NextResponse.json({ error: "El aporte mínimo es Q25." }, { status: 400 });
+    if (!fondo_id || !aporte || aporte < APORTE_MINIMO) {
+      return NextResponse.json({ error: `El aporte mínimo es Q${APORTE_MINIMO}.` }, { status: 400 });
     }
 
     // Recurrente ya solo requiere la llave secreta (la pública quedó opcional)
@@ -34,8 +35,8 @@ export async function POST(req: Request) {
     const { data: pareja } = await admin.from("parejas").select("slug,nombre1,nombre2").eq("id", fondo.pareja_id).single();
     if (!pareja) return NextResponse.json({ error: "Evento no encontrado." }, { status: 404 });
 
-    // comisión al invitado; la pareja recibe el aporte íntegro
-    const servicio = Math.round((aporte * 0.08 + 2) * 100) / 100;
+    // comisión escalonada al invitado; la pareja recibe el aporte íntegro
+    const servicio = comisionServicio(aporte);
     const total = Math.round((aporte + servicio) * 100) / 100;
 
     // contribución pendiente (el webhook la marca 'pagado')
