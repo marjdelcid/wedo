@@ -191,8 +191,8 @@ export default function Dashboard() {
   // ---- derived data ----
   const totalRecaudado = fondos.reduce((s, f) => s + (f.recaudado || 0), 0);
   const disponible = totalRecaudado; // nada retirado aún → todo disponible
-  const comision = disponible * 0.035;
-  const neto = disponible - comision;
+  // modelo actual: la comisión de servicio la paga el INVITADO al aportar;
+  // la pareja recibe el 100% de sus regalos
 
   const rsvpSi = rsvps.filter((r) => r.asistencia === "si");
   const confirmados = rsvpSi.length;
@@ -483,23 +483,21 @@ export default function Dashboard() {
               </span>
               <div style={{ marginTop: 14 }}>
                 <div className="wd-row">
-                  <span className="lbl">Disponible</span>
+                  <span className="lbl">Recaudado en regalos</span>
                   <span className="big">Q {fmtMoney2(disponible)}</span>
-                </div>
-                <div className="wd-row">
-                  <span className="lbl">Comisión wedo. (3.5%)</span>
-                  <span>– Q {fmtMoney2(comision)}</span>
                 </div>
                 <div className="wd-row tot">
                   <span>Recibes en tu cuenta</span>
                   <span className="big" style={{ color: "var(--ok)" }}>
-                    Q {fmtMoney2(neto)}
+                    Q {fmtMoney2(disponible)}
                   </span>
                 </div>
               </div>
               <p className="wd-note">
                 <span className="bdot" style={{ background: "var(--peri)" }} />
-                Llega a tu cuenta bancaria en Guatemala en 2–3 días hábiles.
+                Recibes el 100% de tus regalos: la comisión de servicio la cubre
+                el invitado al aportar. Llega a tu cuenta bancaria en Guatemala
+                en 2–3 días hábiles.
               </p>
               <a
                 className="btn btn-pink"
@@ -507,7 +505,7 @@ export default function Dashboard() {
                 style={{ width: "100%" }}
                 onClick={(e) => e.preventDefault()}
               >
-                Retirar Q {fmtMoney2(neto)}
+                Retirar Q {fmtMoney2(disponible)}
               </a>
             </div>
           </div>
