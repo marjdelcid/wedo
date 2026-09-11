@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     if (!sec) return NextResponse.json({ simulado: true });
 
     const admin = supabaseAdmin();
-    const { data: fondo } = await admin.from("fondos").select("id,nombre,pareja_id").eq("id", fondo_id).single();
+    const { data: fondo } = await admin.from("fondos").select("id,nombre,pareja_id,foto").eq("id", fondo_id).single();
     if (!fondo) return NextResponse.json({ error: "Regalo no encontrado." }, { status: 404 });
     const { data: pareja } = await admin.from("parejas").select("slug,nombre1,nombre2").eq("id", fondo.pareja_id).single();
     if (!pareja) return NextResponse.json({ error: "Evento no encontrado." }, { status: 404 });
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         items: [{
           name: `Regalo para ${nombres} · ${fondo.nombre}`,
+          ...(fondo.foto ? { image_url: fondo.foto } : {}),
           description: `Aporte de Q${aporte.toFixed(2)} + Q${servicio.toFixed(2)} de tarifa de la pasarela de pago`,
           amount_in_cents: Math.round(total * 100),
           currency: "GTQ",
