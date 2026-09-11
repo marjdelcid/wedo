@@ -305,6 +305,13 @@ textarea.rinput{resize:vertical; min-height:64px;}
   background-color:rgba(251,248,238,.97); background-image:url('/am/grain.png'); background-size:96px 96px; background-blend-mode:multiply;
   box-shadow:inset 1px 1px 0 rgba(255,255,255,.5), inset -1px -1px 0 rgba(94,30,46,.1), 0 30px 70px -30px rgba(0,0,0,.6);
   display:flex; flex-direction:column; gap:12px; text-align:center;}
+/* modal ancho para el checkout embebido; el botón Volver va en su propia fila arriba */
+.gov-card.pago{max-width:860px; padding:26px 22px 22px;}
+.gov-pay-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.gov-pay-top .volver{background:none; border:none; cursor:pointer; font-family:var(--am-label); font-style:normal; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--am-malva); padding:6px 2px;}
+.gov-pay-top .volver:hover{color:var(--am-vino-profundo);}
+#recurrente-checkout-container{width:100%; min-height:640px;}
+#recurrente-checkout-container iframe{min-height:640px;}
 .gov-card::after{content:""; position:absolute; inset:10px; pointer-events:none;
   box-shadow:inset 1px 1px 1px rgba(94,30,46,.13), inset -1px -1px 0 rgba(251,248,238,.5);}
 .gov-close{position:absolute; top:12px; right:14px; z-index:2; background:none; border:none; cursor:pointer;
@@ -396,12 +403,18 @@ export default function BodaClientAM({ slug }: { slug: string }) {
         });
       } catch { window.location.href = giftPago; }
     };
-    if ((window as any).RecurrenteCheckout) { iniciar(); return; }
+    // red de seguridad: si en 7s el iframe no apareció, usamos el checkout normal
+    const vigilante = setTimeout(() => {
+      const cont = document.getElementById("recurrente-checkout-container");
+      if (!cont || !cont.querySelector("iframe")) window.location.href = giftPago;
+    }, 7000);
+    if ((window as any).RecurrenteCheckout) { iniciar(); return () => clearTimeout(vigilante); }
     const s = document.createElement("script");
     s.src = "https://cdn.jsdelivr.net/npm/recurrente-checkout@0.0.4/recurrente-checkout.js";
     s.onload = iniciar;
     s.onerror = () => { window.location.href = giftPago; }; // sin librería: redirige como antes
     document.head.appendChild(s);
+    return () => clearTimeout(vigilante);
   }, [giftPago]);
 
   // rsvp
@@ -965,14 +978,15 @@ export default function BodaClientAM({ slug }: { slug: string }) {
       {/* overlay aporte */}
       {giftOpen && (
         <div className="gov" onClick={e => e.target === e.currentTarget && setGiftOpen(null)}>
-          <div className="gov-card">
+          <div className={"gov-card" + (giftPago ? " pago" : "")}>
             <button className="gov-close" onClick={() => { setGiftOpen(null); setGiftPago(null); }}>✕</button>
             {giftPago ? (
               <>
-                <p className="gov-name">{giftOpen.nombre}</p>
-                <div id="recurrente-checkout-container" style={{ width: "100%", minHeight: 580 }} />
-                <p className="gov-fee">Pago seguro procesado por Recurrente</p>
-                <button className="btn" onClick={() => setGiftPago(null)}>← Volver</button>
+                <div className="gov-pay-top">
+                  <button className="volver" onClick={() => setGiftPago(null)}>← Volver</button>
+                  <p className="gov-fee" style={{ margin: 0 }}>Pago seguro · Recurrente</p>
+                </div>
+                <div id="recurrente-checkout-container" />
               </>
             ) : giftPaid ? (
               <>
