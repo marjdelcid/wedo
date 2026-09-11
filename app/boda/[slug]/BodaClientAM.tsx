@@ -322,12 +322,14 @@ textarea.rinput{resize:vertical; min-height:64px;}
 .gov-name{font-family:var(--am-script-alt); font-style:normal; font-size:clamp(30px,7vw,38px); line-height:1.3; color:var(--am-vino-profundo); margin:0;}
 .gov-input{width:100%; padding:12px 14px; border-radius:0; background:rgba(161,93,102,.06); border:1px solid rgba(161,93,102,.3);
   font-family:var(--am-body); font-style:italic; font-size:15px; color:var(--am-vino-profundo); text-align:center;}
-.gov-input:focus{outline:none; border-color:var(--am-malva);}
+.gov-input::placeholder{color:rgba(74,29,43,.55); opacity:1;}
+.gov-input:focus{outline:none; border-color:var(--am-vino-profundo);}
 .gov-chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
 /* aporte libre: sin chips de montos sugeridos — solo la nota y el campo */
-.gov-libre{font-family:var(--am-body); font-style:italic; font-size:14.5px; line-height:1.6; color:var(--am-malva); margin:0; text-align:center;}
-.gov-fee{font-family:var(--am-label); font-style:normal; font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--am-oliva); margin:0;}
-.gov-thanks{font-family:var(--am-body); font-style:italic; font-size:16px; line-height:1.8; color:var(--am-malva); margin:0;}
+.gov-libre{font-family:var(--am-body); font-style:italic; font-size:15px; line-height:1.6; color:var(--am-vino-profundo); margin:0; text-align:center;}
+.gov-fee{font-family:var(--am-label); font-style:normal; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--am-vino-profundo); margin:0;}
+.gov-thanks{font-family:var(--am-body); font-style:italic; font-size:16px; line-height:1.8; color:var(--am-vino-profundo); margin:0;}
+.gov-card .body{color:var(--am-vino-profundo);}
 
 .rv{opacity:0; transform:translateY(10px); transition:opacity 420ms var(--ease-out), transform 420ms var(--ease-out);}
 .sec.on .rv{opacity:1; transform:none;}
