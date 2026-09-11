@@ -701,7 +701,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
 
             <div className="gnote">
               <p className="gnote-tag">Una nota de nosotros</p>
-              <p>Gracias por decir que sí a celebrar con nosotros — <em>that&rsquo;s the real gift</em>.</p>
+              <p>Gracias por decir que sí a celebrar con nosotros: <em>that&rsquo;s the real gift</em>.</p>
               <p>Para quienes quieran endulzar con un aporte nuestra luna de miel, hemos preparado esta lista: cada regalo nos lleva a una meta que se completa entre muchas manos. Cualquier aporte, del tamaño que sea, nos llena de gratitud.</p>
             </div>
 
@@ -793,7 +793,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                         {rYo?.nombre && <p className="rres-name" style={{ fontSize: 24 }}>{primer(rYo.nombre)}</p>}
                         <p className="rlead">
                           ✦ {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
-                          {rInv.asistira === "si" ? " — ¡los esperamos el 24 de octubre!" : rInv.asistira === "no" ? " — lamentamos que no puedan acompañarnos." : "."}
+                          {rInv.asistira === "si" ? ". ¡Los esperamos el 24 de octubre!" : rInv.asistira === "no" ? ". Lamentamos que no puedan acompañarnos." : "."}
                         </p>
                         <p className="nmono">Si algo cambia, escríbeles directo a Marjorie &amp; André</p>
                       </>
@@ -819,7 +819,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                       </div>
                       {rAsis === "si" && seatsInv > 1 && (
                         <>
-                          <p className="nmono" style={{ margin: "4px 0 0" }}>Confirma por tu grupo — ¿quiénes asisten?</p>
+                          <p className="nmono" style={{ margin: "4px 0 0" }}>Confirma por tu grupo: ¿quiénes asisten?</p>
                           <div className="rquienes">
                             {(rInv.miembros || []).map((m: any) => {
                               const esYo = m.token === rYo?.token;
@@ -931,7 +931,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <div className="foil-mono" style={{ width: 96, height: 96, margin: "0 auto" }} role="img" aria-label="A&M" />
                 <p className="gov-name">¡Gracias{giftNombre ? `, ${giftNombre.split(" ")[0]}` : ""}!</p>
                 <p className="gov-thanks">{pareja?.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial para nosotros."}</p>
-                <p className="gov-fee">— Marjorie &amp; André</p>
+                <p className="gov-fee">Marjorie &amp; André</p>
                 <button className="btn" onClick={() => setGiftOpen(null)}>Cerrar</button>
               </>
             ) : (
@@ -942,10 +942,10 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <textarea className="gov-input" value={giftMensaje} onChange={e => setGiftMensaje(e.target.value)} placeholder="Mensaje para los novios (opcional)…" style={{ resize: "vertical", minHeight: 60 }} />
 
                 {giftOpen.modo === "completo" ? (
-                  <button className="btn" onClick={payGift}>Regalar {fmtQ(giftOpen.meta || 0)} — completo</button>
+                  <button className="btn" onClick={payGift}>Regalar {fmtQ(giftOpen.meta || 0)} completo</button>
                 ) : (
                   <>
-                    <p className="gov-libre">El monto es libre: aporta lo que tú desees — cualquier aporte suma y nos llena de gratitud.</p>
+                    <p className="gov-libre">El monto es libre: aporta lo que tú desees, cualquier aporte suma y nos llena de gratitud.</p>
                     <input className="gov-input" type="number" min={1} placeholder="Escribe tu aporte en Q…" onChange={e => setGiftMonto(parseInt(e.target.value) || 0)} />
                     <button className="btn" onClick={payGift} disabled={giftMonto <= 0}>
                       {giftMonto > 0 ? `Aportar ${fmtQ(giftMonto)}` : "Escribe tu aporte"}
