@@ -672,7 +672,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
             <div className="gnote">
               <p className="gnote-tag">Una nota de nosotros</p>
               <p>Gracias por decir que sí a celebrar con nosotros — <em>that&rsquo;s the real gift</em>.</p>
-              <p>Para quienes quieran sumarse a nuestros sueños, preparamos esta mesa: cada regalo es una meta que se completa entre muchas manos. Cualquier aporte, del tamaño que sea, nos llena de gratitud.</p>
+              <p>Para quienes quieran endulzar con un aporte nuestra luna de miel, hemos preparado esta lista: cada regalo nos lleva a una meta que se completa entre muchas manos. Cualquier aporte, del tamaño que sea, nos llena de gratitud.</p>
             </div>
 
             <div className="gcards">
