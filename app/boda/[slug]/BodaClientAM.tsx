@@ -23,6 +23,14 @@ const AM_CSS = `
 @font-face{font-family:'Mr Dafoe'; src:url('/am/fonts/MrDafoe-Regular.ttf') format('truetype'); font-display:swap;}
 .am-root{margin:0; background:var(--am-crema); font-family:var(--am-body); font-style:italic; color:var(--am-text); -webkit-font-smoothing:antialiased; min-height:100svh;}
 .am-root *{box-sizing:border-box;}
+/* indicador de scroll (solo móvil): riel fino a la derecha, vino en pantallas claras y crema en oscuras */
+.srail{display:none;}
+@media (max-width:768px){
+  .srail{display:block; position:fixed; top:0; right:3px; bottom:0; width:3px; z-index:60; pointer-events:none;}
+  .srail i{position:absolute; left:0; width:100%; border-radius:2px; background:rgba(94,30,46,.42);
+    box-shadow:0 0 0 .5px rgba(243,238,215,.28); transition:opacity 300ms ease;}
+  .srail.lt i{background:rgba(243,238,215,.6); box-shadow:0 0 0 .5px rgba(16,4,8,.3);}
+}
 .inv{position:relative;}
 .sec{display:none; position:relative; min-height:100svh; overflow:hidden;
   padding:64px 26px 128px; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
@@ -395,6 +403,24 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   const [rMas1, setRMas1] = useState("");
   const [rQuienes, setRQuienes] = useState<Record<string, boolean>>({});
 
+  // indicador de scroll móvil: posición/tamaño del pulgar según el scroll de la pantalla activa
+  const [railTop, setRailTop] = useState(0);
+  const [railH, setRailH] = useState(0);
+  useEffect(() => {
+    const upd = () => {
+      const total = document.documentElement.scrollHeight;
+      const scrollable = total - window.innerHeight;
+      if (scrollable <= 24) { setRailH(0); return; }
+      setRailH(Math.max((window.innerHeight / total) * 100, 12));
+      setRailTop((window.scrollY / total) * 100);
+    };
+    upd();
+    const t = setTimeout(upd, 600); // recalcula cuando cargan imágenes/fuentes
+    window.addEventListener("scroll", upd, { passive: true });
+    window.addEventListener("resize", upd);
+    return () => { clearTimeout(t); window.removeEventListener("scroll", upd); window.removeEventListener("resize", upd); };
+  }, [active, loading]);
+
   useEffect(() => { load(); }, [slug]);
 
   // Precalienta todas las fuentes al montar: las secciones ocultas (display:none)
@@ -543,6 +569,10 @@ export default function BodaClientAM({ slug }: { slug: string }) {
 
   return (
     <div className="am-root">
+      {/* indicador de scroll (móvil): los scrollbars nativos se ocultan y la gente no sabe que hay más */}
+      <div className={"srail" + (["portada", "rsvp"].includes(active) ? " lt" : "")} aria-hidden="true">
+        <i style={{ height: `${railH}%`, top: `${railTop}%`, opacity: railH > 0 ? 1 : 0 }} />
+      </div>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link rel="preload" href="/am/fonts/Vogue.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
