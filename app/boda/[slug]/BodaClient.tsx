@@ -206,6 +206,18 @@ export default function BodaClient({ slug }: { slug: string }) {
     const montoFinal = g.modo === "completo" ? (g.meta || 0) : amount;
     if (!montoFinal || montoFinal <= 0) return;
     setPayState("pend");
+    // pago real: el API crea el checkout de Recurrente y redirigimos
+    try {
+      const res = await fetch("/api/aportes/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fondo_id: g.id, nombre, mensaje: mensajeRegalo, monto: montoFinal }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (j?.url) { window.location.href = j.url; return; }
+      if (!j?.simulado && j?.error) { setPayState("err"); return; }
+    } catch { /* sin red: cae al modo demo */ }
+    // modo demo (sin llaves de pago configuradas): registro local como antes
     try {
       const { error: e1 } = await supabase.from("contribuciones").insert({ fondo_id: g.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
       if (e1) throw e1;

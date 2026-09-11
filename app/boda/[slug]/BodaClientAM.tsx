@@ -468,6 +468,14 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   useEffect(() => {
     const h = (location.hash || "").replace("#", "");
     if (["portada", "detalles", "regalos", "rsvp"].includes(h)) setActive(h);
+    // regreso del pago de Recurrente: mostrar el agradecimiento
+    try {
+      if (new URLSearchParams(window.location.search).get("pago") === "ok") {
+        setActive("regalos");
+        setGiftOpen({ nombre: "" });
+        setGiftPaid(true);
+      }
+    } catch { }
   }, []);
 
   async function searchGuests() {
@@ -548,9 +556,20 @@ export default function BodaClientAM({ slug }: { slug: string }) {
     const f = giftOpen;
     const monto = f.modo === "completo" ? f.meta : giftMonto;
     if (monto <= 0) return;
+    // pago real: el API crea el checkout de Recurrente y redirigimos
+    try {
+      const res = await fetch("/api/aportes/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fondo_id: f.id, nombre: giftNombre, mensaje: giftMensaje, monto }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (j?.url) { window.location.href = j.url; return; }
+      if (!j?.simulado && j?.error) { alert(j.error); return; }
+    } catch { /* sin red: cae al modo demo */ }
+    // modo demo (sin llaves de pago configuradas): registro local como antes
     setGiftPaid(true);
     await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: giftNombre || "Anónimo", monto, mensaje: giftMensaje || null });
-    // modo completo con cantidad: "tomado" solo cuando se regalan TODAS las unidades
     const totalCompleto = (f.meta || 0) * (f.cantidad || 1);
     await supabase.from("fondos").update({
       recaudado: (f.recaudado || 0) + monto,

@@ -21,7 +21,7 @@ export async function GET(req: Request) {
       await Promise.all([
         admin.from("parejas").select("id,slug,nombre1,nombre2,tipo_evento,fecha,lugar,created_at,disenos_ia_usados,user_id").order("created_at", { ascending: false }),
         admin.from("fondos").select("id,pareja_id,recaudado,meta,tomado"),
-        admin.from("contribuciones").select("id,fondo_id,nombre_invitado,monto,created_at").order("created_at", { ascending: false }),
+        admin.from("contribuciones").select("id,fondo_id,nombre_invitado,monto,created_at").neq("estado", "pendiente").order("created_at", { ascending: false }),
         admin.from("invitados").select("id,pareja_id,confirmado"),
         admin.from("feature_flags").select("key,nombre,descripcion,enabled,updated_at").order("key"),
       ]);
