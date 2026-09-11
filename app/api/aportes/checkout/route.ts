@@ -23,9 +23,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "El aporte mínimo es Q5." }, { status: 400 });
     }
 
+    // Recurrente ya solo requiere la llave secreta (la pública quedó opcional)
     const pub = process.env.RECURRENTE_PUBLIC_KEY;
     const sec = process.env.RECURRENTE_SECRET_KEY;
-    if (!pub || !sec) return NextResponse.json({ simulado: true });
+    if (!sec) return NextResponse.json({ simulado: true });
 
     const admin = supabaseAdmin();
     const { data: fondo } = await admin.from("fondos").select("id,nombre,pareja_id").eq("id", fondo_id).single();
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     const invUrl = `${SITE}/boda/${pareja.slug}`;
     const res = await fetch("https://app.recurrente.com/api/checkouts", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-PUBLIC-KEY": pub, "X-SECRET-KEY": sec },
+      headers: { "Content-Type": "application/json", "X-SECRET-KEY": sec, ...(pub ? { "X-PUBLIC-KEY": pub } : {}) },
       body: JSON.stringify({
         items: [{
           name: `Regalo para ${nombres} · ${fondo.nombre}`,
