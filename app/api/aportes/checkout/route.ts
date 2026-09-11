@@ -57,6 +57,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         items: [{
           name: `Regalo para ${nombres} · ${fondo.nombre}`,
+          description: `Aporte de Q${aporte.toFixed(2)} + Q${servicio.toFixed(2)} de tarifa de la pasarela de pago`,
           amount_in_cents: Math.round(total * 100),
           currency: "GTQ",
           quantity: 1,

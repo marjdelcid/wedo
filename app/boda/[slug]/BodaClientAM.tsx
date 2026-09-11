@@ -381,6 +381,28 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   const [giftMonto, setGiftMonto] = useState(0);
   const [giftCustom, setGiftCustom] = useState(false);
   const [giftPaid, setGiftPaid] = useState(false);
+  const [giftPago, setGiftPago] = useState<string | null>(null); // URL del checkout embebido
+
+  // checkout embebido de Recurrente dentro del modal (sin redirigir)
+  useEffect(() => {
+    if (!giftPago) return;
+    const iniciar = () => {
+      try {
+        (window as any).RecurrenteCheckout.load({
+          url: giftPago,
+          onSuccess: () => { setGiftPago(null); setGiftPaid(true); setTimeout(() => load(), 4000); },
+          onFailure: () => { setGiftPago(null); alert("El pago no se completó. Puedes intentarlo de nuevo."); },
+          onPaymentInProgress: () => { setGiftPago(null); setGiftPaid(true); },
+        });
+      } catch { window.location.href = giftPago; }
+    };
+    if ((window as any).RecurrenteCheckout) { iniciar(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/recurrente-checkout@0.0.4/recurrente-checkout.js";
+    s.onload = iniciar;
+    s.onerror = () => { window.location.href = giftPago; }; // sin librería: redirige como antes
+    document.head.appendChild(s);
+  }, [giftPago]);
 
   // rsvp
   const [rq, setRq] = useState("");
@@ -564,7 +586,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
         body: JSON.stringify({ fondo_id: f.id, nombre: giftNombre, mensaje: giftMensaje, monto }),
       });
       const j = await res.json().catch(() => ({}));
-      if (j?.url) { window.location.href = j.url; return; }
+      if (j?.url) { setGiftPago(j.url); return; } // checkout embebido en el modal
       if (!j?.simulado && j?.error) { alert(j.error); return; }
     } catch { /* sin red: cae al modo demo */ }
     // modo demo (sin llaves de pago configuradas): registro local como antes
@@ -944,8 +966,15 @@ export default function BodaClientAM({ slug }: { slug: string }) {
       {giftOpen && (
         <div className="gov" onClick={e => e.target === e.currentTarget && setGiftOpen(null)}>
           <div className="gov-card">
-            <button className="gov-close" onClick={() => setGiftOpen(null)}>✕</button>
-            {giftPaid ? (
+            <button className="gov-close" onClick={() => { setGiftOpen(null); setGiftPago(null); }}>✕</button>
+            {giftPago ? (
+              <>
+                <p className="gov-name">{giftOpen.nombre}</p>
+                <div id="recurrente-checkout-container" style={{ width: "100%", minHeight: 580 }} />
+                <p className="gov-fee">Pago seguro procesado por Recurrente</p>
+                <button className="btn" onClick={() => setGiftPago(null)}>← Volver</button>
+              </>
+            ) : giftPaid ? (
               <>
                 <div className="foil-mono" style={{ width: 96, height: 96, margin: "0 auto" }} role="img" aria-label="A&M" />
                 <p className="gov-name">¡Gracias{giftNombre ? `, ${giftNombre.split(" ")[0]}` : ""}!</p>
