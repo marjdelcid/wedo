@@ -310,7 +310,10 @@ textarea.rinput{resize:vertical; min-height:64px;}
 .gov-pay-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
 .gov-pay-top .volver{background:none; border:none; cursor:pointer; font-family:var(--am-label); font-style:normal; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--am-malva); padding:6px 2px;}
 .gov-pay-top .volver:hover{color:var(--am-vino-profundo);}
-#recurrente-checkout-container{width:100%; min-height:640px;}
+#recurrente-checkout-container{width:100%; min-height:640px; position:relative;}
+#recurrente-checkout-container::before{content:"Cargando pago seguro…"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--am-body); font-style:italic; font-size:16px; color:var(--am-malva);}
+#recurrente-checkout-container iframe{position:relative; z-index:1; background:transparent;}
 #recurrente-checkout-container iframe{min-height:640px;}
 .gov-card::after{content:""; position:absolute; inset:10px; pointer-events:none;
   box-shadow:inset 1px 1px 1px rgba(94,30,46,.13), inset -1px -1px 0 rgba(251,248,238,.5);}
