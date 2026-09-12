@@ -213,7 +213,14 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     const { data: inv } = await supabase.from("invitados").select("*").eq("pareja_id", p.id).order("grupo").order("nombre");
     setInvitados(inv || []);
     const { data: r } = await supabase.from("rsvp").select("*").eq("pareja_id", p.id).order("created_at", { ascending: false });
-    setRsvps(r || []);
+    // una sola respuesta por invitación (la primera del grupo)
+    const vistosRsvp = new Set<string>();
+    setRsvps((r || []).slice().reverse().filter((x: any) => {
+      if (!x.invitado_id) return true;
+      if (vistosRsvp.has(x.invitado_id)) return false;
+      vistosRsvp.add(x.invitado_id);
+      return true;
+    }).reverse());
     setLoading(false);
   }
 

@@ -564,26 +564,32 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   async function submitRsvpLink() {
     if (!rInv || !rYo || !rAsis) return;
     setRSending(true);
-    let nombrado = false;
-    const miembros = (rInv.miembros || []).map((m: any) => {
-      if (!m.nombre && !nombrado && rMas1.trim() && rQuienes[m.token]) { nombrado = true; return { ...m, nombre: rMas1.trim() }; }
-      return m;
-    });
-    const seleccion = (rInv.miembros || []).length > 1
-      ? miembros.filter((m: any) => rQuienes[m.token])
-      : miembros;
-    const asistentes = rAsis === "si" ? seleccion.map((m: any) => m.nombre || "Acompañante") : [];
-    const quien = rYo.nombre || rInv.nombre;
-    await supabase.from("rsvp").insert({
-      invitado_id: rInv.id, pareja_id: pareja.id, nombre: quien,
-      asistencia: rAsis, acompanantes: rAsis === "si" ? Math.max(0, asistentes.length - 1) : 0,
-      restricciones: rRestr, mensaje: rMsg, asistentes,
-    });
-    await supabase.from("invitados").update({
-      confirmado: true, asistira: rAsis, respondido_por: quien, miembros,
-    }).eq("id", rInv.id);
-    setRSending(false);
-    setRDone(true);
+    try {
+      const res = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: rYo.token,
+          asistencia: rAsis,
+          quienes: Object.keys(rQuienes).filter((t) => rQuienes[t]),
+          acompanante_nombre: rMas1,
+          restricciones: rRestr,
+          mensaje: rMsg,
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      setRSending(false);
+      if (j?.ya) {
+        // otro miembro del grupo se adelantó: mostramos su respuesta
+        setRInv({ ...rInv, confirmado: true, respondido_por: j.respondido_por, asistira: j.asistira });
+        return;
+      }
+      if (j?.ok) { setRDone(true); return; }
+      alert(j?.error || "No pudimos enviar tu confirmación. Intenta de nuevo.");
+    } catch {
+      setRSending(false);
+      alert("No pudimos enviar tu confirmación. Intenta de nuevo.");
+    }
   }
 
   function openGift(f: any) {

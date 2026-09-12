@@ -165,7 +165,15 @@ export default function Dashboard() {
       .select("*")
       .eq("pareja_id", parejaData.id)
       .order("created_at", { ascending: false });
-    setRsvps(rsvpData || []);
+    // una sola respuesta por invitación (la primera del grupo)
+    const vistos = new Set<string>();
+    const unicos = (rsvpData || []).slice().reverse().filter((r: any) => {
+      if (!r.invitado_id) return true;
+      if (vistos.has(r.invitado_id)) return false;
+      vistos.add(r.invitado_id);
+      return true;
+    }).reverse();
+    setRsvps(unicos);
 
     setLoading(false);
   }
@@ -197,6 +205,9 @@ export default function Dashboard() {
   const rsvpSi = rsvps.filter((r) => r.asistencia === "si");
   const confirmados = rsvpSi.length;
   const pendientes = Math.max(0, invitados.length - rsvps.length);
+  // personas (no invitaciones): usa la lista de asistentes si existe
+  const personasPax = (r: any) => (Array.isArray(r.asistentes) && r.asistentes.length ? r.asistentes.length : (r.acompanantes || 0) + 1);
+  const personasConfirmadas = rsvpSi.reduce((s, r) => s + personasPax(r), 0);
 
   const aportes = contribuciones.length;
   const invitadosDistintos = new Set(
@@ -389,9 +400,9 @@ export default function Dashboard() {
               <span className="d" />
               RSVP
             </span>
-            <div className="val">{confirmados}</div>
+            <div className="val">{personasConfirmadas}</div>
             <div className="delta">
-              confirmados · {pendientes} pendientes
+              personas confirmadas · {confirmados} {confirmados === 1 ? "invitación" : "invitaciones"} · {pendientes} pendientes
             </div>
           </div>
           <div className="stat s3">
@@ -560,12 +571,12 @@ export default function Dashboard() {
         </div>
 
         {/* RSVP CONFIRMADOS */}
-        {rsvpSi.length > 0 && (
+        {rsvps.length > 0 && (
           <section className="panel rsvp-sec">
             <div className="panel-h">
               <h3>
-                RSVP confirmados
-                <span className="rsvp-count">{confirmados}</span>
+                Respuestas RSVP
+                <span className="rsvp-count">{personasConfirmadas} personas</span>
               </h3>
               <Link
                 href="/editor/invitados"
@@ -575,24 +586,36 @@ export default function Dashboard() {
               </Link>
             </div>
             <div className="rsvp-grid">
-              {rsvpSi.map((r, i) => {
-                const pax = (r.acompanantes || 0) + 1;
+              {rsvps.map((r, i) => {
+                const si = r.asistencia === "si";
+                const pax = personasPax(r);
+                const quienes = Array.isArray(r.asistentes) && r.asistentes.length ? r.asistentes.join(" · ") : null;
                 return (
-                  <div className="rsvp-item" key={r.id || i}>
+                  <div className="rsvp-item" key={r.id || i} style={{ flexWrap: "wrap" }}>
                     <div
                       className="ava"
-                      style={{ background: AVA_COLORS[i % AVA_COLORS.length] }}
+                      style={{ background: si ? AVA_COLORS[i % AVA_COLORS.length] : "var(--ink-faint)" }}
                     >
                       {initials(r.nombre, 2)}
                     </div>
                     <div className="txt">
                       <div className="nm">{r.nombre}</div>
-                      <div className="sub">Confirmó {hace(r.created_at)}</div>
+                      <div className="sub">{si ? "Confirmó" : "No podrán ir"} {hace(r.created_at)}{si && quienes ? ` · ${quienes}` : ""}</div>
                     </div>
-                    <span className="pax">
-                      <span className="bdot" />
-                      {pax} {pax === 1 ? "persona" : "personas"}
+                    <span className="pax" style={!si ? { background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" } : undefined}>
+                      <span className="bdot" style={!si ? { background: "var(--coral)" } : undefined} />
+                      {si ? `${pax} ${pax === 1 ? "persona" : "personas"}` : "No asistirán"}
                     </span>
+                    {r.mensaje && (
+                      <div style={{ width: "100%", paddingLeft: 52, fontStyle: "italic", fontSize: 13, lineHeight: 1.55, color: "var(--ink-soft)" }}>
+                        “{r.mensaje}”
+                      </div>
+                    )}
+                    {r.restricciones && (
+                      <div style={{ width: "100%", paddingLeft: 52, fontSize: 12, color: "var(--ink-faint)" }}>
+                        Restricciones: {r.restricciones}
+                      </div>
+                    )}
                   </div>
                 );
               })}
