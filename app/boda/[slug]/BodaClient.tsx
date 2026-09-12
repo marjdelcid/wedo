@@ -662,7 +662,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                     ) : (
                       <>
                         <div className="amt-label">Tu aporte</div>
-                        <p className="amt-libre">El monto es libre desde Q25: aporta lo que tú desees, cualquier aporte suma y se agradece de corazón.</p>
+                        <p className="amt-libre">El monto es libre: aporta lo que tú desees, cualquier aporte suma y se agradece de corazón.</p>
                         <div className="amt-custom">
                           <span className="q">Q</span>
                           <input inputMode="numeric" placeholder="Escribe tu aporte" value={customStr} onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ""); setCustomStr(v); setAmount(v ? parseInt(v) : 0); }} autoFocus />
