@@ -46,9 +46,16 @@ function Money({ n }: { n: number }) {
   );
 }
 
+/** Los timestamps de Supabase vienen sin zona horaria pero SON UTC. */
+function parseUTC(iso: string): Date {
+  let s = iso.replace(" ", "T");
+  if (!/([zZ]|[+-]\d{2}:?\d{2})$/.test(s)) s += "Z";
+  return new Date(s);
+}
+
 function hace(iso?: string) {
   if (!iso) return "";
-  const then = new Date(iso).getTime();
+  const then = parseUTC(iso).getTime();
   const diff = Math.max(0, Date.now() - then);
   const min = Math.floor(diff / 60000);
   if (min < 2) return "hace un momento";
@@ -58,7 +65,7 @@ function hace(iso?: string) {
   const d = Math.floor(h / 24);
   if (d === 1) return "ayer";
   if (d < 7) return `hace ${d} días`;
-  return new Date(iso).toLocaleDateString("es-GT", {
+  return parseUTC(iso).toLocaleDateString("es-GT", {
     day: "numeric",
     month: "short",
   });
@@ -631,7 +638,8 @@ export default function Dashboard() {
               {rsvpFiltro !== "pend" && rsvpsFiltradas.map((r, i) => {
                 const si = r.asistencia === "si";
                 const pax = personasPax(r);
-                const quienes = Array.isArray(r.asistentes) && r.asistentes.length ? r.asistentes.join(" · ") : null;
+                // solo listamos nombres cuando hay grupo (2+); en solitario es redundante
+                const quienes = pax > 1 && Array.isArray(r.asistentes) && r.asistentes.length > 1 ? r.asistentes.join(" · ") : null;
                 return (
                   <div className="rsvp-item" key={r.id || i} style={{ flexWrap: "wrap" }}>
                     <div
