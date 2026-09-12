@@ -608,7 +608,7 @@ export default function Dashboard() {
                   }}>{label}</button>
               ))}
             </div>
-            <div className="rsvp-grid">
+            <div className="rsvp-grid" style={rsvpFiltro === "msj" ? { gridTemplateColumns: "1fr", maxWidth: 640 } : undefined}>
               {rsvpFiltro === "pend" && sinResponder.map((inv, i) => (
                 <div className="rsvp-item" key={inv.id}>
                   <div className="ava" style={{ background: "var(--peri)" }}>{initials(inv.nombre, 2)}</div>
@@ -648,15 +648,18 @@ export default function Dashboard() {
                       <span className="bdot" style={!si ? { background: "var(--coral)" } : undefined} />
                       {si ? `${pax} ${pax === 1 ? "persona" : "personas"}` : "No asistirán"}
                     </span>
-                    {r.mensaje && (
-                      <div style={{ width: "100%", paddingLeft: 52, fontStyle: "italic", fontSize: 13, lineHeight: 1.55, color: "var(--ink-soft)" }}>
+                    {rsvpFiltro === "msj" && r.mensaje && (
+                      <div style={{ width: "100%", paddingLeft: 46, marginTop: 2, fontStyle: "italic", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-soft)" }}>
                         “{r.mensaje}”
                       </div>
                     )}
-                    {r.restricciones && (
-                      <div style={{ width: "100%", paddingLeft: 52, fontSize: 12, color: "var(--ink-faint)" }}>
+                    {rsvpFiltro === "msj" && r.restricciones && (
+                      <div style={{ width: "100%", paddingLeft: 46, fontSize: 12, color: "var(--ink-faint)" }}>
                         Restricciones: {r.restricciones}
                       </div>
+                    )}
+                    {rsvpFiltro !== "msj" && (r.mensaje || r.restricciones) && (
+                      <span title="Dejó mensaje" style={{ flex: "none", fontSize: 13 }}>💬</span>
                     )}
                   </div>
                 );
