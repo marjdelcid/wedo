@@ -333,6 +333,112 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
   // ---- invitados ----
   const genCode = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+  // tokens legibles para links personales (rafael-del-cid-a1b2 / acompanante-rafael-c3d4)
+  const slugifyTok = (x: string) => x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const rand4 = () => Math.random().toString(36).slice(2, 6).padEnd(4, "0");
+  const [editGuest, setEditGuest] = useState<any>(null);
+  const [egNombre, setEgNombre] = useState("");
+  const [egMiembros, setEgMiembros] = useState<any[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+
+  function openEditGuest(inv: any) {
+    setShowGuestForm(false);
+    setEditGuest(inv);
+    setEgNombre(inv.nombre || "");
+    setEgMiembros((inv.miembros || []).map((m: any) => ({ ...m, nombre: m.nombre || "" })));
+  }
+
+  async function saveEditGuest() {
+    if (!editGuest || !egNombre.trim() || egMiembros.length === 0) return;
+    setSavingEdit(true);
+    const miembros = egMiembros.map((m: any, i: number) => {
+      const nombre = i === 0 ? egNombre.trim() : ((m.nombre || "").trim() || null);
+      // los miembros existentes CONSERVAN su token (los links repartidos siguen vivos);
+      // a los nuevos con nombre se les genera token legible
+      let token = m.token;
+      if (m._nuevo && nombre && i > 0) token = `${slugifyTok(nombre)}-${rand4()}`;
+      return { nombre, token };
+    });
+    await supabase.from("invitados").update({ nombre: egNombre.trim(), asientos: miembros.length, miembros }).eq("id", editGuest.id);
+    setInvitados((arr) => arr.map((x) => (x.id === editGuest.id ? { ...x, nombre: egNombre.trim(), asientos: miembros.length, miembros } : x)));
+    setSavingEdit(false);
+    setEditGuest(null);
+  }
+
+  /** CSV (se abre en Excel) con el link personal y el mensaje de WhatsApp por persona. */
+  function descargarLinks() {
+    const nombres = [pareja?.nombre1, pareja?.nombre2].filter(Boolean).map((n: string) => n.split(" ")[0]).join(" & ");
+    const fechaTxt = pareja?.fecha ? new Date(pareja.fecha + "T12:00:00").toLocaleDateString("es-GT", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, ".") : "";
+    const limite = pareja?.rsvp_fecha_limite ? new Date(pareja.rsvp_fecha_limite + "T12:00:00").toLocaleDateString("es-GT", { day: "numeric", month: "long" }) : "";
+    const evento = (pareja?.tipo_evento || "boda") === "boda" ? "nuestra boda" : "nuestra celebración";
+    const filas: string[][] = [["Invitación", "Persona", "Link personal", "Mensaje de WhatsApp"]];
+    for (const inv of invitados) {
+      for (const m of inv.miembros || []) {
+        if (!m.nombre) continue; // los +1 no tienen link: los confirma el principal
+        const link = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}`;
+        const primer = m.nombre.split(" ")[0];
+        const msg = `¡Llegó el momento! 🤍\n\nNos hace muchísima ilusión compartir contigo, ${primer}, la invitación a *${evento}*.\nEn el siguiente link encontrarás todos los detalles y podrás confirmar tu asistencia.\n\n${link}\n\n${limite ? `Te pedimos realizar tu *RSVP antes del ${limite}.*\n\n` : ""}¡No podemos esperar para celebrar juntos! ✨\n\n*_${nombres}${fechaTxt ? ` · ${fechaTxt}` : ""}_*`;
+        filas.push([inv.nombre, m.nombre, link, msg]);
+      }
+    }
+    const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+    const csv = "\ufeff" + filas.map((r) => r.map(esc).join(",")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "links-rsvp-wedo.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  /** Importa invitaciones desde Excel (columnas: Invitado principal · grupo · Plus 1).
+      Solo crea las que no existan (por nombre); nunca toca las existentes. */
+  async function importarExcel(file: File) {
+    setImportando(true);
+    setImportMsg("");
+    try {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(await file.arrayBuffer());
+      const hoja = wb.Sheets[wb.SheetNames[0]];
+      const filas: any[][] = XLSX.utils.sheet_to_json(hoja, { header: 1 });
+      if (!filas.length) throw new Error("vacío");
+      // detecta columnas por encabezado (o usa A/B/C)
+      const head = (filas[0] || []).map((c: any) => String(c || "").toLowerCase());
+      const tieneHeader = head.some((h: string) => h.includes("invitado"));
+      const iNombre = Math.max(head.findIndex((h: string) => h.includes("invitado")), 0);
+      const iGrupo = head.findIndex((h: string) => h.includes("grupo"));
+      const iPlus = head.findIndex((h: string) => h.includes("plus"));
+      const norm = (x: string) => x.trim().replace(/\s+/g, " ").toLowerCase();
+      const existentes = new Set(invitados.map((i: any) => norm(i.nombre)));
+      const nuevos: any[] = [];
+      let saltados = 0;
+      for (const fila of filas.slice(tieneHeader ? 1 : 0)) {
+        const nombre = String(fila[iNombre] || "").trim().replace(/\s+/g, " ");
+        if (!nombre) continue;
+        if (existentes.has(norm(nombre))) { saltados++; continue; }
+        existentes.add(norm(nombre));
+        const grupoN = iGrupo >= 0 ? String(fila[iGrupo] || "").trim().replace(/\s+/g, " ") : "";
+        const plus1 = iPlus >= 0 ? (parseInt(String(fila[iPlus] || "0")) || 0) : 0;
+        const primer = slugifyTok(nombre.split(" ")[0] || "invitado");
+        const miembros: any[] = [{ nombre, token: `${slugifyTok(nombre)}-${rand4()}` }];
+        if (grupoN) miembros.push({ nombre: grupoN, token: `${slugifyTok(grupoN)}-${rand4()}` });
+        for (let k = 0; k < plus1; k++) miembros.push({ nombre: null, token: `acompanante-${primer}-${rand4()}` });
+        nuevos.push({ pareja_id: pareja.id, nombre, asientos: miembros.length, grupo: null, confirmado: false, miembros });
+      }
+      if (nuevos.length) {
+        const { error } = await supabase.from("invitados").insert(nuevos);
+        if (error) throw error;
+        const { data: inv } = await supabase.from("invitados").select("*").eq("pareja_id", pareja.id).order("grupo").order("nombre");
+        setInvitados(inv || []);
+      }
+      setImportMsg(`✓ ${nuevos.length} ${nuevos.length === 1 ? "invitación nueva" : "invitaciones nuevas"}${saltados ? ` · ${saltados} ya existían (sin cambios)` : ""}`);
+    } catch {
+      setImportMsg("No pude leer el archivo. Usa columnas: Invitado principal · grupo · Plus 1");
+    }
+    setImportando(false);
+  }
   async function addGuest() {
     if (!guestForm.nombre.trim()) return;
     setSavingGuest(true);
@@ -878,8 +984,19 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     <h2 style={{ marginTop: 10 }}>Lista de invitados</h2>
                     <p>Agrega a tus invitados con los asientos que les asignas y mira quién confirma.</p>
                   </div>
-                  {!showGuestForm && <button className="btn btn-pink btn-sm" onClick={() => setShowGuestForm(true)}>+ Agregar</button>}
+                  {!showGuestForm && !editGuest && (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      {invitados.length > 0 && <button className="btn btn-ghost btn-sm" onClick={descargarLinks}>⬇ Links y mensajes</button>}
+                      <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }}>
+                        {importando ? "Importando…" : "⬆ Importar Excel"}
+                        <input type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} disabled={importando}
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) importarExcel(f); e.target.value = ""; }} />
+                      </label>
+                      <button className="btn btn-pink btn-sm" onClick={() => setShowGuestForm(true)}>+ Agregar</button>
+                    </div>
+                  )}
                 </div>
+                {importMsg && <p className="hint" style={{ margin: "-6px 0 10px" }}>{importMsg}</p>}
 
                 <div className="ecard" style={{ padding: "16px 20px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
@@ -908,6 +1025,29 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     <div style={{ display: "flex", gap: 10 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setShowGuestForm(false); setGuestForm({ nombre: "", asientos: "1", grupo: "" }); }}>Cancelar</button>
                       <button className="btn btn-pink btn-sm" onClick={addGuest} disabled={savingGuest || !guestForm.nombre.trim()}>{savingGuest ? "Guardando…" : "Agregar"}</button>
+                    </div>
+                  </div>
+                )}
+
+                {editGuest && (
+                  <div className="gform">
+                    <div style={{ fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontSize: 22, marginBottom: 4 }}>Editar invitación</div>
+                    <p className="hint" style={{ margin: "0 0 14px" }}>Los links ya repartidos no cambian. Deja un nombre vacío para un +1 (su invitado lo nombra al confirmar).</p>
+                    <div className="field"><label>Invitado principal *</label><input className="inp" value={egNombre} onChange={(e) => setEgNombre(e.target.value)} /></div>
+                    <div className="field"><label>Acompañantes</label>
+                      {egMiembros.slice(1).map((m: any, k: number) => (
+                        <div key={m.token} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                          <input className="inp" style={{ flex: 1 }} value={m.nombre} placeholder="+1 por nombrar…"
+                            onChange={(e) => setEgMiembros((arr) => arr.map((x, j) => (j === k + 1 ? { ...x, nombre: e.target.value } : x)))} />
+                          <button className="btn btn-ghost btn-sm" style={{ padding: "4px 12px" }} title="Quitar"
+                            onClick={() => setEgMiembros((arr) => arr.filter((_, j) => j !== k + 1))}>✕</button>
+                        </div>
+                      ))}
+                      <button className="btn btn-ghost btn-sm" onClick={() => setEgMiembros((arr) => [...arr, { nombre: "", token: `acompanante-${slugifyTok(egNombre.split(" ")[0] || "invitado")}-${rand4()}`, _nuevo: true }])}>+ Agregar acompañante</button>
+                    </div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setEditGuest(null)}>Cancelar</button>
+                      <button className="btn btn-pink btn-sm" onClick={saveEditGuest} disabled={savingEdit || !egNombre.trim()}>{savingEdit ? "Guardando…" : "Guardar cambios"}</button>
                     </div>
                   </div>
                 )}
@@ -947,6 +1087,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                               })()}
                             </div>
                             <span className="gs" style={{ color: rsvp?.asistencia === "si" ? "#7e8a30" : rsvp?.asistencia === "no" ? "var(--coral)" : "var(--peri)" }}>{rsvp ? (rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste") : "Pendiente"}</span>
+                            <button className="btn btn-ghost btn-sm" style={{ padding: "4px 10px" }} onClick={() => openEditGuest(inv)}>Editar</button>
                             <button className="gx" onClick={() => deleteGuest(inv.id)}>✕</button>
                             {Array.isArray(inv.miembros) && inv.miembros.some((m: any) => m.nombre) && (
                               <div className="codebar" style={{ flexWrap: "wrap" }}>
