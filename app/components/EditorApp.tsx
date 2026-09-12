@@ -343,11 +343,23 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [importando, setImportando] = useState(false);
   const [importMsg, setImportMsg] = useState("");
 
+  const [egAbsorbidas, setEgAbsorbidas] = useState<string[]>([]);
+
   function openEditGuest(inv: any) {
     setShowGuestForm(false);
     setEditGuest(inv);
     setEgNombre(inv.nombre || "");
     setEgMiembros((inv.miembros || []).map((m: any) => ({ ...m, nombre: m.nombre || "" })));
+    setEgAbsorbidas([]);
+  }
+
+  /** Trae los miembros de otra invitación a este grupo (conservan sus links);
+      la invitación original se elimina al guardar. */
+  function unirInvitacion(id: string) {
+    const otra = invitados.find((x: any) => x.id === id);
+    if (!otra) return;
+    setEgMiembros((arr) => [...arr, ...(otra.miembros || []).map((m: any) => ({ ...m, nombre: m.nombre || "" }))]);
+    setEgAbsorbidas((a) => [...a, id]);
   }
 
   async function saveEditGuest() {
@@ -362,7 +374,13 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       return { nombre, token };
     });
     await supabase.from("invitados").update({ nombre: egNombre.trim(), asientos: miembros.length, miembros }).eq("id", editGuest.id);
-    setInvitados((arr) => arr.map((x) => (x.id === editGuest.id ? { ...x, nombre: egNombre.trim(), asientos: miembros.length, miembros } : x)));
+    for (const id of egAbsorbidas) {
+      await supabase.from("rsvp").delete().eq("invitado_id", id);
+      await supabase.from("invitados").delete().eq("id", id);
+    }
+    setInvitados((arr) => arr
+      .filter((x) => !egAbsorbidas.includes(x.id))
+      .map((x) => (x.id === editGuest.id ? { ...x, nombre: egNombre.trim(), asientos: miembros.length, miembros } : x)));
     setSavingEdit(false);
     setEditGuest(null);
   }
@@ -1045,6 +1063,18 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       ))}
                       <button className="btn btn-ghost btn-sm" onClick={() => setEgMiembros((arr) => [...arr, { nombre: "", token: `acompanante-${slugifyTok(egNombre.split(" ")[0] || "invitado")}-${rand4()}`, _nuevo: true }])}>+ Agregar acompañante</button>
                     </div>
+                    {invitados.filter((x: any) => x.id !== editGuest.id && !x.confirmado && !egAbsorbidas.includes(x.id)).length > 0 && (
+                      <div className="field">
+                        <label>Unir otra invitación a este grupo</label>
+                        <select className="inp" value="" onChange={(e) => { if (e.target.value) unirInvitacion(e.target.value); }}>
+                          <option value="">Elegir invitación…</option>
+                          {invitados.filter((x: any) => x.id !== editGuest.id && !x.confirmado && !egAbsorbidas.includes(x.id)).map((x: any) => (
+                            <option key={x.id} value={x.id}>{x.nombre} ({x.asientos} {x.asientos === 1 ? "asiento" : "asientos"})</option>
+                          ))}
+                        </select>
+                        <p className="hint" style={{ margin: "6px 0 0" }}>Sus miembros pasan a este grupo con sus mismos links; la invitación original se elimina al guardar.</p>
+                      </div>
+                    )}
                     <div style={{ display: "flex", gap: 10 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => setEditGuest(null)}>Cancelar</button>
                       <button className="btn btn-pink btn-sm" onClick={saveEditGuest} disabled={savingEdit || !egNombre.trim()}>{savingEdit ? "Guardando…" : "Guardar cambios"}</button>
@@ -1071,7 +1101,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                         const rsvp = rsvps.find((r) => r.invitado_id === inv.id);
                         const editing = editCodeId === inv.id;
                         return (
-                          <div className={"guest" + (rsvpCodigo ? " has-code" : "")} key={inv.id}>
+                          <div className={"guest" + (rsvpCodigo || (Array.isArray(inv.miembros) && inv.miembros.some((m: any) => m.nombre)) ? " has-code" : "")} key={inv.id}>
                             <div className="gi" style={{ background: rsvp?.asistencia === "si" ? "var(--lime)" : rsvp?.asistencia === "no" ? "var(--coral)" : "var(--peri)" }}>{inv.nombre.charAt(0).toUpperCase()}</div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="gn">{inv.nombre}</div>

@@ -84,6 +84,7 @@ export default function Dashboard() {
   const [host, setHost] = useState("");
   const [copied, setCopied] = useState(false);
   const [esAdminUser, setEsAdminUser] = useState(false);
+  const [rsvpFiltro, setRsvpFiltro] = useState<"todas" | "si" | "no" | "msj" | "pend">("todas");
 
   /** Chequeo ligero contra /api/admin/me (la tabla admins no es legible desde el
    *  cliente). Reintenta una vez: justo después del callback de OAuth la sesión
@@ -208,6 +209,10 @@ export default function Dashboard() {
   // personas (no invitaciones): usa la lista de asistentes si existe
   const personasPax = (r: any) => (Array.isArray(r.asistentes) && r.asistentes.length ? r.asistentes.length : (r.acompanantes || 0) + 1);
   const personasConfirmadas = rsvpSi.reduce((s, r) => s + personasPax(r), 0);
+  const rsvpNo = rsvps.filter((r) => r.asistencia !== "si");
+  const rsvpConMsj = rsvps.filter((r) => r.mensaje);
+  const sinResponder = invitados.filter((i) => !rsvps.some((r) => r.invitado_id === i.id));
+  const rsvpsFiltradas = rsvpFiltro === "si" ? rsvpSi : rsvpFiltro === "no" ? rsvpNo : rsvpFiltro === "msj" ? rsvpConMsj : rsvps;
 
   const aportes = contribuciones.length;
   const invitadosDistintos = new Set(
@@ -571,7 +576,7 @@ export default function Dashboard() {
         </div>
 
         {/* RSVP CONFIRMADOS */}
-        {rsvps.length > 0 && (
+        {(rsvps.length > 0 || invitados.length > 0) && (
           <section className="panel rsvp-sec">
             <div className="panel-h">
               <h3>
@@ -585,8 +590,45 @@ export default function Dashboard() {
                 Ver todos · gestionar
               </Link>
             </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "2px 0 14px" }}>
+              {([
+                ["todas", `Todas · ${rsvps.length}`],
+                ["si", `Asisten · ${confirmados}`],
+                ["no", `No podrán · ${rsvpNo.length}`],
+                ["msj", `Con mensaje · ${rsvpConMsj.length}`],
+                ["pend", `Sin responder · ${sinResponder.length}`],
+              ] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setRsvpFiltro(k)}
+                  style={{
+                    padding: "6px 13px", borderRadius: 100, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    border: "1px solid " + (rsvpFiltro === k ? "var(--ink)" : "var(--line)"),
+                    background: rsvpFiltro === k ? "var(--ink)" : "#fffdf8",
+                    color: rsvpFiltro === k ? "#fff" : "var(--ink-soft)",
+                    fontFamily: "'Archivo',sans-serif",
+                  }}>{label}</button>
+              ))}
+            </div>
             <div className="rsvp-grid">
-              {rsvps.map((r, i) => {
+              {rsvpFiltro === "pend" && sinResponder.map((inv, i) => (
+                <div className="rsvp-item" key={inv.id}>
+                  <div className="ava" style={{ background: "var(--peri)" }}>{initials(inv.nombre, 2)}</div>
+                  <div className="txt">
+                    <div className="nm">{inv.nombre}</div>
+                    <div className="sub">{inv.asientos} {inv.asientos === 1 ? "asiento" : "asientos"}</div>
+                  </div>
+                  <span className="pax" style={{ background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" }}>
+                    <span className="bdot" style={{ background: "var(--peri)" }} />
+                    Sin responder
+                  </span>
+                </div>
+              ))}
+              {rsvpFiltro === "pend" && sinResponder.length === 0 && (
+                <p className="hint" style={{ margin: 0 }}>¡Todos han respondido! 🎉</p>
+              )}
+              {rsvpFiltro !== "pend" && rsvpsFiltradas.length === 0 && (
+                <p className="hint" style={{ margin: 0 }}>Nada por aquí todavía.</p>
+              )}
+              {rsvpFiltro !== "pend" && rsvpsFiltradas.map((r, i) => {
                 const si = r.asistencia === "si";
                 const pax = personasPax(r);
                 const quienes = Array.isArray(r.asistentes) && r.asistentes.length ? r.asistentes.join(" · ") : null;
