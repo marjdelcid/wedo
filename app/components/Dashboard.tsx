@@ -92,6 +92,8 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [esAdminUser, setEsAdminUser] = useState(false);
   const [rsvpFiltro, setRsvpFiltro] = useState<"todas" | "si" | "no" | "msj" | "pend">("todas");
+  const [rsvpBusqueda, setRsvpBusqueda] = useState("");
+  const [rsvpAbierto, setRsvpAbierto] = useState<string | null>(null);
 
   /** Chequeo ligero contra /api/admin/me (la tabla admins no es legible desde el
    *  cliente). Reintenta una vez: justo después del callback de OAuth la sesión
@@ -218,8 +220,20 @@ export default function Dashboard() {
   const personasConfirmadas = rsvpSi.reduce((s, r) => s + personasPax(r), 0);
   const rsvpNo = rsvps.filter((r) => r.asistencia !== "si");
   const rsvpConMsj = rsvps.filter((r) => r.mensaje);
-  const sinResponder = invitados.filter((i) => !rsvps.some((r) => r.invitado_id === i.id));
-  const rsvpsFiltradas = rsvpFiltro === "si" ? rsvpSi : rsvpFiltro === "no" ? rsvpNo : rsvpFiltro === "msj" ? rsvpConMsj : rsvps;
+  const sinResponder = invitados
+    .filter((i) => !rsvps.some((r) => r.invitado_id === i.id))
+    .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+  const q = rsvpBusqueda.trim().toLowerCase();
+  const matchRsvp = (r: any) =>
+    !q ||
+    (r.nombre || "").toLowerCase().includes(q) ||
+    (Array.isArray(r.asistentes) && r.asistentes.some((n: string) => (n || "").toLowerCase().includes(q)));
+  const matchInv = (i: any) =>
+    !q ||
+    (i.nombre || "").toLowerCase().includes(q) ||
+    (Array.isArray(i.miembros) && i.miembros.some((m: any) => (m.nombre || "").toLowerCase().includes(q)));
+  const sinResponderVisibles = sinResponder.filter(matchInv);
+  const rsvpsFiltradas = (rsvpFiltro === "si" ? rsvpSi : rsvpFiltro === "no" ? rsvpNo : rsvpFiltro === "msj" ? rsvpConMsj : rsvps).filter(matchRsvp);
 
   const aportes = contribuciones.length;
   const invitadosDistintos = new Set(
@@ -349,50 +363,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* INVITATION PREVIEW */}
-        <section className="preview-card">
-          {pareja?.foto_hero ? (
-            <img
-              className="preview-photo"
-              src={pareja.foto_hero}
-              alt="Portada de la invitación"
-            />
-          ) : (
-            <div className="preview-photo">
-              Aún sin foto de portada — agrégala en el editor.
-            </div>
-          )}
-          <div className="preview-info">
-            <span className="kick">
-              <span className="bdot" />
-              Tu invitación
-            </span>
-            <div className="preview-title serif">
-              {tituloEvento}
-              <span style={{ color: "var(--pink)" }}>.</span>
-            </div>
-            <div className="preview-url" onClick={copyLink}>
-              {(host || "wedo.gifts")}/boda/{slug}{" "}
-              <span className="cp">· {copied ? "¡copiado!" : "copiar link"}</span>
-            </div>
-            <div className="preview-actions">
-              {slug && (
-                <a
-                  className="btn btn-pink"
-                  href={`/boda/${slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Ver invitación
-                </a>
-              )}
-              <Link className="btn btn-ghost" href="/editor">
-                Editar diseño
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* STATS */}
         <div className="stats">
           <div className="stat s1">
@@ -439,6 +409,152 @@ export default function Dashboard() {
             <div className="delta">listo para retirar</div>
           </div>
         </div>
+
+        {/* RSVP CONFIRMADOS */}
+        {(rsvps.length > 0 || invitados.length > 0) && (
+          <section className="panel rsvp-sec">
+            <div className="panel-h">
+              <h3>
+                Respuestas RSVP
+                <span className="rsvp-count">{personasConfirmadas} personas</span>
+              </h3>
+              <Link
+                href="/editor/invitados"
+                style={{ fontSize: 13, color: "var(--ink-faint)", fontWeight: 600 }}
+              >
+                Ver todos · gestionar
+              </Link>
+            </div>
+            <input
+              value={rsvpBusqueda}
+              onChange={(e) => setRsvpBusqueda(e.target.value)}
+              placeholder="Buscar por nombre…"
+              style={{ width: "100%", maxWidth: 340, border: "1.5px solid var(--line)", borderRadius: 100, padding: "9px 16px", fontFamily: "'Archivo',sans-serif", fontSize: 13.5, background: "#fffdf8", color: "var(--ink)", outline: "none", margin: "2px 0 12px" }}
+            />
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "2px 0 14px" }}>
+              {([
+                ["todas", `Todas · ${rsvps.length}`],
+                ["si", `Asisten · ${confirmados}`],
+                ["no", `No podrán · ${rsvpNo.length}`],
+                ["msj", `Con mensaje · ${rsvpConMsj.length}`],
+                ["pend", `Sin responder · ${sinResponder.length}`],
+              ] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setRsvpFiltro(k)}
+                  style={{
+                    padding: "6px 13px", borderRadius: 100, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    border: "1px solid " + (rsvpFiltro === k ? "var(--ink)" : "var(--line)"),
+                    background: rsvpFiltro === k ? "var(--ink)" : "#fffdf8",
+                    color: rsvpFiltro === k ? "#fff" : "var(--ink-soft)",
+                    fontFamily: "'Archivo',sans-serif",
+                  }}>{label}</button>
+              ))}
+            </div>
+            <div className="rsvp-grid" style={rsvpFiltro === "msj" ? { gridTemplateColumns: "1fr", maxWidth: 640 } : undefined}>
+              {rsvpFiltro === "pend" && sinResponderVisibles.map((inv, i) => (
+                <div className="rsvp-item" key={inv.id}>
+                  <div className="ava" style={{ background: "var(--peri)" }}>{initials(inv.nombre, 2)}</div>
+                  <div className="txt">
+                    <div className="nm">{inv.nombre}</div>
+                    <div className="sub">{inv.asientos} {inv.asientos === 1 ? "asiento" : "asientos"}</div>
+                  </div>
+                  <span className="pax" style={{ background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" }}>
+                    <span className="bdot" style={{ background: "var(--peri)" }} />
+                    Sin responder
+                  </span>
+                </div>
+              ))}
+              {rsvpFiltro === "pend" && sinResponderVisibles.length === 0 && (
+                <p className="hint" style={{ margin: 0 }}>¡Todos han respondido! 🎉</p>
+              )}
+              {rsvpFiltro !== "pend" && rsvpsFiltradas.length === 0 && (
+                <p className="hint" style={{ margin: 0 }}>Nada por aquí todavía.</p>
+              )}
+              {rsvpFiltro !== "pend" && rsvpsFiltradas.map((r, i) => {
+                const si = r.asistencia === "si";
+                const pax = personasPax(r);
+                // solo listamos nombres cuando hay grupo (2+); en solitario es redundante
+                const quienes = pax > 1 && Array.isArray(r.asistentes) && r.asistentes.length > 1 ? r.asistentes.join(" · ") : null;
+                const tieneMsj = !!(r.mensaje || r.restricciones);
+                const abierto = rsvpFiltro === "msj" || rsvpAbierto === r.id;
+                return (
+                  <div className="rsvp-item" key={r.id || i} style={{ flexWrap: "wrap", cursor: tieneMsj ? "pointer" : "default" }}
+                    onClick={() => tieneMsj && setRsvpAbierto(rsvpAbierto === r.id ? null : r.id)}>
+                    <div
+                      className="ava"
+                      style={{ background: si ? AVA_COLORS[i % AVA_COLORS.length] : "var(--ink-faint)" }}
+                    >
+                      {initials(r.nombre, 2)}
+                    </div>
+                    <div className="txt">
+                      <div className="nm">{r.nombre}</div>
+                      <div className="sub">{si ? "Confirmó" : "No podrán ir"} {hace(r.created_at)}{si && quienes ? ` · ${quienes}` : ""}</div>
+                    </div>
+                    <span className="pax" style={!si ? { background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" } : undefined}>
+                      <span className="bdot" style={!si ? { background: "var(--coral)" } : undefined} />
+                      {si ? `${pax} ${pax === 1 ? "persona" : "personas"}` : "No asistirán"}
+                    </span>
+                    {abierto && r.mensaje && (
+                      <div style={{ width: "100%", paddingLeft: 46, marginTop: 2, fontStyle: "italic", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-soft)" }}>
+                        “{r.mensaje}”
+                      </div>
+                    )}
+                    {abierto && r.restricciones && (
+                      <div style={{ width: "100%", paddingLeft: 46, fontSize: 12, color: "var(--ink-faint)" }}>
+                        Restricciones: {r.restricciones}
+                      </div>
+                    )}
+                    {!abierto && tieneMsj && (
+                      <span title="Ver mensaje" style={{ flex: "none", fontSize: 13 }}>💬</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+        {/* INVITATION PREVIEW */}
+        <section className="preview-card">
+          {pareja?.foto_hero ? (
+            <img
+              className="preview-photo"
+              src={pareja.foto_hero}
+              alt="Portada de la invitación"
+            />
+          ) : (
+            <div className="preview-photo">
+              Aún sin foto de portada — agrégala en el editor.
+            </div>
+          )}
+          <div className="preview-info">
+            <span className="kick">
+              <span className="bdot" />
+              Tu invitación
+            </span>
+            <div className="preview-title serif">
+              {tituloEvento}
+              <span style={{ color: "var(--pink)" }}>.</span>
+            </div>
+            <div className="preview-url" onClick={copyLink}>
+              {(host || "wedo.gifts")}/boda/{slug}{" "}
+              <span className="cp">· {copied ? "¡copiado!" : "copiar link"}</span>
+            </div>
+            <div className="preview-actions">
+              {slug && (
+                <a
+                  className="btn btn-pink"
+                  href={`/boda/${slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ver invitación
+                </a>
+              )}
+              <Link className="btn btn-ghost" href="/editor">
+                Editar diseño
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* COLS */}
         <div className="cols">
@@ -582,104 +698,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RSVP CONFIRMADOS */}
-        {(rsvps.length > 0 || invitados.length > 0) && (
-          <section className="panel rsvp-sec">
-            <div className="panel-h">
-              <h3>
-                Respuestas RSVP
-                <span className="rsvp-count">{personasConfirmadas} personas</span>
-              </h3>
-              <Link
-                href="/editor/invitados"
-                style={{ fontSize: 13, color: "var(--ink-faint)", fontWeight: 600 }}
-              >
-                Ver todos · gestionar
-              </Link>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "2px 0 14px" }}>
-              {([
-                ["todas", `Todas · ${rsvps.length}`],
-                ["si", `Asisten · ${confirmados}`],
-                ["no", `No podrán · ${rsvpNo.length}`],
-                ["msj", `Con mensaje · ${rsvpConMsj.length}`],
-                ["pend", `Sin responder · ${sinResponder.length}`],
-              ] as const).map(([k, label]) => (
-                <button key={k} onClick={() => setRsvpFiltro(k)}
-                  style={{
-                    padding: "6px 13px", borderRadius: 100, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                    border: "1px solid " + (rsvpFiltro === k ? "var(--ink)" : "var(--line)"),
-                    background: rsvpFiltro === k ? "var(--ink)" : "#fffdf8",
-                    color: rsvpFiltro === k ? "#fff" : "var(--ink-soft)",
-                    fontFamily: "'Archivo',sans-serif",
-                  }}>{label}</button>
-              ))}
-            </div>
-            <div className="rsvp-grid" style={rsvpFiltro === "msj" ? { gridTemplateColumns: "1fr", maxWidth: 640 } : undefined}>
-              {rsvpFiltro === "pend" && sinResponder.map((inv, i) => (
-                <div className="rsvp-item" key={inv.id}>
-                  <div className="ava" style={{ background: "var(--peri)" }}>{initials(inv.nombre, 2)}</div>
-                  <div className="txt">
-                    <div className="nm">{inv.nombre}</div>
-                    <div className="sub">{inv.asientos} {inv.asientos === 1 ? "asiento" : "asientos"}</div>
-                  </div>
-                  <span className="pax" style={{ background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" }}>
-                    <span className="bdot" style={{ background: "var(--peri)" }} />
-                    Sin responder
-                  </span>
-                </div>
-              ))}
-              {rsvpFiltro === "pend" && sinResponder.length === 0 && (
-                <p className="hint" style={{ margin: 0 }}>¡Todos han respondido! 🎉</p>
-              )}
-              {rsvpFiltro !== "pend" && rsvpsFiltradas.length === 0 && (
-                <p className="hint" style={{ margin: 0 }}>Nada por aquí todavía.</p>
-              )}
-              {rsvpFiltro !== "pend" && rsvpsFiltradas.map((r, i) => {
-                const si = r.asistencia === "si";
-                const pax = personasPax(r);
-                // solo listamos nombres cuando hay grupo (2+); en solitario es redundante
-                const quienes = pax > 1 && Array.isArray(r.asistentes) && r.asistentes.length > 1 ? r.asistentes.join(" · ") : null;
-                return (
-                  <div className="rsvp-item" key={r.id || i} style={{ flexWrap: "wrap" }}>
-                    <div
-                      className="ava"
-                      style={{ background: si ? AVA_COLORS[i % AVA_COLORS.length] : "var(--ink-faint)" }}
-                    >
-                      {initials(r.nombre, 2)}
-                    </div>
-                    <div className="txt">
-                      <div className="nm">{r.nombre}</div>
-                      <div className="sub">{si ? "Confirmó" : "No podrán ir"} {hace(r.created_at)}{si && quienes ? ` · ${quienes}` : ""}</div>
-                    </div>
-                    <span className="pax" style={!si ? { background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" } : undefined}>
-                      <span className="bdot" style={!si ? { background: "var(--coral)" } : undefined} />
-                      {si ? `${pax} ${pax === 1 ? "persona" : "personas"}` : "No asistirán"}
-                    </span>
-                    {rsvpFiltro === "msj" && r.mensaje && (
-                      <div style={{ width: "100%", paddingLeft: 46, marginTop: 2, fontStyle: "italic", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-soft)" }}>
-                        “{r.mensaje}”
-                      </div>
-                    )}
-                    {rsvpFiltro === "msj" && r.restricciones && (
-                      <div style={{ width: "100%", paddingLeft: 46, fontSize: 12, color: "var(--ink-faint)" }}>
-                        Restricciones: {r.restricciones}
-                      </div>
-                    )}
-                    {rsvpFiltro !== "msj" && (r.mensaje || r.restricciones) && (
-                      <span title="Dejó mensaje" style={{ flex: "none", fontSize: 13 }}>💬</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
       </main>
 
       {/* PILL NAV */}
       <nav className="pillnav">
-        <Link href="/">Inicio</Link>
         <Link href="/editor">Editor</Link>
         <Link className="on" href="/dashboard">
           Dashboard<span className="d" />

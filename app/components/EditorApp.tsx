@@ -342,6 +342,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [savingEdit, setSavingEdit] = useState(false);
   const [importando, setImportando] = useState(false);
   const [importMsg, setImportMsg] = useState("");
+  const [guestQ, setGuestQ] = useState("");
 
   const [egAbsorbidas, setEgAbsorbidas] = useState<string[]>([]);
 
@@ -562,7 +563,12 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const confNo = rsvps.filter((r) => r.asistencia === "no").length;
   const asientosConf = rsvps.filter((r) => r.asistencia === "si").reduce((s, r) => s + (r.acompanantes || 0) + 1, 0);
   const grupos: Record<string, any[]> = {};
-  invitados.forEach((i) => { const g = i.grupo || "Sin grupo"; (grupos[g] = grupos[g] || []).push(i); });
+  const gq = guestQ.trim().toLowerCase();
+  const invitadosVisibles = !gq ? invitados : invitados.filter((i) =>
+    (i.nombre || "").toLowerCase().includes(gq) ||
+    (Array.isArray(i.miembros) && i.miembros.some((m: any) => (m.nombre || "").toLowerCase().includes(gq)))
+  );
+  invitadosVisibles.forEach((i) => { const g = i.grupo || "Sin grupo"; (grupos[g] = grupos[g] || []).push(i); });
   const seccActivas = Object.keys(SECCIONES_META).filter((k) => secciones[k]).length;
   const completeness = (() => {
     let c = 0; const checks = [f.nombre1 && (!campoN2 || f.nombre2), f.fecha, f.foto_hero, fondos.length > 0, invitados.length > 0]; checks.forEach((x) => x && c++); return Math.round((c / checks.length) * 100);
@@ -1015,6 +1021,15 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   )}
                 </div>
                 {importMsg && <p className="hint" style={{ margin: "-6px 0 10px" }}>{importMsg}</p>}
+                {invitados.length > 0 && (
+                  <input
+                    value={guestQ}
+                    onChange={(e) => setGuestQ(e.target.value)}
+                    placeholder="Buscar invitado por nombre…"
+                    className="inp"
+                    style={{ borderRadius: 100, maxWidth: 360, marginBottom: 14 }}
+                  />
+                )}
 
                 <div className="ecard" style={{ padding: "16px 20px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
@@ -1091,6 +1106,9 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   </div>
                 )}
 
+                {gq && invitadosVisibles.length === 0 && (
+                  <p className="hint" style={{ margin: 0 }}>Sin resultados para “{guestQ}”.</p>
+                )}
                 {invitados.length === 0 && !showGuestForm ? (
                   <div className="empty-note">Aún no tienes invitados. <a onClick={() => setShowGuestForm(true)} style={{ cursor: "pointer" }}>Agregar el primero →</a></div>
                 ) : (

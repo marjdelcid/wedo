@@ -329,4 +329,16 @@
   .wedo-app .rsvp-grid{grid-template-columns:1fr;}
   .wedo-app .istats{grid-template-columns:repeat(2,1fr);}
   .wedo-app .gtypes{flex-direction:column;}
+  /* dashboard móvil: topbar compacta, tipografías y paneles a escala */
+  .wedo-app .topbar-r .btn{display:none;}
+  .wedo-app .evt-switch{min-width:0; max-width:46vw;}
+  .wedo-app .evt-switch span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .wedo-app .greet{font-size:clamp(30px,9vw,40px);}
+  .wedo-app .stat .val{font-size:clamp(26px,7.5vw,34px);}
+  .wedo-app .stat .delta{font-size:10.5px; line-height:1.4;}
+  .wedo-app .panel-h{flex-wrap:wrap; gap:8px;}
+  .wedo-app .rsvp-grid{padding:6px 14px 16px;}
+  .wedo-app .rsvp-item .sub{white-space:normal;}
+  .wedo-app .act .amt{font-size:14px;}
+  .wedo-app .withdraw, .wedo-app .panel-b{padding-left:14px; padding-right:14px;}
 }
