@@ -1088,9 +1088,10 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   <input
                     value={guestQ}
                     onChange={(e) => setGuestQ(e.target.value)}
-                    placeholder="Buscar invitado por nombre…"
-                    className="inp"
-                    style={{ borderRadius: 100, maxWidth: 360, marginBottom: 14 }}
+                    placeholder="🔍 Buscar invitado por nombre…"
+                    style={{ width: "100%", maxWidth: 360, border: "1.5px solid var(--line)", borderRadius: 100, padding: "10px 16px", fontFamily: "'Archivo',sans-serif", fontSize: 14, background: "#fffdf8", color: "var(--ink)", outline: "none", marginBottom: 14, display: "block" }}
+                    onFocus={(e) => (e.target.style.borderColor = "var(--pink)")}
+                    onBlur={(e) => (e.target.style.borderColor = "var(--line)")}
                   />
                 )}
 
