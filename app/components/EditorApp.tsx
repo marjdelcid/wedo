@@ -373,15 +373,18 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     const asistentes = seleccion.map((m: any) => m.nombre || "Acompañante");
     const acompanantes = Math.max(0, asistentes.length - 1);
     const previa = rsvps.find((r: any) => r.invitado_id === confGuest.id);
+    let err = null;
     if (previa) {
-      await supabase.from("rsvp").update({ asistencia, acompanantes, asistentes }).eq("id", previa.id);
+      ({ error: err } = await supabase.from("rsvp").update({ asistencia, acompanantes, asistentes }).eq("id", previa.id));
     } else {
-      await supabase.from("rsvp").insert({
+      ({ error: err } = await supabase.from("rsvp").insert({
         invitado_id: confGuest.id, pareja_id: pareja.id, nombre: confGuest.nombre,
         asistencia, acompanantes, asistentes, mensaje: null, restricciones: null,
-      });
+      }));
     }
-    await supabase.from("invitados").update({ confirmado: true, asistira: asistencia, respondido_por: "Confirmación manual" }).eq("id", confGuest.id);
+    if (err) { setConfGuardando(false); alert("No pudimos guardar la confirmación. Intenta de nuevo."); return; }
+    const { error: err2 } = await supabase.from("invitados").update({ confirmado: true, asistira: asistencia, respondido_por: "Confirmación manual" }).eq("id", confGuest.id);
+    if (err2) { setConfGuardando(false); alert("No pudimos guardar la confirmación. Intenta de nuevo."); return; }
     const { data: r } = await supabase.from("rsvp").select("*").eq("pareja_id", pareja.id).order("created_at", { ascending: false });
     const vistosC = new Set<string>();
     setRsvps((r || []).slice().reverse().filter((x: any) => {
@@ -399,7 +402,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   async function quitarConfirmacion() {
     if (!confGuest) return;
     setConfGuardando(true);
-    await supabase.from("rsvp").delete().eq("invitado_id", confGuest.id);
+    const { error: errDel } = await supabase.from("rsvp").delete().eq("invitado_id", confGuest.id);
+    if (errDel) { setConfGuardando(false); alert("No pudimos quitar la confirmación. Intenta de nuevo."); return; }
     await supabase.from("invitados").update({ confirmado: false, asistira: null, respondido_por: null }).eq("id", confGuest.id);
     setRsvps((arr) => arr.filter((r: any) => r.invitado_id !== confGuest.id));
     setInvitados((arr) => arr.map((x) => (x.id === confGuest.id ? { ...x, confirmado: false, asistira: null } : x)));
