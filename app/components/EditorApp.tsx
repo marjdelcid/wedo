@@ -343,6 +343,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [importando, setImportando] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const [guestQ, setGuestQ] = useState("");
+  const [guestFiltro, setGuestFiltro] = useState<"todos" | "si" | "no" | "pend">("todos");
   // confirmación manual: invitación abierta y quiénes asisten (por token)
   const [confGuest, setConfGuest] = useState<any>(null);
   const [confSel, setConfSel] = useState<Record<string, boolean>>({});
@@ -627,10 +628,21 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const asientosConf = rsvps.filter((r) => r.asistencia === "si").reduce((s, r) => s + (r.acompanantes || 0) + 1, 0);
   const grupos: Record<string, any[]> = {};
   const gq = guestQ.trim().toLowerCase();
-  const invitadosVisibles = !gq ? invitados : invitados.filter((i) =>
+  const rsvpDe = (i: any) => rsvps.find((r: any) => r.invitado_id === i.id);
+  const pasaFiltro = (i: any) => {
+    const r = rsvpDe(i);
+    if (guestFiltro === "si") return r?.asistencia === "si";
+    if (guestFiltro === "no") return !!r && r.asistencia !== "si";
+    if (guestFiltro === "pend") return !r;
+    return true;
+  };
+  const invitadosVisibles = invitados.filter((i) => pasaFiltro(i) && (!gq ||
     (i.nombre || "").toLowerCase().includes(gq) ||
     (Array.isArray(i.miembros) && i.miembros.some((m: any) => (m.nombre || "").toLowerCase().includes(gq)))
-  );
+  ));
+  const nConfirmados = invitados.filter((i) => rsvpDe(i)?.asistencia === "si").length;
+  const nNoPodran = invitados.filter((i) => { const r = rsvpDe(i); return !!r && r.asistencia !== "si"; }).length;
+  const nPendientesInv = invitados.filter((i) => !rsvpDe(i)).length;
   invitadosVisibles.forEach((i) => { const g = i.grupo || "Sin grupo"; (grupos[g] = grupos[g] || []).push(i); });
   const seccActivas = Object.keys(SECCIONES_META).filter((k) => secciones[k]).length;
   const completeness = (() => {
@@ -1094,6 +1106,25 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     onBlur={(e) => (e.target.style.borderColor = "var(--line)")}
                   />
                 )}
+                {invitados.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                    {([
+                      ["todos", `Todos · ${invitados.length}`],
+                      ["si", `Confirmados · ${nConfirmados}`],
+                      ["no", `No podrán · ${nNoPodran}`],
+                      ["pend", `Sin responder · ${nPendientesInv}`],
+                    ] as const).map(([k, label]) => (
+                      <button key={k} onClick={() => setGuestFiltro(k)}
+                        style={{
+                          padding: "6px 13px", borderRadius: 100, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          border: "1px solid " + (guestFiltro === k ? "var(--ink)" : "var(--line)"),
+                          background: guestFiltro === k ? "var(--ink)" : "#fffdf8",
+                          color: guestFiltro === k ? "#fff" : "var(--ink-soft)",
+                          fontFamily: "'Archivo',sans-serif", whiteSpace: "nowrap",
+                        }}>{label}</button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="ecard" style={{ padding: "16px 20px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
@@ -1200,8 +1231,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   </div>
                 )}
 
-                {gq && invitadosVisibles.length === 0 && (
-                  <p className="hint" style={{ margin: 0 }}>Sin resultados para “{guestQ}”.</p>
+                {(gq || guestFiltro !== "todos") && invitadosVisibles.length === 0 && (
+                  <p className="hint" style={{ margin: 0 }}>{gq ? `Sin resultados para “${guestQ}”.` : "Nadie en este filtro todavía."}</p>
                 )}
                 {invitados.length === 0 && !showGuestForm ? (
                   <div className="empty-note">Aún no tienes invitados. <a onClick={() => setShowGuestForm(true)} style={{ cursor: "pointer" }}>Agregar el primero →</a></div>
