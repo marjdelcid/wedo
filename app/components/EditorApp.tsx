@@ -343,11 +343,74 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const [importando, setImportando] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const [guestQ, setGuestQ] = useState("");
+  // confirmación manual: invitación abierta y quiénes asisten (por token)
+  const [confGuest, setConfGuest] = useState<any>(null);
+  const [confSel, setConfSel] = useState<Record<string, boolean>>({});
+  const [confGuardando, setConfGuardando] = useState(false);
+
+  function abrirConfirmar(inv: any) {
+    setShowGuestForm(false);
+    setEditGuest(null);
+    setConfGuest(inv);
+    const rsvp = rsvps.find((r: any) => r.invitado_id === inv.id);
+    const previos: string[] = Array.isArray(rsvp?.asistentes) ? rsvp.asistentes : [];
+    const init: Record<string, boolean> = {};
+    (inv.miembros || []).forEach((m: any, i: number) => {
+      // preselección: lo ya confirmado; si no hay respuesta, los con nombre
+      init[m.token] = rsvp ? previos.includes(m.nombre || "Acompañante") : !!m.nombre || i === 0;
+    });
+    setConfSel(init);
+  }
+
+  /** Guarda la confirmación manual (tuya, como organizadora): crea o
+      actualiza la respuesta y marca la invitación. */
+  async function guardarConfirmacion(asistencia: "si" | "no") {
+    if (!confGuest) return;
+    setConfGuardando(true);
+    const miembros = confGuest.miembros || [];
+    const seleccion = asistencia === "si" ? miembros.filter((m: any) => confSel[m.token]) : [];
+    const asistentes = seleccion.map((m: any) => m.nombre || "Acompañante");
+    const acompanantes = Math.max(0, asistentes.length - 1);
+    const previa = rsvps.find((r: any) => r.invitado_id === confGuest.id);
+    if (previa) {
+      await supabase.from("rsvp").update({ asistencia, acompanantes, asistentes }).eq("id", previa.id);
+    } else {
+      await supabase.from("rsvp").insert({
+        invitado_id: confGuest.id, pareja_id: pareja.id, nombre: confGuest.nombre,
+        asistencia, acompanantes, asistentes, mensaje: null, restricciones: null,
+      });
+    }
+    await supabase.from("invitados").update({ confirmado: true, asistira: asistencia, respondido_por: "Confirmación manual" }).eq("id", confGuest.id);
+    const { data: r } = await supabase.from("rsvp").select("*").eq("pareja_id", pareja.id).order("created_at", { ascending: false });
+    const vistosC = new Set<string>();
+    setRsvps((r || []).slice().reverse().filter((x: any) => {
+      if (!x.invitado_id) return true;
+      if (vistosC.has(x.invitado_id)) return false;
+      vistosC.add(x.invitado_id);
+      return true;
+    }).reverse());
+    setInvitados((arr) => arr.map((x) => (x.id === confGuest.id ? { ...x, confirmado: true, asistira: asistencia } : x)));
+    setConfGuardando(false);
+    setConfGuest(null);
+  }
+
+  /** Quita la confirmación (vuelve a pendiente). */
+  async function quitarConfirmacion() {
+    if (!confGuest) return;
+    setConfGuardando(true);
+    await supabase.from("rsvp").delete().eq("invitado_id", confGuest.id);
+    await supabase.from("invitados").update({ confirmado: false, asistira: null, respondido_por: null }).eq("id", confGuest.id);
+    setRsvps((arr) => arr.filter((r: any) => r.invitado_id !== confGuest.id));
+    setInvitados((arr) => arr.map((x) => (x.id === confGuest.id ? { ...x, confirmado: false, asistira: null } : x)));
+    setConfGuardando(false);
+    setConfGuest(null);
+  }
 
   const [egAbsorbidas, setEgAbsorbidas] = useState<string[]>([]);
 
   function openEditGuest(inv: any) {
     setShowGuestForm(false);
+    setConfGuest(null);
     setEditGuest(inv);
     setEgNombre(inv.nombre || "");
     setEgMiembros((inv.miembros || []).map((m: any) => ({ ...m, nombre: m.nombre || "" })));
@@ -1062,6 +1125,36 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   </div>
                 )}
 
+                {confGuest && (
+                  <div className="gform">
+                    <div style={{ fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontSize: 22, marginBottom: 4 }}>Confirmación manual · {confGuest.nombre}</div>
+                    <p className="hint" style={{ margin: "0 0 14px" }}>Marca quiénes asisten (el principal, el grupo o el +1) y guarda. Queda registrada como confirmación manual.</p>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                      {(confGuest.miembros || []).map((m: any, i: number) => (
+                        <button key={m.token} type="button"
+                          onClick={() => setConfSel((sel) => ({ ...sel, [m.token]: !sel[m.token] }))}
+                          className="btn btn-sm"
+                          style={{
+                            border: "1.5px solid " + (confSel[m.token] ? "var(--pink)" : "var(--line)"),
+                            background: confSel[m.token] ? "#fbe9f1" : "#fffdf8",
+                            color: confSel[m.token] ? "var(--pink)" : "var(--ink-soft)",
+                            fontWeight: 600,
+                          }}>
+                          {confSel[m.token] ? "✓ " : ""}{m.nombre || `+1 (por nombrar)`}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setConfGuest(null)}>Cancelar</button>
+                      <button className="btn btn-pink btn-sm" disabled={confGuardando || !Object.values(confSel).some(Boolean)} onClick={() => guardarConfirmacion("si")}>{confGuardando ? "Guardando…" : "Confirmar asistencia"}</button>
+                      <button className="btn btn-ghost btn-sm" disabled={confGuardando} onClick={() => guardarConfirmacion("no")}>No podrán ir</button>
+                      {rsvps.some((r: any) => r.invitado_id === confGuest.id) && (
+                        <button className="btn btn-ghost btn-sm" disabled={confGuardando} onClick={quitarConfirmacion} style={{ color: "var(--coral)" }}>Quitar confirmación</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {editGuest && (
                   <div className="gform">
                     <div style={{ fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontSize: 22, marginBottom: 4 }}>Editar invitación</div>
@@ -1135,6 +1228,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                               })()}
                             </div>
                             <span className="gs" style={{ color: rsvp?.asistencia === "si" ? "#7e8a30" : rsvp?.asistencia === "no" ? "var(--coral)" : "var(--peri)" }}>{rsvp ? (rsvp.asistencia === "si" ? "✓ Asiste" : "✕ No asiste") : "Pendiente"}</span>
+                            <button className="btn btn-ghost btn-sm" style={{ padding: "4px 10px" }} onClick={() => abrirConfirmar(inv)}>{rsvp ? "✓ RSVP" : "Confirmar"}</button>
                             <button className="btn btn-ghost btn-sm" style={{ padding: "4px 10px" }} onClick={() => openEditGuest(inv)}>Editar</button>
                             <button className="gx" onClick={() => deleteGuest(inv.id)}>✕</button>
                             {Array.isArray(inv.miembros) && inv.miembros.some((m: any) => m.nombre) && (

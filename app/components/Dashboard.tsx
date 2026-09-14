@@ -363,6 +363,50 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* INVITATION PREVIEW */}
+        <section className="preview-card">
+          {pareja?.foto_hero ? (
+            <img
+              className="preview-photo"
+              src={pareja.foto_hero}
+              alt="Portada de la invitación"
+            />
+          ) : (
+            <div className="preview-photo">
+              Aún sin foto de portada — agrégala en el editor.
+            </div>
+          )}
+          <div className="preview-info">
+            <span className="kick">
+              <span className="bdot" />
+              Tu invitación
+            </span>
+            <div className="preview-title serif">
+              {tituloEvento}
+              <span style={{ color: "var(--pink)" }}>.</span>
+            </div>
+            <div className="preview-url" onClick={copyLink}>
+              {(host || "wedo.gifts")}/boda/{slug}{" "}
+              <span className="cp">· {copied ? "¡copiado!" : "copiar link"}</span>
+            </div>
+            <div className="preview-actions">
+              {slug && (
+                <a
+                  className="btn btn-pink"
+                  href={`/boda/${slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ver invitación
+                </a>
+              )}
+              <Link className="btn btn-ghost" href="/editor">
+                Editar diseño
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* STATS */}
         <div className="stats">
           <div className="stat s1">
@@ -425,6 +469,7 @@ export default function Dashboard() {
                 Ver todos · gestionar
               </Link>
             </div>
+            <div style={{ padding: "0 22px" }}>
             <input
               value={rsvpBusqueda}
               onChange={(e) => setRsvpBusqueda(e.target.value)}
@@ -446,8 +491,10 @@ export default function Dashboard() {
                     background: rsvpFiltro === k ? "var(--ink)" : "#fffdf8",
                     color: rsvpFiltro === k ? "#fff" : "var(--ink-soft)",
                     fontFamily: "'Archivo',sans-serif",
+                    whiteSpace: "nowrap",
                   }}>{label}</button>
               ))}
+            </div>
             </div>
             <div className="rsvp-grid" style={rsvpFiltro === "msj" ? { gridTemplateColumns: "1fr", maxWidth: 640 } : undefined}>
               {rsvpFiltro === "pend" && sinResponderVisibles.map((inv, i) => (
@@ -486,7 +533,7 @@ export default function Dashboard() {
                       {initials(r.nombre, 2)}
                     </div>
                     <div className="txt">
-                      <div className="nm">{r.nombre}</div>
+                      <div className="nm">{r.nombre}{tieneMsj && <span style={{ marginLeft: 6, fontSize: 12 }}>💬</span>}</div>
                       <div className="sub">{si ? "Confirmó" : "No podrán ir"} {hace(r.created_at)}{si && quienes ? ` · ${quienes}` : ""}</div>
                     </div>
                     <span className="pax" style={!si ? { background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" } : undefined}>
@@ -503,59 +550,13 @@ export default function Dashboard() {
                         Restricciones: {r.restricciones}
                       </div>
                     )}
-                    {!abierto && tieneMsj && (
-                      <span title="Ver mensaje" style={{ flex: "none", fontSize: 13 }}>💬</span>
-                    )}
+
                   </div>
                 );
               })}
             </div>
           </section>
         )}
-        {/* INVITATION PREVIEW */}
-        <section className="preview-card">
-          {pareja?.foto_hero ? (
-            <img
-              className="preview-photo"
-              src={pareja.foto_hero}
-              alt="Portada de la invitación"
-            />
-          ) : (
-            <div className="preview-photo">
-              Aún sin foto de portada — agrégala en el editor.
-            </div>
-          )}
-          <div className="preview-info">
-            <span className="kick">
-              <span className="bdot" />
-              Tu invitación
-            </span>
-            <div className="preview-title serif">
-              {tituloEvento}
-              <span style={{ color: "var(--pink)" }}>.</span>
-            </div>
-            <div className="preview-url" onClick={copyLink}>
-              {(host || "wedo.gifts")}/boda/{slug}{" "}
-              <span className="cp">· {copied ? "¡copiado!" : "copiar link"}</span>
-            </div>
-            <div className="preview-actions">
-              {slug && (
-                <a
-                  className="btn btn-pink"
-                  href={`/boda/${slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Ver invitación
-                </a>
-              )}
-              <Link className="btn btn-ghost" href="/editor">
-                Editar diseño
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* COLS */}
         <div className="cols">
           {/* LEFT: funds + withdraw */}
