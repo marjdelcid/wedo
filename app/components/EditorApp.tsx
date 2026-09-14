@@ -1353,7 +1353,6 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
       {/* PILL NAV */}
       <nav className="pillnav">
-        <Link href="/">Inicio</Link>
         <Link className="on" href="/editor">Editor<span className="d" /></Link>
         <Link href="/dashboard">Dashboard</Link>
       </nav>
