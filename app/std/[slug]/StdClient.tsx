@@ -100,10 +100,9 @@ export default function StdClient({ slug }: { slug: string }) {
     </div>
   );
 
-  // el estilo C (letterpress "TO BE WED") se retiró como opción; los
-  // registros viejos con "c" se muestran como editorial (b)
-  const rawEstilo = (pareja.std_estilo || "b").toLowerCase();
-  const estilo = rawEstilo === "c" ? "b" : rawEstilo;
+  // el estilo C (letterpress AMB) ya no es opción pública en el editor;
+  // permanece solo para eventos que lo tienen guardado (la boda M&A)
+  const estilo = (pareja.std_estilo || "b").toLowerCase();
   const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
   const ciudad = pareja.lugar || "";
 

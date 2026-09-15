@@ -206,7 +206,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       invitacion_url: p.invitacion_url || "",
       frase_portada: p.frase_portada ?? getEventType(p.tipo_evento).frasePortada, estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, petalos_emoji: p.petalos_emoji || "", confeti_regalo: !!p.confeti_regalo,
-      std_estilo: (p.std_estilo === "c" ? "b" : p.std_estilo) || "b",
+      // "c" (letterpress AMB, exclusivo M&A) se conserva tal cual aunque ya no sea opción del selector
+      std_estilo: p.std_estilo || "b",
       tipo_evento: p.tipo_evento || "boda",
       detalles_evento: (p.detalles_evento && typeof p.detalles_evento === "object") ? p.detalles_evento : {},
     });
@@ -1075,6 +1076,9 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       </div>
                     ))}
                   </div>
+                  {f.std_estilo === "c" && (
+                    <p className="hint" style={{ margin: "10px 0 0" }}>Este evento usa el diseño exclusivo Letterpress (monograma). Si eliges Foto o Editorial arriba, lo reemplaza al guardar.</p>
+                  )}
                   {pareja?.slug && (
                     <a className="btn btn-ghost btn-sm" href={`/std/${pareja.slug}`} target="_blank" rel="noreferrer" style={{ marginTop: 12, display: "inline-flex" }}>Ver / compartir Save the Date ↗</a>
                   )}
