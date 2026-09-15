@@ -235,6 +235,41 @@ export default function Homepage() {
           </div>
         </section>
 
+        {/* PANEL SHOWCASE */}
+        <section className="panelsec" id="panel">
+          <div className="wrap">
+            <div className="funcs-head">
+              <h2 className="anim">Todo tu evento, en un panel<span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span></h2>
+              <span className="eyebrow anim d1"><span className="d" />En tiempo real</span>
+            </div>
+            <div className="mock anim d2">
+              <div className="mock-bar"><span /><span /><span /><b>wedo. · tu panel</b></div>
+              <div className="mock-body">
+                <div className="mock-stats">
+                  <div className="mstat"><span className="mk">Recaudado</span><span className="mv">Q 12,400</span><span className="ms">llega completo a tu cuenta</span></div>
+                  <div className="mstat"><span className="mk">Confirmados</span><span className="mv">86</span><span className="ms">de 120 invitados</span></div>
+                  <div className="mstat"><span className="mk">Mensajes</span><span className="mv">34</span><span className="ms">dedicatorias recibidas</span></div>
+                </div>
+                <div className="mock-cols">
+                  <div className="mcol">
+                    <div className="mh">Últimos regalos</div>
+                    <div className="mrow"><span className="mn">Andrea Morales</span><span className="md">Luna de miel</span><span className="mq">Q 500</span></div>
+                    <div className="mrow"><span className="mn">Familia Ruiz</span><span className="md">Primera casa</span><span className="mq">Q 1,000</span></div>
+                    <div className="mrow"><span className="mn">Luis Herrera</span><span className="md">Cena romántica</span><span className="mq">Q 350</span></div>
+                  </div>
+                  <div className="mcol">
+                    <div className="mh">RSVP recientes</div>
+                    <div className="mrow"><span className="mn">Familia Pérez</span><span className="md">💬 ¡Ahí estaremos!</span><span className="mq ok">✓ 4</span></div>
+                    <div className="mrow"><span className="mn">Carmen y Luis</span><span className="md">💬 ¡Felicidades!</span><span className="mq ok">✓ 2</span></div>
+                    <div className="mrow"><span className="mn">Jorge Castillo</span><span className="md">Sin mensaje</span><span className="mq no">No podrá ir</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="pnote anim d3">Así se ve tu panel: cada regalo y cada confirmación aparecen al momento, desde tu teléfono o tu computadora.</p>
+          </div>
+        </section>
+
         {/* PRICING */}
         <section className="price" id="precio">
           <div className="wrap">

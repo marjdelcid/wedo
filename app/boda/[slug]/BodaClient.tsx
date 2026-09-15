@@ -578,8 +578,8 @@ export default function BodaClient({ slug }: { slug: string }) {
   return (
     <div className="inv-public" style={themeVars}>
       {demo && (
-        <div style={{ position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "rgba(35,23,18,.92)", color: "#F7F0E5", borderRadius: 100, padding: "8px 16px", fontSize: 12.5, fontFamily: "'Archivo',sans-serif", display: "flex", gap: 12, alignItems: "center", boxShadow: "0 8px 24px rgba(35,23,18,.25)", maxWidth: "calc(100vw - 24px)", whiteSpace: "nowrap" }}>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>Invitación de muestra · nada se cobra ni se guarda</span>
+        <div style={{ position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "rgba(35,23,18,.92)", color: "#F7F0E5", borderRadius: 18, padding: "9px 16px", fontSize: 12.5, lineHeight: 1.45, fontFamily: "'Archivo',sans-serif", display: "flex", gap: 12, alignItems: "center", boxShadow: "0 8px 24px rgba(35,23,18,.25)", maxWidth: "min(92vw, 560px)", textAlign: "center" }}>
+          <span>Invitación de muestra: nada se cobra ni se guarda. Colores, tipografías, fotos y secciones se personalizan en minutos.</span>
           <a href="/login" style={{ color: "#F3A0C3", fontWeight: 700, textDecoration: "none", flex: "none" }}>Crea la tuya gratis</a>
         </div>
       )}
