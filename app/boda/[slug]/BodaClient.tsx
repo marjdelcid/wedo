@@ -302,6 +302,16 @@ export default function BodaClient({ slug }: { slug: string }) {
   const estiloPortada = pareja.estilo_portada || "clasica";
   const animEstilo = pareja.animaciones_estilo || "elegante";
   const petalos = !!pareja.petalos;
+  // lluvia personalizada: si la pareja eligió emoji(s), caen en lugar de pétalos
+  const petalosEmoji: string[] = (() => {
+    const raw = (pareja.petalos_emoji || "").trim();
+    if (!raw) return [];
+    try {
+      const Seg = (Intl as any)?.Segmenter;
+      const segs = Seg ? Array.from(new Seg("es", { granularity: "grapheme" }).segment(raw), (s: any) => s.segment) : Array.from(raw);
+      return (segs as string[]).map((s) => s.trim()).filter(Boolean);
+    } catch { return [raw]; }
+  })();
   const fotoHero = pareja.foto_hero || "";
 
   const secs: any = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
@@ -599,7 +609,9 @@ export default function BodaClient({ slug }: { slug: string }) {
                   {petalos && (
                     <div className="petals" aria-hidden="true">
                       {PETAL_COLORS.map((col, i) => (
-                        <span key={i} className="petal" style={{ left: `${PETAL_LEFT[i]}%`, background: col, animationDuration: `${PETAL_DUR[i]}s`, animationDelay: `${PETAL_DELAY[i]}s` }} />
+                        petalosEmoji.length > 0
+                          ? <span key={i} className="petal petal-emoji" style={{ left: `${PETAL_LEFT[i]}%`, animationDuration: `${PETAL_DUR[i]}s`, animationDelay: `${PETAL_DELAY[i]}s` }}>{petalosEmoji[i % petalosEmoji.length]}</span>
+                          : <span key={i} className="petal" style={{ left: `${PETAL_LEFT[i]}%`, background: col, animationDuration: `${PETAL_DUR[i]}s`, animationDelay: `${PETAL_DELAY[i]}s` }} />
                       ))}
                     </div>
                   )}
