@@ -118,6 +118,7 @@ export default function Homepage() {
           <a className="logo brandmark" href="#top">wedo<span className="dot">.</span></a>
           <nav className="nav-r">
             <a className="link-u hide-sm" href="#funciones">Cómo funciona</a>
+            <a className="link-u hide-sm" href="#precio">Precio</a>
             <a className="link-u" href="/login">Iniciar sesión</a>
             <a className="btn btn-ink" href="/login" style={{ padding: "10px 18px", fontSize: 14 }}>Crea tu evento</a>
           </nav>
@@ -195,6 +196,34 @@ export default function Homepage() {
                 <p>Una lista de regalos en efectivo, en quetzales, directo a tu cuenta. Tú eliges en qué gastarlo.</p>
               </article>
             </div>
+          </div>
+        </section>
+
+        {/* PRICING */}
+        <section className="price" id="precio">
+          <div className="wrap">
+            <div className="funcs-head">
+              <h2 className="anim">Precio claro, sin sorpresas<span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span></h2>
+              <span className="eyebrow anim d1"><span className="d" />Recibes el 100%</span>
+            </div>
+            <div className="pgrid">
+              <article className="pcard anim d2">
+                <div className="pk">Crear tu evento</div>
+                <div className="pv">Q0</div>
+                <p>Invitación digital, RSVP y mesa de regalos incluidos. Sin mensualidades y sin costo por invitado.</p>
+              </article>
+              <article className="pcard anim d3">
+                <div className="pk">Cada aporte</div>
+                <div className="pv">Tarifa del invitado</div>
+                <p>Al regalar, el invitado suma una pequeña tarifa de servicio que cubre el pago seguro con tarjeta. Siempre la ve antes de pagar.</p>
+              </article>
+              <article className="pcard destacada anim d4">
+                <div className="pk">Para ti</div>
+                <div className="pv">El 100%</div>
+                <p>Cada quetzal que te regalan llega completo a tu cuenta. Tú decides cómo usarlo.</p>
+              </article>
+            </div>
+            <p className="pnote anim d5">Por ejemplo: si te regalan Q500, tú recibes Q500. El invitado paga Q537, con la tarifa de servicio ya incluida.</p>
           </div>
         </section>
 
