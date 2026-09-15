@@ -547,6 +547,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     setInvitados(inv || []);
   }
   async function deleteGuest(id: string) {
+    const inv = invitados.find((x: any) => x.id === id);
+    if (!window.confirm(`¿Eliminar la invitación de ${inv?.nombre || "este invitado"}? Se pierde su link y su respuesta RSVP.`)) return;
     await supabase.from("rsvp").delete().eq("invitado_id", id);
     await supabase.from("invitados").delete().eq("id", id);
     setInvitados((arr) => arr.filter((x) => x.id !== id));
