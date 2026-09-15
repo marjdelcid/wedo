@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { elegirPareja } from "../lib/eventoActivo";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -14,9 +15,16 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
-    const { data: p } = await supabase.from("parejas").select("nombre1, nombre2, slug").eq("user_id", user.id).single();
-    if (!p) { router.push("/onboarding"); return; }
-    setPareja(p);
+    // Una cuenta puede tener varios eventos: nada de .single() (falla con 2+
+    // filas y mandaba cuentas con eventos al onboarding). Redirigimos a
+    // onboarding SOLO si la consulta fue exitosa y de verdad no hay eventos.
+    const { data: rows, error } = await supabase.from("parejas")
+      .select("id, nombre1, nombre2, slug")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+    if (error) { setLoading(false); return; }
+    if (!rows || rows.length === 0) { router.push("/onboarding"); return; }
+    setPareja(elegirPareja(rows));
     setLoading(false);
   }
 

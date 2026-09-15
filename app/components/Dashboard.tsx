@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getEventType } from "../lib/eventTypes";
+import { elegirPareja, setEventoActivoId } from "../lib/eventoActivo";
 import "../app-ui.css";
 
 const AVA_COLORS = [
@@ -83,6 +84,9 @@ function fmtFecha(iso?: string) {
 export default function Dashboard() {
   const router = useRouter();
   const [pareja, setPareja] = useState<any>(null);
+  const [eventos, setEventos] = useState<any[]>([]);
+  const [evtMenu, setEvtMenu] = useState(false);
+  const [cargaError, setCargaError] = useState(false);
   const [fondos, setFondos] = useState<any[]>([]);
   const [contribuciones, setContribuciones] = useState<any[]>([]);
   const [invitados, setInvitados] = useState<any[]>([]);
@@ -130,20 +134,25 @@ export default function Dashboard() {
       return;
     }
 
-    const { data: parejaData } = await supabase
+    // varios eventos por cuenta: sin .single() (con 2+ filas devolvía null
+    // y expulsaba al onboarding); el activo se recuerda en localStorage
+    const { data: parejasRows, error: parejasErr } = await supabase
       .from("parejas")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .order("created_at", { ascending: true });
 
     const admin = await esAdminCliente();
     setEsAdminUser(admin);
 
+    if (parejasErr) { setCargaError(true); return; }
+    const parejaData = elegirPareja(parejasRows || []);
     if (!parejaData) {
       // los admins sin evento propio van a su panel, no al onboarding
       router.push(admin ? "/admin" : "/onboarding");
       return;
     }
+    setEventos(parejasRows || []);
     setPareja(parejaData);
 
     const { data: fondosData } = await supabase
@@ -268,6 +277,14 @@ export default function Dashboard() {
 
   const recentActivity = contribuciones.slice(0, 6);
 
+  if (cargaError)
+    return (
+      <div className="wedo-app" style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <div className="serif it" style={{ fontSize: 24, color: "var(--ink-soft)" }}>No pudimos cargar tu evento<span style={{ color: "var(--pink)" }}>.</span></div>
+        <button className="btn btn-pink btn-sm" onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
+
   if (loading)
     return (
       <div
@@ -296,13 +313,27 @@ export default function Dashboard() {
           <Link className="logo" href="/">
             wedo<span className="dot">.</span>
           </Link>
-          <button className="evt-switch" type="button" title="Tu evento">
-            <span className="tag">Evento</span>
-            <span>
-              {nombre2 ? `${nombre1} & ${nombre2}` : nombre1} · {evtType.label}
-            </span>
-            <span className="chev">▾</span>
-          </button>
+          <div className="evt-wrap">
+            <button className="evt-switch" type="button" title="Tu evento" onClick={() => setEvtMenu((v) => !v)}>
+              <span className="tag">Evento</span>
+              <span>
+                {nombre2 ? `${nombre1} & ${nombre2}` : nombre1} · {evtType.label}
+              </span>
+              <span className="chev">▾</span>
+            </button>
+            {evtMenu && (
+              <div className="evt-menu">
+                {eventos.map((e) => (
+                  <button key={e.id} type="button" className={e.id === pareja?.id ? "on" : ""}
+                    onClick={() => { setEventoActivoId(e.id); window.location.reload(); }}>
+                    {e.nombre2 ? `${e.nombre1} & ${e.nombre2}` : e.nombre1}
+                    <span className="tipo">{getEventType(e.tipo_evento).label}</span>
+                  </button>
+                ))}
+                <a className="nuevo" href="/onboarding">＋ Crear otro evento</a>
+              </div>
+            )}
+          </div>
           <div className="topbar-r">
             {esAdminUser && (
               <Link className="btn btn-ghost btn-sm" href="/admin">

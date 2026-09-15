@@ -11,6 +11,7 @@ import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getEventType, getCampo, campoLabel } from "../lib/eventTypes";
+import { elegirPareja, setEventoActivoId } from "../lib/eventoActivo";
 import { TIPOGRAFIAS } from "../lib/tipografias";
 import { generarDisenoIA, DisenoIAError, type DisenoIA } from "../lib/disenoIA";
 import { featureEnabled } from "../lib/featureFlags";
@@ -112,6 +113,9 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [pareja, setPareja] = useState<any>(null);
+  const [eventos, setEventos] = useState<any[]>([]);
+  const [evtMenu, setEvtMenu] = useState(false);
+  const [cargaError, setCargaError] = useState(false);
   const [pane, setPane] = useState<Pane>(initialPane);
   const [savedPane, setSavedPane] = useState<Pane | "all" | null>(null);
   const [savingPane, setSavingPane] = useState<Pane | "all" | null>(null);
@@ -175,8 +179,14 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   async function loadAll() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
-    const { data: p } = await supabase.from("parejas").select("*").eq("user_id", user.id).single();
+    // varios eventos por cuenta: sin .single() (con 2+ filas devolvía null
+    // y expulsaba al onboarding); el activo se recuerda en localStorage
+    const { data: parejasRows, error: parejasErr } = await supabase.from("parejas")
+      .select("*").eq("user_id", user.id).order("created_at", { ascending: true });
+    if (parejasErr) { setCargaError(true); return; }
+    const p = elegirPareja(parejasRows || []);
     if (!p) { router.push("/onboarding"); return; }
+    setEventos(parejasRows || []);
     setPareja(p);
     setF({
       nombre1: p.nombre1 || "", nombre2: p.nombre2 || "", fecha: p.fecha || "", lugar: p.lugar || "", hora: p.hora || "",
@@ -657,6 +667,12 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
   async function logout() { await supabase.auth.signOut(); router.push("/"); }
 
+  if (cargaError) return (
+    <div className="wedo-app"><div className="app-loading" style={{ flexDirection: "column", gap: 16 }}>
+      <span>No pudimos cargar tu evento<span style={{ color: "var(--pink)" }}>.</span></span>
+      <button className="btn btn-pink btn-sm" onClick={() => window.location.reload()}>Reintentar</button>
+    </div></div>
+  );
   if (loading) return <div className="wedo-app"><div className="app-loading">Cargando<span style={{ color: "var(--pink)" }}>.</span></div></div>;
 
   const saveLabel = (which: Pane, base: string) => savingPane === which ? "Guardando…" : savedPane === which ? "¡Guardado!" : base;
@@ -667,11 +683,25 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       <header className="topbar">
         <div className="wrap topbar-in full">
           <Link className="logo" href="/">wedo<span className="dot">.</span></Link>
-          <button className="evt-switch" type="button">
-            <span className="tag">Evento</span>
-            <span>{f.nombre2 ? `${f.nombre1 || "Tu evento"} & ${f.nombre2}` : (f.nombre1 || "Tu evento")} · {evtType.label}</span>
-            <span className="chev">▾</span>
-          </button>
+          <div className="evt-wrap">
+            <button className="evt-switch" type="button" onClick={() => setEvtMenu((v) => !v)}>
+              <span className="tag">Evento</span>
+              <span>{f.nombre2 ? `${f.nombre1 || "Tu evento"} & ${f.nombre2}` : (f.nombre1 || "Tu evento")} · {evtType.label}</span>
+              <span className="chev">▾</span>
+            </button>
+            {evtMenu && (
+              <div className="evt-menu">
+                {eventos.map((e) => (
+                  <button key={e.id} type="button" className={e.id === pareja?.id ? "on" : ""}
+                    onClick={() => { setEventoActivoId(e.id); window.location.reload(); }}>
+                    {e.nombre2 ? `${e.nombre1} & ${e.nombre2}` : e.nombre1}
+                    <span className="tipo">{getEventType(e.tipo_evento).label}</span>
+                  </button>
+                ))}
+                <a className="nuevo" href="/onboarding">＋ Crear otro evento</a>
+              </div>
+            )}
+          </div>
           <div className="topbar-r">
             <span className="saved-tag">
               <span className="bdot" style={{ background: savedPane ? "var(--lime)" : "var(--ink-faint)" }} />
