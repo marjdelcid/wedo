@@ -229,8 +229,14 @@ export default function Homepage() {
               </li>
             </ol>
             <div className="flow-cta anim d6">
-              <a className="btn btn-ink" href="/boda/demo" target="_blank" rel="noopener">Mira una invitación de muestra</a>
-              <span className="flow-note">Es una demo de verdad: prueba el RSVP y la mesa de regalos sin pagar nada.</span>
+              <div className="demo-links">
+                <span className="demo-k">Mira una invitación de muestra:</span>
+                <a className="demo-pill" href="/boda/demo" target="_blank" rel="noopener">💍 Boda</a>
+                <a className="demo-pill" href="/boda/demo-bautizo" target="_blank" rel="noopener">🕊️ Bautizo</a>
+                <a className="demo-pill" href="/boda/demo-cumple" target="_blank" rel="noopener">🎈 Cumple infantil</a>
+                <a className="demo-pill" href="/boda/demo-despedida" target="_blank" rel="noopener">🥂 Despedida de soltera</a>
+              </div>
+              <span className="flow-note">Son demos de verdad: prueba el RSVP y la mesa de regalos sin pagar nada. Cada una con sus propios colores y tipografías, como la tuya.</span>
             </div>
           </div>
         </section>

@@ -10,6 +10,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { comisionServicio } from "../../lib/aportes";
+import { esDemo } from "../../lib/demo";
 import { getEventType } from "../../lib/eventTypes";
 import "../../inv-pay.css";
 import "../../inv-public.css";
@@ -79,9 +80,9 @@ function Carousel({ photos }: { photos: string[] }) {
 }
 
 export default function BodaClient({ slug }: { slug: string }) {
-  // invitación de muestra del home (/boda/demo): se navega igual que una real,
-  // pero pagos y RSVP solo se simulan — nada se cobra ni se guarda
-  const demo = slug === "demo";
+  // invitación de muestra del home (/boda/demo*): se navega igual que una real,
+  // pero pagos y RSVP solo se simulan, nada se cobra ni se guarda
+  const demo = esDemo(slug);
   const [pareja, setPareja] = useState<any>(null);
   const [fondos, setFondos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
