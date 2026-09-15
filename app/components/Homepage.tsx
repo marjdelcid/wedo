@@ -4,13 +4,38 @@
    Layered editorial landing. Styles live in globals.css (class-based).
    Pure brand chrome: Instrument Serif + Archivo, pink dot, cream canvas.
    ===================================================================== */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "../lib/supabase";
+
+/* Invitaciones de muestra del home: fallback estático; al montar se leen
+   nombres y fotos reales de la base para reflejar los demos al día. */
+const DEMOS_BASE = [
+  { slug: "demo", emoji: "💍", tipo: "Boda", nombres: "Sofía & Diego", foto: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80" },
+  { slug: "demo-bautizo", emoji: "🕊️", tipo: "Bautizo", nombres: "Emilia", foto: "https://images.unsplash.com/photo-1544126592-807ade215a0b?w=800&q=80" },
+  { slug: "demo-cumple", emoji: "🎈", tipo: "Cumple infantil", nombres: "Mateo", foto: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80" },
+  { slug: "demo-despedida", emoji: "🥂", tipo: "Despedida", nombres: "Valeria", foto: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=800&q=80" },
+];
 
 export default function Homepage() {
   const heroRef = useRef<HTMLElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const router = useRouter();
+  const [demoCards, setDemoCards] = useState(DEMOS_BASE);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from("parejas").select("slug,nombre1,nombre2,foto_hero").in("slug", DEMOS_BASE.map((d) => d.slug));
+        if (data && data.length) {
+          setDemoCards(DEMOS_BASE.map((b) => {
+            const r: any = data.find((x: any) => x.slug === b.slug);
+            return r ? { ...b, nombres: r.nombre2 ? `${r.nombre1} & ${r.nombre2}` : (r.nombre1 || b.nombres), foto: r.foto_hero || b.foto } : b;
+          }));
+        }
+      } catch { /* se queda el fallback */ }
+    })();
+  }, []);
 
   /* sticky nav: subtle shadow once the page is scrolled */
   useEffect(() => {
@@ -118,6 +143,7 @@ export default function Homepage() {
           <a className="logo brandmark" href="#top">wedo<span className="dot">.</span></a>
           <nav className="nav-r">
             <a className="link-u hide-sm" href="#funciones">Cómo funciona</a>
+            <a className="link-u hide-sm" href="#demos">Demos</a>
             <a className="link-u hide-sm" href="#precio">Precio</a>
             <a className="link-u" href="/login">Iniciar sesión</a>
             <a className="btn btn-ink" href="/login" style={{ padding: "10px 18px", fontSize: 14 }}>Crea tu evento</a>
@@ -199,6 +225,27 @@ export default function Homepage() {
           </div>
         </section>
 
+        {/* DEMOS SHOWCASE */}
+        <section className="demos" id="demos">
+          <div className="wrap">
+            <div className="funcs-head">
+              <h2 className="anim">Míralas en vivo<span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span></h2>
+              <span className="eyebrow anim d1"><span className="d" />Invitaciones de muestra</span>
+            </div>
+            <div className="dgrid">
+              {demoCards.map((d, i) => (
+                <a key={d.slug} className={`demo-card anim d${i + 2}`} href={`/boda/${d.slug}`} target="_blank" rel="noopener">
+                  <img src={d.foto} alt="" loading="lazy" />
+                  <span className="dc-scrim" aria-hidden="true" />
+                  <span className="dc-tag">{d.emoji} {d.tipo}</span>
+                  <span className="dc-body"><b>{d.nombres}</b><span>Ver invitación</span></span>
+                </a>
+              ))}
+            </div>
+            <p className="pnote anim d6">Son demos de verdad: entra, prueba el RSVP y la mesa de regalos sin pagar nada. Cada una con sus propios colores, tipografías y fotos, igual que será la tuya.</p>
+          </div>
+        </section>
+
         {/* MONEY FLOW + DEMO */}
         <section className="flow" id="dinero">
           <div className="wrap">
@@ -229,14 +276,7 @@ export default function Homepage() {
               </li>
             </ol>
             <div className="flow-cta anim d6">
-              <div className="demo-links">
-                <span className="demo-k">Mira una invitación de muestra:</span>
-                <a className="demo-pill" href="/boda/demo" target="_blank" rel="noopener">💍 Boda</a>
-                <a className="demo-pill" href="/boda/demo-bautizo" target="_blank" rel="noopener">🕊️ Bautizo</a>
-                <a className="demo-pill" href="/boda/demo-cumple" target="_blank" rel="noopener">🎈 Cumple infantil</a>
-                <a className="demo-pill" href="/boda/demo-despedida" target="_blank" rel="noopener">🥂 Despedida de soltera</a>
-              </div>
-              <span className="flow-note">Son demos de verdad: prueba el RSVP y la mesa de regalos sin pagar nada. Cada una con sus propios colores y tipografías, como la tuya.</span>
+              <span className="flow-note">¿Quieres verlo funcionando? Arriba tienes cuatro invitaciones de muestra para probar el flujo completo.</span>
             </div>
           </div>
         </section>

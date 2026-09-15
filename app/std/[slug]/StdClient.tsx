@@ -100,7 +100,10 @@ export default function StdClient({ slug }: { slug: string }) {
     </div>
   );
 
-  const estilo = (pareja.std_estilo || "c").toLowerCase();
+  // el estilo C (letterpress "TO BE WED") se retiró como opción; los
+  // registros viejos con "c" se muestran como editorial (b)
+  const rawEstilo = (pareja.std_estilo || "b").toLowerCase();
+  const estilo = rawEstilo === "c" ? "b" : rawEstilo;
   const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
   const ciudad = pareja.lugar || "";
 

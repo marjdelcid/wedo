@@ -22,11 +22,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${n || "Nuestra boda"} · Save the date`;
   const description = ["Reserva la fecha", fecha, p.lugar].filter(Boolean).join(" · ");
   // imagen = la "tarjeta de WhatsApp" del estilo elegido (póster vertical)
-  const estilo = (p.std_estilo || "c").toLowerCase();
+  // el estilo C se retiró: registros viejos con "c" comparten la tarjeta de B
+  const estilo = (p.std_estilo || "b").toLowerCase();
   let image: { url: string; width?: number; height?: number };
   if (estilo === "a") image = { url: (p.foto_hero as string) || "/og.png" };
-  else if (estilo === "b") image = { url: "/og-std-b.png", width: 1080, height: 1350 };
-  else image = { url: "/og-std-c.png", width: 1080, height: 1350 };
+  else image = { url: "/og-std-b.png", width: 1080, height: 1350 };
   const url = `https://wedo.gifts/std/${slug}`;
   return {
     title,

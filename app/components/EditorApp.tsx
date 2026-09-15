@@ -133,7 +133,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     rsvp_fecha_limite: "", nota_adultos: "",
     invitacion_url: "",
     frase_portada: "Nos casamos", estilo_portada: "clasica", animaciones_estilo: "elegante", petalos: false, petalos_emoji: "", confeti_regalo: false,
-    std_estilo: "c",
+    std_estilo: "b",
     tipo_evento: "boda", detalles_evento: {} as Record<string, string>,
   });
   const setField = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
@@ -206,7 +206,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
       invitacion_url: p.invitacion_url || "",
       frase_portada: p.frase_portada ?? getEventType(p.tipo_evento).frasePortada, estilo_portada: p.estilo_portada || "clasica",
       animaciones_estilo: p.animaciones_estilo || "elegante", petalos: !!p.petalos, petalos_emoji: p.petalos_emoji || "", confeti_regalo: !!p.confeti_regalo,
-      std_estilo: p.std_estilo || "c",
+      std_estilo: (p.std_estilo === "c" ? "b" : p.std_estilo) || "b",
       tipo_evento: p.tipo_evento || "boda",
       detalles_evento: (p.detalles_evento && typeof p.detalles_evento === "object") ? p.detalles_evento : {},
     });
@@ -734,7 +734,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
         <div style={{ position: "relative", fontFamily: "'Archivo',sans-serif", fontSize: 5, letterSpacing: ".18em", color: "rgba(247,240,229,.8)" }}>{miniFecha}</div>
       </div>
     );
-    if (id === "b") return (
+    // b: editorial
+    return (
       <div style={{ position: "absolute", inset: 0, background: "#F7F0E5", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, paddingBottom: 18 }}>
         <span style={{ position: "absolute", width: 42, height: 42, background: "#87A6E8", borderRadius: "64% 36% 52% 48%/56% 50% 50% 44%", top: -13, right: -13, opacity: 0.9 }} />
         <span style={{ position: "absolute", width: 34, height: 34, background: "#B3C24A", borderRadius: "50% 50% 48% 52%", bottom: -13, left: -13, opacity: 0.85 }} />
@@ -744,14 +745,6 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
           date<span style={{ position: "absolute", left: -2, right: -3, bottom: 1, height: 5, background: "#B3C24A", zIndex: -1, borderRadius: 1, opacity: 0.9 }} />
         </div>
         <div style={{ fontFamily: "'Archivo',sans-serif", fontSize: 5, letterSpacing: ".12em", marginTop: 3, color: "rgba(35,23,18,.7)" }}>{miniN1}{miniN2 ? ` & ${miniN2}` : ""} · {miniFecha}</div>
-      </div>
-    );
-    // c: letterpress sage
-    return (
-      <div style={{ position: "absolute", inset: 0, background: "#DDE0CF", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, paddingBottom: 18 }}>
-        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, letterSpacing: ".16em", color: "#F3EDD7", textShadow: "0 1px 1px rgba(70,81,62,.55)" }}>TO BE</div>
-        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic", fontSize: 16, color: "#46513E" }}>{miniN1.charAt(0)}·{(miniN2 || "W").charAt(0)}</div>
-        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, letterSpacing: ".16em", color: "#F3EDD7", textShadow: "0 1px 1px rgba(70,81,62,.55)" }}>WED</div>
       </div>
     );
   }
@@ -1075,7 +1068,6 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     {[
                       { id: "a", label: "Foto" },
                       { id: "b", label: "Editorial" },
-                      { id: "c", label: "Letterpress" },
                     ].map((s) => (
                       <div key={s.id} className={"cover-opt" + (f.std_estilo === s.id ? " sel" : "")} onClick={() => setField("std_estilo", s.id)}>
                         {miniStd(s.id)}
