@@ -1,0 +1,42 @@
+[
+  {
+    "slug": "demo",
+    "nombre1": "Sofía",
+    "nombre2": "Diego",
+    "tipo_evento": "boda",
+    "frase_portada": "Una noche para celebrar el amor.",
+    "fecha": "2027-03-20",
+    "lugar": "Antigua Guatemala",
+    "foto": "/demos/demo.jpg"
+  },
+  {
+    "slug": "demo-bautizo",
+    "nombre1": "Emilia’s Baptism",
+    "nombre2": "",
+    "tipo_evento": "bautizo",
+    "frase_portada": "A beautiful day to celebrate faith, love & new beginnings.",
+    "fecha": "2027-05-08",
+    "lugar": "Ciudad de Guatemala",
+    "foto": "/demos/demo-bautizo.jpg"
+  },
+  {
+    "slug": "demo-cumple",
+    "nombre1": "Mateo ¡ROAR! 🦖",
+    "nombre2": "",
+    "tipo_evento": "cumple_nino",
+    "frase_portada": "¡Mateo cumple 5 años y queremos celebrarlo contigo!",
+    "fecha": "2026-11-14",
+    "lugar": "Ciudad de Guatemala",
+    "foto": "/demos/demo-cumple.jpg"
+  },
+  {
+    "slug": "demo-despedida",
+    "nombre1": "Valeria",
+    "nombre2": "",
+    "tipo_evento": "despedida",
+    "frase_portada": "✨ GLITZ & SPRITZ",
+    "fecha": "2027-07-05",
+    "lugar": "Rosa Jamaica - El Paredon",
+    "foto": "/demos/demo-despedida.jpg"
+  }
+]
