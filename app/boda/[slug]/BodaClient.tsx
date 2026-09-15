@@ -397,7 +397,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       <div className="sec">
         <div className="sec-k">{esBoda ? "Nuestra historia" : "Mensaje"}</div>
         <h2 className="sec-h">{esBoda ? "Cómo empezó todo" : "Un mensaje para ti"}</h2>
-        <p className="body">{pareja.historia || (esBoda ? "Pronto compartiremos cómo empezó todo." : "Pronto compartiremos un mensaje contigo.")}</p>
+        <p className="body" style={{ whiteSpace: "pre-line" }}>{pareja.historia || (esBoda ? "Pronto compartiremos cómo empezó todo." : "Pronto compartiremos un mensaje contigo.")}</p>
         {pareja.musica && <div className="song"><div className="k">Nuestra canción</div><div className="v">♪ {pareja.musica}</div></div>}
         {galeriaFotos.length > 0 && <Carousel photos={galeriaFotos} />}
       </div>
@@ -451,7 +451,7 @@ export default function BodaClient({ slug }: { slug: string }) {
         <div className="info-card" key="adultos">
           <div className="ic-k">Toma en cuenta</div>
           <div className="ic-v">Solo adultos</div>
-          <div className="ic-s">{pareja.nota_adultos}</div>
+          <div className="ic-s" style={{ whiteSpace: "pre-line" }}>{pareja.nota_adultos}</div>
         </div>
       );
       if (pareja.rsvp_fecha_limite) {
@@ -719,7 +719,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                     <div className="state-ico ok">✓</div>
                     <h3>¡Gracias por tu regalo!</h3>
                     <p>Tu aporte de <strong>{fmtQ(gross)}</strong> va en camino a {nombresTxt}.</p>
-                    <div className="gracias" style={{ color: accent }}>“{pareja.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial."}”</div>
+                    <div className="gracias" style={{ color: accent, whiteSpace: "pre-line" }}>“{pareja.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial."}”</div>
                     <button className="pay-btn" onClick={closeGift}>Volver a la invitación</button>
                   </div>
                 )}
