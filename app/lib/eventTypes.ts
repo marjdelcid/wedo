@@ -16,6 +16,7 @@ export type EventTypeId =
   | "cumple_nino"
   | "cumple_adulto"
   | "baby_shower"
+  | "bautizo"
   | "despedida"
   | "otro";
 
@@ -254,6 +255,39 @@ export const EVENT_TYPES: EventType[] = [
     ],
   },
   {
+    id: "bautizo",
+    label: "Bautizo",
+    emoji: "🕊️",
+    desc: "La bendición del bebé",
+    frasePortada: "Mi bautizo",
+    slugBase: (f) => `bautizo-${slugify(f.nombre1 || "")}`,
+    pasos: [
+      {
+        kicker: "Cuéntanos del bautizo",
+        titulo: "El niño o la niña",
+        sub: "Lo esencial para empezar la página. Podrás editar todo después.",
+        campos: [
+          { key: "nombre1", label: "Nombre del niño o niña", placeholder: "Emilia", medio: true, requerido: true },
+          { key: "organiza", label: "¿Quién invita?", opcional: true, placeholder: "Sus papás, Ana y Luis", medio: true, detalle: true },
+          { key: "fecha", label: "Fecha del bautizo", tipo: "date", medio: true },
+          { key: "lugar", label: "Ciudad", placeholder: "Guatemala City", medio: true },
+        ],
+      },
+      {
+        kicker: "Detalles del bautizo",
+        titulo: "La ceremonia",
+        sub: "Los detalles que verán los invitados en la invitación.",
+        campos: [
+          { key: "hora", label: "Hora de la misa o ceremonia", placeholder: "11:00 AM", medio: true },
+          { key: "ceremonia", label: "Iglesia o parroquia", placeholder: "Parroquia Santa Clara", medio: true },
+          { key: "recepcion", label: "Celebración después", opcional: true, placeholder: "Almuerzo en casa de los abuelos" },
+          { key: "dresscode", label: "Dress code", opcional: true, placeholder: "Formal · tonos claros" },
+        ],
+      },
+      pasoMensaje("Un mensaje para los invitados. Es opcional.", "Con la bendición de Dios y el amor de nuestra familia, celebraremos el bautizo de…"),
+    ],
+  },
+  {
     id: "despedida",
     label: "Despedida de soltera",
     emoji: "🥂",
@@ -289,7 +323,7 @@ export const EVENT_TYPES: EventType[] = [
     id: "otro",
     label: "Otra celebración",
     emoji: "✨",
-    desc: "Graduación, aniversario, bautizo…",
+    desc: "Graduación, aniversario y más",
     frasePortada: "Estás invitado",
     slugBase: (f) => slugify(f.nombre1 || "evento"),
     pasos: [

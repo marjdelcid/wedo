@@ -45,11 +45,11 @@ const PALETAS = [
 const SECCIONES_META: Record<string, { label: string; desc: string }> = {
   galeria: { label: "Galería de fotos", desc: "Carrusel animado debajo de la foto principal" },
   regalos: { label: "Lista de regalos", desc: "Fondos para contribuir en quetzales" },
-  historia: { label: "Historia de amor", desc: "Cuéntales cómo se conocieron" },
-  detalles: { label: "Detalles del evento", desc: "Hora, ceremonia, recepción, dress code" },
+  historia: { label: "Historia o mensaje", desc: "Su historia o un mensaje para tus invitados" },
+  detalles: { label: "Detalles del evento", desc: "Hora, lugares y dress code" },
   invitacion: { label: "Invitación digital", desc: "Imagen o PDF de su invitación" },
   rsvp: { label: "Confirmación de asistencia", desc: "Los invitados buscan su nombre y confirman" },
-  countdown: { label: "Cuenta regresiva", desc: "Días que faltan para la boda" },
+  countdown: { label: "Cuenta regresiva", desc: "Días que faltan para el evento" },
 };
 const DEFAULT_ORDER = ["galeria", "regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
 
@@ -918,7 +918,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   <div className="ecard-h">Tipografía</div>
                   <FontSelect label="Título principal (tus nombres)" value={f.tipografia} onChange={(v) => setField("tipografia", v)} />
                   <FontSelect label="Títulos de secciones y regalos" value={f.tipografia_titulos} onChange={(v) => setField("tipografia_titulos", v)} />
-                  <p className="hint" style={{ marginTop: 4 }}>Más de 40 tipografías, incluyendo scripts de boda (Pinyon, Allura, Parisienne…).</p>
+                  <p className="hint" style={{ marginTop: 4 }}>Más de 40 tipografías, incluyendo scripts caligráficos (Pinyon, Allura, Parisienne…).</p>
                 </div>
 
                 <div className="ecard">
@@ -995,7 +995,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                 {showGiftForm && (
                   <div className="gform">
                     <div style={{ fontFamily: "'Instrument Serif',serif", fontStyle: "italic", fontSize: 22, marginBottom: 14 }}>{editingGift ? "Editar regalo" : "Nuevo regalo"}</div>
-                    <div className="field"><label>Nombre *</label><input className="inp" value={gForm.nombre} onChange={(e) => setGForm((p: any) => ({ ...p, nombre: e.target.value }))} placeholder="Luna de miel, Noche de bodas…" /></div>
+                    <div className="field"><label>Nombre *</label><input className="inp" value={gForm.nombre} onChange={(e) => setGForm((p: any) => ({ ...p, nombre: e.target.value }))} placeholder={esBoda ? "Luna de miel, Noche de bodas…" : "Un viaje, una cuenta de ahorros…"} /></div>
                     <div className="field"><label>Descripción corta</label><input className="inp" value={gForm.descripcion} onChange={(e) => setGForm((p: any) => ({ ...p, descripcion: e.target.value }))} placeholder="Una frase inspiradora" /></div>
                     <div className="field"><label>¿Por qué es especial?</label><textarea className="inp area" style={{ minHeight: 70 }} value={gForm.historia} onChange={(e) => setGForm((p: any) => ({ ...p, historia: e.target.value }))} placeholder="Ayúdanos a empezar nuestra vida juntos…" /></div>
                     <div className="field"><label>Tipo de regalo</label></div>

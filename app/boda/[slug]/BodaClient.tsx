@@ -480,7 +480,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       return (
         <div className="sec">
           <div className="sec-k">Detalles del día</div>
-          <h2 className="sec-h">El gran día</h2>
+          <h2 className="sec-h">{esBoda ? "El gran día" : "Los detalles"}</h2>
           {agenda.length > 0 && (
             <div className="itin">
               {agenda.map((r: { hora: string; evento: string }, i: number) => (
