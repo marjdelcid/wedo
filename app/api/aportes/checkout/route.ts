@@ -34,6 +34,8 @@ export async function POST(req: Request) {
     if (!fondo) return NextResponse.json({ error: "Regalo no encontrado." }, { status: 404 });
     const { data: pareja } = await admin.from("parejas").select("slug,nombre1,nombre2").eq("id", fondo.pareja_id).single();
     if (!pareja) return NextResponse.json({ error: "Evento no encontrado." }, { status: 404 });
+    // la invitación de muestra del home nunca genera cobros reales
+    if (pareja.slug === "demo") return NextResponse.json({ simulado: true });
 
     // comisión escalonada al invitado; la pareja recibe el aporte íntegro
     const servicio = comisionServicio(aporte);

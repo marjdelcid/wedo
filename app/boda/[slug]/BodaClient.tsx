@@ -79,6 +79,9 @@ function Carousel({ photos }: { photos: string[] }) {
 }
 
 export default function BodaClient({ slug }: { slug: string }) {
+  // invitación de muestra del home (/boda/demo): se navega igual que una real,
+  // pero pagos y RSVP solo se simulan — nada se cobra ni se guarda
+  const demo = slug === "demo";
   const [pareja, setPareja] = useState<any>(null);
   const [fondos, setFondos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +95,7 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [activeSection, setActiveSection] = useState("portada");
 
   // RSVP state
-  const [rsvpQuery, setRsvpQuery] = useState("");
+  const [rsvpQuery, setRsvpQuery] = useState(demo ? "Ana López" : "");
   const [rsvpResults, setRsvpResults] = useState<any[]>([]);
   const [rsvpSelected, setRsvpSelected] = useState<any>(null);
   const [rsvpSearched, setRsvpSearched] = useState(false);
@@ -147,6 +150,12 @@ export default function BodaClient({ slug }: { slug: string }) {
   async function handleRsvpSubmit() {
     if (!rsvpSelected || !rsvpForm.asistencia) return;
     setRsvpSubmitting(true);
+    if (demo) {
+      await new Promise((r) => setTimeout(r, 500));
+      setRsvpSubmitting(false);
+      setRsvpDone(true);
+      return;
+    }
     await supabase.from("rsvp").insert({
       invitado_id: rsvpSelected.id,
       pareja_id: pareja.id,
@@ -207,6 +216,13 @@ export default function BodaClient({ slug }: { slug: string }) {
     const montoFinal = g.modo === "completo" ? (g.meta || 0) : amount;
     if (!montoFinal || montoFinal <= 0) return;
     setPayState("pend");
+    if (demo) {
+      await new Promise((r) => setTimeout(r, 700));
+      setFondos((fs) => fs.map((x) => (x.id === g.id ? { ...x, recaudado: (x.recaudado || 0) + montoFinal } : x)));
+      setPayState("ok");
+      if (pareja?.confeti_regalo) fireConfetti();
+      return;
+    }
     // pago real: el API crea el checkout de Recurrente y redirigimos
     try {
       const res = await fetch("/api/aportes/checkout", {
@@ -561,6 +577,12 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   return (
     <div className="inv-public" style={themeVars}>
+      {demo && (
+        <div style={{ position: "fixed", top: 10, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "rgba(35,23,18,.92)", color: "#F7F0E5", borderRadius: 100, padding: "8px 16px", fontSize: 12.5, fontFamily: "'Archivo',sans-serif", display: "flex", gap: 12, alignItems: "center", boxShadow: "0 8px 24px rgba(35,23,18,.25)", maxWidth: "calc(100vw - 24px)", whiteSpace: "nowrap" }}>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>Invitación de muestra · nada se cobra ni se guarda</span>
+          <a href="/login" style={{ color: "#F3A0C3", fontWeight: 700, textDecoration: "none", flex: "none" }}>Crea la tuya gratis</a>
+        </div>
+      )}
       <style>{`@keyframes wedo-fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes wedo-pop{0%{opacity:0;transform:translateY(18px) scale(.97)}70%{opacity:1;transform:translateY(-4px) scale(1.01)}100%{opacity:1;transform:none}}`}</style>
       <div className="backdrop">
         <main className="inv">

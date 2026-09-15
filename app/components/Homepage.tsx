@@ -199,6 +199,42 @@ export default function Homepage() {
           </div>
         </section>
 
+        {/* MONEY FLOW + DEMO */}
+        <section className="flow" id="dinero">
+          <div className="wrap">
+            <div className="funcs-head">
+              <h2 className="anim">Así llega el dinero a tu cuenta<span style={{ color: "var(--pink)", fontStyle: "normal" }}>.</span></h2>
+              <span className="eyebrow anim d1"><span className="d" />Tu mesa de regalos</span>
+            </div>
+            <ol className="fsteps">
+              <li className="fstep anim d2">
+                <span className="fsnum">1</span>
+                <h3>Comparte tu invitación</h3>
+                <p>Cada invitado recibe su link por WhatsApp. No necesita app ni crear una cuenta.</p>
+              </li>
+              <li className="fstep anim d3">
+                <span className="fsnum">2</span>
+                <h3>Te regalan con tarjeta</h3>
+                <p>Eligen un regalo de tu mesa, dejan su dedicatoria y pagan seguro con Visa o Mastercard.</p>
+              </li>
+              <li className="fstep anim d4">
+                <span className="fsnum">3</span>
+                <h3>Lo ves al instante</h3>
+                <p>Cada aporte aparece en tu panel en tiempo real, con el nombre y el mensaje de quien te lo regaló.</p>
+              </li>
+              <li className="fstep anim d5">
+                <span className="fsnum">4</span>
+                <h3>Lo retiras a tu banco</h3>
+                <p>Cuando tú quieras, el total llega completo a tu cuenta bancaria, en quetzales.</p>
+              </li>
+            </ol>
+            <div className="flow-cta anim d6">
+              <a className="btn btn-ink" href="/boda/demo" target="_blank" rel="noopener">Mira una invitación de muestra</a>
+              <span className="flow-note">Es una demo de verdad: prueba el RSVP y la mesa de regalos sin pagar nada.</span>
+            </div>
+          </div>
+        </section>
+
         {/* PRICING */}
         <section className="price" id="precio">
           <div className="wrap">

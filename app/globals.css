@@ -176,6 +176,18 @@ a{color:inherit; text-decoration:none;}
 .fcard.c3{background:#e9eecb;} .fcard.c3 .fdot{background:var(--lime);} .fcard.c3 .fnum{color:#7e8a30;}
 
 /* event types — airy blended band */
+.flow{padding:48px 0 56px; position:relative; overflow:hidden; background:transparent; scroll-margin-top:72px;}
+.flow::before{content:""; position:absolute; z-index:0; width:clamp(240px,30vw,380px); aspect-ratio:1.2; left:-8%; bottom:-18%; background:radial-gradient(circle at 40% 40%, rgba(135,166,232,.42), rgba(135,166,232,0) 70%); filter:blur(12px); pointer-events:none; animation:drift3 17s ease-in-out infinite;}
+.flow .wrap{position:relative; z-index:1;}
+.fsteps{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr; gap:14px; counter-reset:none;}
+.fstep{position:relative; border-radius:18px; padding:22px 20px 20px; border:1px solid rgba(35,23,18,.12); background:var(--cream-2); transition:transform .3s var(--ease), box-shadow .3s var(--ease);}
+.fstep:hover{transform:translateY(-5px); box-shadow:0 20px 44px rgba(35,23,18,.12);}
+.fstep .fsnum{display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:var(--pink); color:#fff; font-family:'Instrument Serif',serif; font-style:italic; font-size:17px; line-height:1;}
+.fstep h3{font-family:'Instrument Serif',serif; font-style:italic; font-weight:400; font-size:22px; margin:12px 0 0; line-height:1.1;}
+.fstep p{font-size:14px; line-height:1.55; color:rgba(35,23,18,.72); margin:9px 0 0;}
+.flow-cta{margin-top:22px; display:flex; flex-wrap:wrap; align-items:center; gap:14px;}
+.flow-note{font-size:13.5px; line-height:1.5; color:rgba(35,23,18,.6); max-width:38ch;}
+
 .price{padding:48px 0 60px; position:relative; overflow:hidden; background:transparent; scroll-margin-top:72px;}
 .price::before{content:""; position:absolute; z-index:0; width:clamp(260px,34vw,420px); aspect-ratio:1.15; right:-8%; top:-16%; background:radial-gradient(circle at 40% 40%, rgba(179,194,74,.4), rgba(179,194,74,0) 70%); filter:blur(12px); pointer-events:none; animation:drift2 16s ease-in-out infinite;}
 .price .wrap{position:relative; z-index:1;}
@@ -245,5 +257,6 @@ a{color:inherit; text-decoration:none;}
   .hero-desc .sub{margin-left:auto; max-width:34ch;}
   .fgrid{grid-template-columns:repeat(3,1fr); gap:18px;}
   .pgrid{grid-template-columns:repeat(3,1fr); gap:18px;}
+  .fsteps{grid-template-columns:repeat(4,1fr); gap:16px;}
   .ev{font-size:26px;}
 }
