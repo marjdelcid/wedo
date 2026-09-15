@@ -677,6 +677,85 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
   const saveLabel = (which: Pane, base: string) => savingPane === which ? "Guardando…" : savedPane === which ? "¡Guardado!" : base;
 
+  // ---- minis fieles de portada y Save the Date: usan la foto, nombres,
+  //      tipografía, acento y frase reales del evento ----
+  const miniAccent = (Array.isArray(f.paleta_colores) && f.paleta_colores[0]) || f.color_acento || "#E84B8A";
+  const miniN1 = (f.nombre1 || "Andrea").split(" ")[0];
+  const miniN2 = (f.nombre2 || "").split(" ")[0];
+  const miniFecha = f.fecha ? `${f.fecha.slice(8, 10)} · ${f.fecha.slice(5, 7)} · ${f.fecha.slice(0, 4)}` : "24 · 10 · 2026";
+  const miniKick = (
+    <div style={{ fontFamily: "'Archivo',sans-serif", fontSize: 5, letterSpacing: ".3em", textTransform: "uppercase", color: "rgba(35,23,18,.55)", marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", maxWidth: "90%" }}>
+      {f.frase_portada || evtType.frasePortada}
+    </div>
+  );
+  const miniDate = <div style={{ fontFamily: "'Archivo',sans-serif", fontSize: 5, letterSpacing: ".2em", color: "rgba(35,23,18,.6)" }}>{miniFecha}</div>;
+  const miniNames = (size: number, italic = false, stacked = false) => (
+    <div style={{ fontFamily: ff(f.tipografia), fontStyle: italic ? "italic" : "normal", fontSize: size, lineHeight: stacked ? 0.95 : 1.15, color: "#231712", display: "flex", flexDirection: stacked ? "column" : "row", gap: stacked ? 0 : 4, alignItems: "center", justifyContent: "center", maxWidth: "94%", textAlign: "center" }}>
+      {stacked
+        ? <>{miniN1}<span style={{ color: miniAccent, fontSize: size * 0.5, lineHeight: 1.2 }}>&</span>{miniN2}</>
+        : <>{miniN1}{miniN2 ? <><span style={{ color: miniAccent }}>&</span>{miniN2}</> : null}</>}
+    </div>
+  );
+  const miniFoto = (h: number, radius: string, w = "78%") => f.foto_hero
+    ? <img src={f.foto_hero} alt="" style={{ width: w, height: h, objectFit: "cover", borderRadius: radius, display: "block", outline: "1px solid rgba(35,23,18,.15)", outlineOffset: 2 }} />
+    : <div style={{ width: w, height: h, borderRadius: radius, background: "linear-gradient(135deg,#E9DCCB,#DCC9B4)", outline: "1px solid rgba(35,23,18,.15)", outlineOffset: 2 }} />;
+  const miniWrap: React.CSSProperties = { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, padding: "10px 8px 26px", background: "linear-gradient(180deg,#FBF5EC 0%,#F7E9DF 58%,#F3D9D2 100%)", overflow: "hidden" };
+
+  function miniPortada(id: string) {
+    if (id === "minimalista") return <div style={{ ...miniWrap, background: "#F8F2E8" }}>{miniKick}{miniNames(13, true)}{miniDate}</div>;
+    if (id === "fecha") return (
+      <div style={miniWrap}>{miniKick}
+        <div style={{ fontFamily: ff(f.tipografia), fontSize: 24, lineHeight: 0.9, color: "#231712" }}>
+          {f.fecha ? f.fecha.slice(8, 10) : "24"}<span style={{ color: miniAccent }}>·</span>{f.fecha ? f.fecha.slice(5, 7) : "10"}
+        </div>
+        {miniNames(9)}
+      </div>
+    );
+    if (id === "apilada") return <div style={miniWrap}>{miniNames(12, false, true)}{miniFoto(34, "6px")}</div>;
+    if (id === "marco") return (
+      <div style={miniWrap}>
+        <div style={{ position: "absolute", inset: 5, border: `1.5px solid ${miniAccent}`, borderRadius: 2, boxShadow: "inset 0 0 0 2px #FBF5EC, inset 0 0 0 2.5px rgba(35,23,18,.25)", pointerEvents: "none" }} />
+        {miniKick}{miniFoto(34, "4px", "66%")}{miniNames(10)}
+      </div>
+    );
+    if (id === "clasica") return <div style={miniWrap}>{miniKick}{miniFoto(38, "6px")}{miniNames(10)}{miniDate}</div>;
+    // editorial: foto de arco con aro
+    return <div style={miniWrap}>{miniKick}{miniFoto(46, "60px 60px 5px 5px", "70%")}{miniNames(10)}{miniDate}</div>;
+  }
+
+  function miniStd(id: string) {
+    if (id === "a") return (
+      <div style={{ position: "absolute", inset: 0, background: "#2a1d17", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 2, padding: "0 6px 28px" }}>
+        {f.foto_hero && <img src={f.foto_hero} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(35,23,18,.45),rgba(35,23,18,.12) 40%,rgba(35,23,18,.85))" }} />
+        <div style={{ position: "relative", fontFamily: "'Archivo',sans-serif", fontSize: 4.5, letterSpacing: ".28em", textTransform: "uppercase", color: "rgba(247,240,229,.85)" }}>Reserva la fecha</div>
+        <div style={{ position: "relative", fontFamily: ff(f.tipografia), fontSize: 11, color: "#F7F0E5" }}>{miniN1}{miniN2 ? <> <span style={{ color: "#E84B8A" }}>&</span> {miniN2}</> : null}</div>
+        <div style={{ position: "relative", width: 16, height: 2, background: "#E84B8A", borderRadius: 2 }} />
+        <div style={{ position: "relative", fontFamily: "'Archivo',sans-serif", fontSize: 5, letterSpacing: ".18em", color: "rgba(247,240,229,.8)" }}>{miniFecha}</div>
+      </div>
+    );
+    if (id === "b") return (
+      <div style={{ position: "absolute", inset: 0, background: "#F7F0E5", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, paddingBottom: 18 }}>
+        <span style={{ position: "absolute", width: 42, height: 42, background: "#87A6E8", borderRadius: "64% 36% 52% 48%/56% 50% 50% 44%", top: -13, right: -13, opacity: 0.9 }} />
+        <span style={{ position: "absolute", width: 34, height: 34, background: "#B3C24A", borderRadius: "50% 50% 48% 52%", bottom: -13, left: -13, opacity: 0.85 }} />
+        <div style={{ position: "absolute", inset: 5, border: "1px solid rgba(35,23,18,.16)", borderRadius: 6, pointerEvents: "none" }} />
+        <div style={{ fontFamily: ff(f.tipografia), fontSize: 13, lineHeight: 1, color: "#231712" }}>Save the</div>
+        <div style={{ fontFamily: ff(f.tipografia), fontStyle: "italic", fontSize: 13, lineHeight: 1.1, color: "#231712", position: "relative", zIndex: 0 }}>
+          date<span style={{ position: "absolute", left: -2, right: -3, bottom: 1, height: 5, background: "#B3C24A", zIndex: -1, borderRadius: 1, opacity: 0.9 }} />
+        </div>
+        <div style={{ fontFamily: "'Archivo',sans-serif", fontSize: 5, letterSpacing: ".12em", marginTop: 3, color: "rgba(35,23,18,.7)" }}>{miniN1}{miniN2 ? ` & ${miniN2}` : ""} · {miniFecha}</div>
+      </div>
+    );
+    // c: letterpress sage
+    return (
+      <div style={{ position: "absolute", inset: 0, background: "#DDE0CF", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, paddingBottom: 18 }}>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, letterSpacing: ".16em", color: "#F3EDD7", textShadow: "0 1px 1px rgba(70,81,62,.55)" }}>TO BE</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic", fontSize: 16, color: "#46513E" }}>{miniN1.charAt(0)}·{(miniN2 || "W").charAt(0)}</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, letterSpacing: ".16em", color: "#F3EDD7", textShadow: "0 1px 1px rgba(70,81,62,.55)" }}>WED</div>
+      </div>
+    );
+  }
+
   return (
     <div className="wedo-app">
       {/* TOPBAR */}
@@ -962,10 +1041,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   <div className="cover-grid">
                     {COVER_STYLES.map((c) => (
                       <div key={c.id} className={"cover-opt" + (f.estilo_portada === c.id ? " sel" : "")} onClick={() => setField("estilo_portada", c.id)}>
-                        <span style={{ fontFamily: ff(f.tipografia), fontSize: c.id === "fecha" ? 22 : 24, color: "var(--ink)" }}>
-                          {c.id === "minimalista" ? "M · J" : c.id === "fecha" ? "15·02" : c.id === "editorial" ? <em>{f.frase_portada || evtType.frasePortada}</em> : "M & J"}
-                        </span>
-                        <span className="ttl">{c.label}</span>
+                        {miniPortada(c.id)}
+                        <span className="ttl" style={{ zIndex: 2, background: "rgba(247,240,229,.9)", padding: "2px 8px", borderRadius: 100 }}>{c.label}</span>
                       </div>
                     ))}
                   </div>
@@ -996,13 +1073,13 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                   <p className="hint">Pantalla aparte para enviar <strong>antes</strong> de la invitación formal (cuenta regresiva + agregar al calendario). Elige el estilo:</p>
                   <div className="cover-grid">
                     {[
-                      { id: "a", label: "Foto", prev: <em>{f.nombre1 || "Andrea"} & {f.nombre2 || "Diego"}</em> },
-                      { id: "b", label: "Editorial", prev: <em>Save the date</em> },
-                      { id: "c", label: "Letterpress", prev: "TO BE · WED" },
+                      { id: "a", label: "Foto" },
+                      { id: "b", label: "Editorial" },
+                      { id: "c", label: "Letterpress" },
                     ].map((s) => (
                       <div key={s.id} className={"cover-opt" + (f.std_estilo === s.id ? " sel" : "")} onClick={() => setField("std_estilo", s.id)}>
-                        <span style={{ fontFamily: ff(f.tipografia), fontSize: 15, color: "var(--ink)" }}>{s.prev}</span>
-                        <span className="ttl">{s.label}</span>
+                        {miniStd(s.id)}
+                        <span className="ttl" style={{ zIndex: 2, background: "rgba(247,240,229,.9)", padding: "2px 8px", borderRadius: 100 }}>{s.label}</span>
                       </div>
                     ))}
                   </div>
