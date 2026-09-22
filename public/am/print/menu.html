@@ -3,27 +3,28 @@
 <head>
 <meta charset="utf-8">
 <title>Menú · Marjorie & André</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Marcellus+SC&family=Marcellus&family=EB+Garamond:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Marcellus+SC&family=Marcellus&family=EB+Garamond:ital@0;1&display=swap">
 <style>
   /* =====================================================================
      Menú de 3 hojas troqueladas unidas por ojal metálico en la base
-     (giran en abanico) + borla verde oliva. Paleta: verdes A&M
-     (oliva 808249, verde cala B9C287, salvia A9AE8F, salvia pálida DFD6A4,
-     verde noche 1E2113) con dorado aceituna 9A8B4F de acento.
-       Hoja 1 · óvalo grande con el menú
-       Hoja 2 · óvalo de rayas con TODO el contenido dentro del círculo
-       Hoja 3 · flor troquelada a contorno
-     Página: 130 × 190 mm por hoja. Punteado oliva = troquel.
+     (giran en abanico) + borla verde oliva. Según el Brand Book A&M:
+       Hoja 1 · el MENÚ: algodón crema, tinta malva única, etiquetas oliva
+                (lockup: script «el» + serif MENÚ, centrados)
+       Hoja 2 · monograma dorado sobre oliva, con la fecha
+       Hoja 3 · tulipán rosa del brandbook, corte a contorno
+     Página: 130 × 190 mm por hoja. Punteado = troquel.
      El círculo pequeño con cruz es el OJAL (Ø 4 mm) en las tres hojas.
      Imprimir al 100%, sin márgenes, cartulina 300 g.
      ===================================================================== */
+  @font-face{font-family:'Vogue'; src:url('/am/fonts/Vogue.ttf') format('truetype');}
   @page{size:130mm 190mm; margin:0;}
   *{box-sizing:border-box;}
   html,body{margin:0; padding:0; background:#666;}
   .page{width:130mm; height:190mm; position:relative; overflow:hidden; page-break-after:always; margin:0 auto; background:#fff;}
   @media screen{ .page{margin:10mm auto; box-shadow:0 6px 30px rgba(0,0,0,.4);} }
   svg{display:block; width:130mm; height:190mm;}
-  .script{font-family:'Monsieur La Doulaise',cursive;}
+  .pin{font-family:'Pinyon Script',cursive;}
+  .vg{font-family:'Vogue','Bodoni Moda',serif; text-transform:uppercase;}
   .caps{font-family:'Marcellus SC',serif; text-transform:uppercase;}
   .body-it{font-family:'EB Garamond',serif; font-style:italic;}
   @media print{ html,body{background:#fff;} .page{box-shadow:none; margin:0;} .noprint{display:none;} }
@@ -31,9 +32,9 @@
 </style>
 </head>
 <body>
-<div class="noprint">Menú de 3 hojas que giran unidas por un ojal Ø 4 mm en la base (+ borla verde oliva) · 130×190 mm c/u · Imprimir al 100%, sin márgenes, cartulina 300 g · Punteado oliva = troquel · La flor se corta a contorno con 2 mm de margen</div>
+<div class="noprint">Menú de 3 hojas que giran unidas por un ojal Ø 4 mm en la base (+ borla verde oliva) · 130×190 mm c/u · Imprimir al 100%, sin márgenes, cartulina 300 g · Punteado = troquel · La flor se corta a contorno con 2 mm de margen</div>
 
-<!-- HOJA 1 · MENÚ (óvalo grande) -->
+<!-- HOJA 1 · el MENÚ (algodón crema · tinta malva única · etiquetas oliva) -->
 <div class="page">
   <svg viewBox="0 0 130 190" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -41,77 +42,68 @@
         <image href="/am/tex/lino.webp" x="0" y="0" width="130" height="190" preserveAspectRatio="xMidYMid slice"/>
       </pattern>
     </defs>
-    <!-- silueta con sangrado y troquel -->
-    <ellipse cx="65" cy="95" rx="54" ry="85" fill="#1E2113"/>
-    
-    <ellipse cx="65" cy="95" rx="51" ry="82" fill="none" stroke="#DFD6A4" stroke-width="0.25" stroke-dasharray="1.6 1.6"/>
-    <ellipse cx="65" cy="95" rx="46.5" ry="77.5" fill="none" stroke="#C39B45" stroke-width="0.35"/>
+    <!-- silueta con sangrado, troquel y marco interior malva (como el marco del brandbook) -->
+    <ellipse cx="65" cy="95" rx="54" ry="85" fill="url(#lino1)"/>
+    <ellipse cx="65" cy="95" rx="54" ry="85" fill="#F3EED7" opacity="0.6"/>
+    <ellipse cx="65" cy="95" rx="51" ry="82" fill="none" stroke="#808249" stroke-width="0.25" stroke-dasharray="1.6 1.6"/>
+    <ellipse cx="65" cy="95" rx="46.5" ry="77.5" fill="none" stroke="#A15D66" stroke-width="0.3" opacity="0.4"/>
 
-    <text class="script" font-size="16" fill="#F3EED7" x="65" y="42" text-anchor="middle">Menú</text>
+    <!-- lockup del brandbook: icono + «el» + MENÚ -->
+    <image href="/am/logo/mono-dorado.png" x="60" y="20" width="10" height="10" preserveAspectRatio="xMidYMid meet"/>
+    <text class="pin" font-size="9" fill="#A15D66" x="65" y="40" text-anchor="middle">el</text>
+    <text class="vg" font-size="13" letter-spacing="2.1" fill="#A15D66" x="66" y="51" text-anchor="middle">Menú</text>
+    <text class="caps" font-size="2.8" letter-spacing="1.1" fill="#808249" x="65" y="57.5" text-anchor="middle">Cena · 24 de octubre de 2026</text>
+    <line x1="58" y1="62.5" x2="72" y2="62.5" stroke="#A15D66" stroke-width="0.3" opacity="0.5"/>
 
-    <text class="caps" font-size="3.1" letter-spacing="1.2" fill="#DFD6A4" x="65" y="55" text-anchor="middle">Entrada</text>
-    <text class="body-it" font-size="4.2" fill="#F3EED7" x="65" y="61" text-anchor="middle">Kimbap</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="65.4" text-anchor="middle">rollo coreano de arroz y alga marina con huevo, zanahoria,</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="69.2" text-anchor="middle">rábano encurtido y jamón, con sésamo tostado</text>
-    <text class="body-it" font-size="4.2" fill="#F3EED7" x="65" y="76.5" text-anchor="middle">Wantan</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="80.9" text-anchor="middle">de camarón en salsa de tamarindo picante</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="84.7" text-anchor="middle">de lomito con jengibre y cebollín</text>
+    <text class="caps" font-size="3" letter-spacing="1.2" fill="#808249" x="65" y="70" text-anchor="middle">Entrada</text>
+    <text class="body-it" font-size="4.2" fill="#A15D66" x="65" y="75.8" text-anchor="middle">Kimbap</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="80" text-anchor="middle">rollo coreano de arroz y alga marina con huevo, zanahoria,</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="83.8" text-anchor="middle">rábano encurtido y jamón, con sésamo tostado</text>
+    <text class="body-it" font-size="4.2" fill="#A15D66" x="65" y="90.6" text-anchor="middle">Wantan</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="94.8" text-anchor="middle">de camarón en salsa de tamarindo picante</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="98.6" text-anchor="middle">de lomito con jengibre y cebollín</text>
 
-    <line x1="57" y1="91.5" x2="73" y2="91.5" stroke="#C39B45" stroke-width="0.3"/>
+    <text class="caps" font-size="3" letter-spacing="1.2" fill="#808249" x="65" y="106.5" text-anchor="middle">Plato fuerte</text>
+    <text class="body-it" font-size="4.2" fill="#A15D66" x="65" y="112.3" text-anchor="middle">Bibimbap</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="116.5" text-anchor="middle">arroz al vapor, vegetales salteados, lomito marinado</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="120.3" text-anchor="middle">y huevo frito, con salsa gochujang aparte</text>
+    <text class="body-it" font-size="4.2" fill="#A15D66" x="65" y="127.1" text-anchor="middle">Fideo de arroz</text>
+    <text class="body-it" font-size="2.9" fill="#A15D66" opacity="0.8" x="65" y="131.3" text-anchor="middle">con cha siu y salsa de naranja con miso</text>
 
-    <text class="caps" font-size="3.1" letter-spacing="1.2" fill="#DFD6A4" x="65" y="98.5" text-anchor="middle">Plato fuerte</text>
-    <text class="body-it" font-size="4.2" fill="#F3EED7" x="65" y="104.5" text-anchor="middle">Bibimbap</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="108.9" text-anchor="middle">arroz al vapor, vegetales salteados, lomito marinado</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="112.7" text-anchor="middle">y huevo frito, con salsa gochujang aparte</text>
-    <text class="body-it" font-size="4.2" fill="#F3EED7" x="65" y="119.8" text-anchor="middle">Fideo de arroz</text>
-    <text class="body-it" font-size="2.9" fill="#B9C287" x="65" y="124.2" text-anchor="middle">con cha siu y salsa de naranja con miso</text>
-
-    <line x1="57" y1="130.5" x2="73" y2="130.5" stroke="#C39B45" stroke-width="0.3"/>
-
-    <text class="caps" font-size="3.1" letter-spacing="1.2" fill="#DFD6A4" x="65" y="137.5" text-anchor="middle">Estación de mini postres</text>
-    <text class="body-it" font-size="3.3" fill="#F3EED7" x="65" y="142.6" text-anchor="middle">sabayón con frutos rojos · tiramisú</text>
-    <text class="body-it" font-size="3.3" fill="#F3EED7" x="65" y="147" text-anchor="middle">churros con dulce de leche</text>
-    <text class="body-it" font-size="3.3" fill="#F3EED7" x="65" y="151.4" text-anchor="middle">hotteok de azúcar moreno y canela</text>
+    <text class="caps" font-size="3" letter-spacing="1.2" fill="#808249" x="65" y="139.2" text-anchor="middle">Estación de mini postres</text>
+    <text class="body-it" font-size="3.3" fill="#A15D66" x="65" y="144.3" text-anchor="middle">sabayón con frutos rojos · tiramisú</text>
+    <text class="body-it" font-size="3.3" fill="#A15D66" x="65" y="148.7" text-anchor="middle">churros con dulce de leche</text>
+    <text class="body-it" font-size="3.3" fill="#A15D66" x="65" y="153.1" text-anchor="middle">hotteok de azúcar moreno y canela</text>
 
     <path id="mfoot" d="M 35,143.3 A 42,69 0 0 0 95,143.3" fill="none"/>
-    <text class="caps" font-size="2.4" letter-spacing="0.8" fill="#C39B45"><textPath href="#mfoot" startOffset="50%" text-anchor="middle">Marjorie &amp; André · 24.10.2026</textPath></text>
+    <text class="caps" font-size="2.4" letter-spacing="0.8" fill="#808249"><textPath href="#mfoot" startOffset="50%" text-anchor="middle">Marjorie &amp; André · El Mayab</textPath></text>
 
     <!-- ojal -->
-    <circle cx="65" cy="168" r="2.2" fill="none" stroke="#DFD6A4" stroke-width="0.3" stroke-dasharray="0.8 0.8"/>
-    <line x1="63.6" y1="168" x2="66.4" y2="168" stroke="#DFD6A4" stroke-width="0.2"/>
-    <line x1="65" y1="166.6" x2="65" y2="169.4" stroke="#DFD6A4" stroke-width="0.2"/>
+    <circle cx="65" cy="168" r="2.2" fill="none" stroke="#808249" stroke-width="0.3" stroke-dasharray="0.8 0.8"/>
+    <line x1="63.6" y1="168" x2="66.4" y2="168" stroke="#808249" stroke-width="0.2"/>
+    <line x1="65" y1="166.6" x2="65" y2="169.4" stroke="#808249" stroke-width="0.2"/>
   </svg>
 </div>
 
-<!-- HOJA 2 · MONOGRAMA (rayas; todo el contenido dentro del círculo) -->
+<!-- HOJA 2 · MONOGRAMA (oliva · logo dorado · fecha) -->
 <div class="page">
   <svg viewBox="0 0 130 190" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="rayas" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(35)">
-        <rect width="4" height="4" fill="#F3EED7"/>
-        <rect x="0" width="1.5" height="4" fill="#E4DFBB"/>
-      </pattern>
-    </defs>
-    <ellipse cx="65" cy="102" rx="45" ry="69" fill="url(#rayas)"/>
-    <ellipse cx="65" cy="102" rx="42" ry="66" fill="none" stroke="#808249" stroke-width="0.25" stroke-dasharray="1.6 1.6"/>
+    <ellipse cx="65" cy="102" rx="45" ry="69" fill="#808249"/>
+    <ellipse cx="65" cy="102" rx="42" ry="66" fill="none" stroke="#DFD6A4" stroke-width="0.25" stroke-dasharray="1.6 1.6"/>
+    <ellipse cx="65" cy="102" rx="38" ry="62" fill="none" stroke="#C39B45" stroke-width="0.35"/>
 
-    <!-- círculo único con todo el contenido -->
-    <circle cx="65" cy="96" r="34" fill="#F3EED7"/>
-    <circle cx="65" cy="96" r="34" fill="none" stroke="#808249" stroke-width="0.5"/>
-    <circle cx="65" cy="96" r="31.5" fill="none" stroke="#C39B45" stroke-width="0.3"/>
-    <image href="/am/logo/mono-dorado.png" x="49" y="66" width="32" height="32" preserveAspectRatio="xMidYMid meet"/>
-    <text class="caps" font-size="2.7" letter-spacing="1.2" fill="#DFD6A4" x="65" y="107" text-anchor="middle">El Mayab · Guatemala</text>
-    <text class="body-it" font-size="3.3" fill="#4A4232" x="65" y="113.5" text-anchor="middle">Gracias por acompañarnos</text>
-    <text class="caps" font-size="2.4" letter-spacing="1" fill="#9A8B4F" x="65" y="121" text-anchor="middle">24 · 10 · 26</text>
+    <image href="/am/logo/mono-dorado.png" x="45" y="66" width="40" height="40" preserveAspectRatio="xMidYMid meet"/>
+    <line x1="57" y1="115" x2="73" y2="115" stroke="#C39B45" stroke-width="0.3"/>
+    <text class="caps" font-size="3.4" letter-spacing="1.6" fill="#F3EED7" x="65" y="123" text-anchor="middle">24 · 10 · 2026</text>
 
     <!-- ojal -->
-    <circle cx="65" cy="158" r="2.2" fill="none" stroke="#808249" stroke-width="0.3" stroke-dasharray="0.8 0.8"/>
-    <line x1="63.6" y1="158" x2="66.4" y2="158" stroke="#808249" stroke-width="0.2"/>
-    <line x1="65" y1="156.6" x2="65" y2="159.4" stroke="#808249" stroke-width="0.2"/>
+    <circle cx="65" cy="158" r="2.2" fill="none" stroke="#DFD6A4" stroke-width="0.3" stroke-dasharray="0.8 0.8"/>
+    <line x1="63.6" y1="158" x2="66.4" y2="158" stroke="#DFD6A4" stroke-width="0.2"/>
+    <line x1="65" y1="156.6" x2="65" y2="159.4" stroke="#DFD6A4" stroke-width="0.2"/>
   </svg>
 </div>
 
-<!-- HOJA 3 · FLOR (cala en verdes y crema, corte a contorno) -->
+<!-- HOJA 3 · TULIPÁN ROSA del brandbook (corte a contorno) -->
 <div class="page">
   <svg viewBox="0 0 130 190" xmlns="http://www.w3.org/2000/svg">
     <g stroke-linejoin="round" stroke-linecap="round">
@@ -126,18 +118,18 @@
       <!-- hoja pequeña baja -->
       <path d="M63.8,160 C55,155 50,147 48.5,138 C56,142 61.5,149 63.8,156 Z" fill="#9AA46B" stroke="#808249" stroke-width="0.4"/>
 
-      <!-- flor principal: cala crema -->
+      <!-- flor principal: tulipán rosa -->
       <g transform="translate(60,56) rotate(-6)">
-        <path d="M0,2 C-8.5,-3 -10.5,-15 -7,-25 C-4,-18 -1.5,-12 0,-6 Z" fill="#DFD6A4" stroke="#A9AE8F" stroke-width="0.4"/>
-        <path d="M0,2 C8.5,-3 10.5,-15 7,-25 C4,-18 1.5,-12 0,-6 Z" fill="#DFD6A4" stroke="#A9AE8F" stroke-width="0.4"/>
-        <path d="M0,3 C-6,-4 -6.5,-17 0,-27 C6.5,-17 6,-4 0,3 Z" fill="#F3EED7" stroke="#A9AE8F" stroke-width="0.45"/>
-        <path d="M0,-8 C-1.2,-13 -1.2,-19 0,-23.5 C1.2,-19 1.2,-13 0,-8 Z" fill="#C39B45" opacity="0.85"/>
+        <path d="M0,2 C-8.5,-3 -10.5,-15 -7,-25 C-4,-18 -1.5,-12 0,-6 Z" fill="#D8A794" stroke="#B06A73" stroke-width="0.4"/>
+        <path d="M0,2 C8.5,-3 10.5,-15 7,-25 C4,-18 1.5,-12 0,-6 Z" fill="#D8A794" stroke="#B06A73" stroke-width="0.4"/>
+        <path d="M0,3 C-6,-4 -6.5,-17 0,-27 C6.5,-17 6,-4 0,3 Z" fill="#E1B4A1" stroke="#B06A73" stroke-width="0.45"/>
+        <path d="M0,-6 C-2,-12 -2,-19 0,-24 C2,-19 2,-12 0,-6 Z" fill="#EDCBBB" opacity="0.9"/>
       </g>
-      <!-- capullo verde -->
+      <!-- capullo malva -->
       <g transform="translate(79,92) rotate(24)">
-        <path d="M0,1.5 C-5,-2 -6,-10 -3.6,-16 C-1.8,-11 -0.8,-6 0,-3 Z" fill="#9AA46B" stroke="#808249" stroke-width="0.35"/>
-        <path d="M0,1.5 C5,-2 6,-10 3.6,-16 C1.8,-11 0.8,-6 0,-3 Z" fill="#9AA46B" stroke="#808249" stroke-width="0.35"/>
-        <path d="M0,2 C-3.4,-3 -3.6,-11 0,-17 C3.6,-11 3.4,-3 0,2 Z" fill="#B9C287" stroke="#808249" stroke-width="0.4"/>
+        <path d="M0,1.5 C-5,-2 -6,-10 -3.6,-16 C-1.8,-11 -0.8,-6 0,-3 Z" fill="#A15D66" stroke="#8C4E57" stroke-width="0.35"/>
+        <path d="M0,1.5 C5,-2 6,-10 3.6,-16 C1.8,-11 0.8,-6 0,-3 Z" fill="#A15D66" stroke="#8C4E57" stroke-width="0.35"/>
+        <path d="M0,2 C-3.4,-3 -3.6,-11 0,-17 C3.6,-11 3.4,-3 0,2 Z" fill="#C08090" stroke="#8C4E57" stroke-width="0.4"/>
       </g>
 
       <!-- base engrosada donde va el ojal -->
