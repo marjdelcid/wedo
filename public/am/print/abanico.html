@@ -2,100 +2,135 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Abanico de ceremonia · Marjorie & André</title>
+<title>Abanico de ceremonia · Marjorie &#38; André</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Marcellus+SC&family=Marcellus&family=EB+Garamond:ital@0;1&display=swap">
 <style>
-  /* =====================================================================
-     Abanico de mano (paddle fan) · tiro y retiro
-     Forma de arco: 130 × 180 mm + 3 mm de sangrado por lado.
-     Página física: 136 × 186 mm. La línea punteada es la guía de corte.
-     Imprimir: Chrome → Imprimir → Tamaño del papel personalizado o A4 con
-     "Tamaño real" (escala 100%), márgenes: ninguno. Cartulina 300 g mate.
-     ===================================================================== */
   @font-face{font-family:'Vogue'; src:url('/am/fonts/Vogue.ttf') format('truetype');}
-  @page{size:136mm 186mm; margin:0;}
+  @page{size:200mm 135mm; margin:0;}
   *{box-sizing:border-box;}
   html,body{margin:0; padding:0; background:#666;}
-  .page{width:136mm; height:186mm; position:relative; overflow:hidden; page-break-after:always; margin:0 auto;}
+  .page{width:200mm; height:135mm; position:relative; overflow:hidden; page-break-after:always; margin:0 auto; background:#fff;}
   @media screen{ .page{margin:10mm auto; box-shadow:0 6px 30px rgba(0,0,0,.4);} }
-
-  /* forma de arco: radio superior = mitad del ancho */
-  .arch{position:absolute; inset:0; border-radius:68mm 68mm 6mm 6mm; overflow:hidden;
-        display:flex; flex-direction:column; align-items:center; text-align:center;}
-  .cutline{position:absolute; inset:3mm; border-radius:65mm 65mm 5mm 5mm; border:.3mm dashed rgba(255,255,255,.55); pointer-events:none; z-index:9;}
-  .page.rev .cutline{border-color:rgba(74,29,43,.45);}
-
-  /* ---------- FRENTE · terciopelo vino ---------- */
-  .front{background:#4A1D2B url('/am/tex/terciopelo-tulipanes.jpg') center/cover; color:#F3EED7; justify-content:center; gap:0; padding:16mm 10mm;}
-  .front::after{content:""; position:absolute; inset:0; background:rgba(74,29,43,.42);}
-  .front > *{position:relative; z-index:2;}
-  .mono{width:30mm; height:auto; margin-bottom:7mm; filter:drop-shadow(0 1px 2px rgba(16,4,8,.5));}
-  .bless{font-family:'Marcellus SC',serif; font-size:8.5pt; letter-spacing:.24em; text-transform:uppercase; color:rgba(243,238,215,.85); margin:0 0 5mm;}
-  .names{font-family:'Monsieur La Doulaise',cursive; font-size:34pt; line-height:1.08; margin:0; color:#F3EED7;
-         text-shadow:0 1px 0 rgba(255,255,255,.25), 0 2px 6px rgba(16,4,8,.5);}
-  .amp{font-family:'Monsieur La Doulaise',cursive; font-size:22pt; display:block; line-height:1; margin:1mm 0;}
-  .date-row{display:flex; align-items:center; gap:4mm; margin-top:7mm; font-family:'Marcellus SC',serif; font-size:9pt; letter-spacing:.2em; text-transform:uppercase; color:#DFD6A4;}
-  .date-row i{display:block; width:12mm; height:.3mm; background:linear-gradient(90deg,transparent,#C39B45,transparent);}
-  .venue{margin-top:2.5mm; font-family:'Marcellus',serif; font-size:7.5pt; letter-spacing:.22em; text-transform:uppercase; color:rgba(243,238,215,.7);}
-
-  /* ---------- REVERSO · lino crema con itinerario ---------- */
-  .back{background:#F3EED7 url('/am/tex/lino.webp') center/cover; color:#4A1D2B; justify-content:flex-start; padding:20mm 14mm 14mm;}
-  .back::after{content:""; position:absolute; inset:0; background:rgba(243,238,215,.55);}
-  .back > *{position:relative; z-index:2;}
-  .back .kick{font-family:'Marcellus SC',serif; font-size:8.5pt; letter-spacing:.26em; text-transform:uppercase; color:#808249; margin:4mm 0 1mm;}
-  .back .tit{font-family:'Monsieur La Doulaise',cursive; font-size:27pt; color:#4A1D2B; margin:0 0 6mm; line-height:1;}
-  .tl{display:grid; grid-template-columns:auto auto 1fr; column-gap:4mm; row-gap:3.4mm; align-items:baseline; text-align:left; width:82mm;}
-  .tl .t{font-family:'Vogue','Bodoni Moda',serif; font-size:10.5pt; letter-spacing:.05em; color:#808249; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
-  .tl .dot{width:1.6mm; height:1.6mm; border-radius:50%; background:#808249; align-self:center;}
-  .tl .e{font-family:'EB Garamond',serif; font-style:italic; font-size:11.5pt; color:#4A1D2B;}
-  .back .foot{margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:1.5mm; padding-bottom:6mm;}
-  .back .foot .dc{font-family:'Marcellus SC',serif; font-size:8pt; letter-spacing:.26em; text-transform:uppercase; color:#A15D66;}
-  .back .foot .thanks{font-family:'EB Garamond',serif; font-style:italic; font-size:9.5pt; color:#A15D66;}
-  .mono-sm{width:14mm; opacity:.9; margin-bottom:1mm;}
-
-  @media print{
-    html,body{background:#fff;}
-    .page{box-shadow:none; margin:0;}
-    .noprint{display:none;}
-  }
+  svg{display:block; width:200mm; height:135mm;}
+  .script{font-family:'Monsieur La Doulaise',cursive;}
+  .caps{font-family:'Marcellus SC',serif; text-transform:uppercase;}
+  .body-it{font-family:'EB Garamond',serif; font-style:italic;}
+  .vg{font-family:'Vogue','Bodoni Moda',serif;}
+  @media print{ html,body{background:#fff;} .page{box-shadow:none; margin:0;} .noprint{display:none;} }
   .noprint{position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#231712; color:#F7F0E5; font:12px/1.5 system-ui; padding:8px 14px; border-radius:10px; z-index:99; max-width:92vw; text-align:center;}
 </style>
 </head>
 <body>
-<div class="noprint">Abanico 130×180 mm + 3 mm de sangrado · 2 páginas (frente y reverso) · Imprimir al 100%, sin márgenes, cartulina 300 g · La línea punteada es la guía de corte</div>
+<div class="noprint">Abanico festoneado 194×~112 mm + 3 mm de sangrado · página 200×135 mm · 2 caras (tiro y retiro) · Imprimir al 100%, sin márgenes · La línea punteada vino es la guía de troquel</div>
 
-<!-- FRENTE -->
 <div class="page">
-  <div class="arch front">
-    <img class="mono" src="/am/logo/mono-dorado.png" alt="Monograma A&M">
-    <p class="bless">Con la bendición de Dios y nuestras familias</p>
-    <h1 class="names">Marjorie Del Cid<span class="amp">&amp;</span>André González</h1>
-    <div class="date-row"><i></i>24 · Octubre · 2026<i></i></div>
-    <div class="venue">El Mayab · Guatemala</div>
-  </div>
-  <div class="cutline"></div>
+  <svg viewBox="0 0 200 135" xmlns="http://www.w3.org/2000/svg">
+    
+  <defs>
+    <pattern id="lino" patternUnits="userSpaceOnUse" x="0" y="0" width="200" height="135">
+      <image href="/am/tex/lino.webp" x="0" y="0" width="200" height="135" preserveAspectRatio="xMidYMid slice"/>
+    </pattern>
+    <g id="sprig">
+      <path d="M0,0 C0.8,-9 -0.8,-17 0,-25" fill="none" stroke="#808249" stroke-width="0.7"/>
+      <path d="M0,-8 C-4.5,-10 -7,-14 -8,-18.5 C-4,-16.5 -1.4,-12 0,-9 Z" fill="#B9C287"/>
+      <path d="M0,-8 C4.5,-10 7,-14 8,-18.5 C4,-16.5 1.4,-12 0,-9 Z" fill="#B9C287"/>
+      <path d="M0,-14 C-3.6,-15.5 -5.6,-18.5 -6.2,-22 C-3,-20.3 -1.1,-17 0,-14.8 Z" fill="#9A8B4F" opacity="0.85"/>
+      <path d="M0,-14 C3.6,-15.5 5.6,-18.5 6.2,-22 C3,-20.3 1.1,-17 0,-14.8 Z" fill="#9A8B4F" opacity="0.85"/>
+      <path d="M0,-24.5 C-3.4,-26.5 -3.8,-31 -2.2,-34.4 C-1,-31.6 1,-31.6 2.2,-34.4 C3.8,-31 3.4,-26.5 0,-24.5 Z" fill="#A15D66"/>
+      <ellipse cx="0" cy="-30.2" rx="1.35" ry="2.7" fill="#E1B4A1"/>
+      <circle cx="-4.8" cy="-21" r="1.15" fill="#C39B45"/>
+      <circle cx="4.8" cy="-21" r="1.15" fill="#C39B45"/>
+      <circle cx="-2.9" cy="-25.6" r="0.75" fill="#E1B4A1"/>
+      <circle cx="2.9" cy="-25.6" r="0.75" fill="#E1B4A1"/>
+    </g>
+    <g id="bud">
+      <path d="M0,0 C0.4,-4.5 -0.4,-8.5 0,-12" fill="none" stroke="#808249" stroke-width="0.55"/>
+      <path d="M0,-4.5 C-2.6,-5.6 -4,-7.6 -4.5,-10 C-2.2,-9 -0.8,-6.8 0,-5 Z" fill="#B9C287"/>
+      <path d="M0,-4.5 C2.6,-5.6 4,-7.6 4.5,-10 C2.2,-9 0.8,-6.8 0,-5 Z" fill="#B9C287"/>
+      <path d="M0,-11.6 C-2,-12.8 -2.3,-15.5 -1.3,-17.6 C-0.6,-15.9 0.6,-15.9 1.3,-17.6 C2.3,-15.5 2,-12.8 0,-11.6 Z" fill="#E1B4A1"/>
+      <circle cx="0" cy="-14.6" r="0.7" fill="#A15D66"/>
+    </g>
+  </defs>
+
+    <path d="M 9.35,120.07 Q -3.20,96.17 20.63,83.49 Q 19.02,56.54 45.96,54.78 Q 55.58,29.56 80.86,39.04 Q 100.00,20.00 119.14,39.04 Q 144.42,29.56 154.04,54.78 Q 180.98,56.54 179.37,83.49 Q 203.20,96.17 190.65,120.07 L 116.94,126.52 A 17.00,17.00 0 0 0 83.06,126.52 Z" fill="url(#lino)"/>
+    <path d="M 9.35,120.07 Q -3.20,96.17 20.63,83.49 Q 19.02,56.54 45.96,54.78 Q 55.58,29.56 80.86,39.04 Q 100.00,20.00 119.14,39.04 Q 144.42,29.56 154.04,54.78 Q 180.98,56.54 179.37,83.49 Q 203.20,96.17 190.65,120.07 L 116.94,126.52 A 17.00,17.00 0 0 0 83.06,126.52 Z" fill="#F3EED7" opacity="0.55"/>
+    <path d="M 21.30,121.11 Q 10.18,100.29 31.10,89.36 Q 29.52,65.80 53.09,64.44 Q 61.34,42.32 83.38,50.77 Q 100.00,34.00 116.62,50.77 Q 138.66,42.32 146.91,64.44 Q 170.48,65.80 168.90,89.36 Q 189.82,100.29 178.70,121.11 " fill="none" stroke="#808249" stroke-width="0.5" stroke-dasharray="0.2 1.6" stroke-linecap="round"/>
+    <path d="M 53.05,118.02 A 48.00,48.00 0 0 1 146.95,118.02" fill="none" stroke="#808249" stroke-width="0.45" stroke-dasharray="0.2 1.5" stroke-linecap="round"/>
+    <use href="#sprig" transform="translate(149.69,112.67) rotate(72.86) scale(0.82)"/>
+      <use href="#sprig" transform="translate(138.99,93.59) rotate(48.57) scale(0.82)"/>
+      <use href="#sprig" transform="translate(121.39,80.60) rotate(24.29) scale(0.82)"/>
+      <use href="#sprig" transform="translate(100.00,76.00) rotate(0.00) scale(0.82)"/>
+      <use href="#sprig" transform="translate(78.61,80.60) rotate(-24.29) scale(0.82)"/>
+      <use href="#sprig" transform="translate(61.01,93.59) rotate(-48.57) scale(0.82)"/>
+      <use href="#sprig" transform="translate(50.31,112.67) rotate(-72.86) scale(0.82)"/>
+      <use href="#bud" transform="translate(148.84,100.61) rotate(60.71)"/>
+      <use href="#bud" transform="translate(133.25,82.94) rotate(36.43)"/>
+      <use href="#bud" transform="translate(111.78,73.25) rotate(12.14)"/>
+      <use href="#bud" transform="translate(88.22,73.25) rotate(-12.14)"/>
+      <use href="#bud" transform="translate(66.75,82.94) rotate(-36.43)"/>
+      <use href="#bud" transform="translate(51.16,100.61) rotate(-60.71)"/>
+    <path id="tScript" d="M 58.43,119.16 A 42.50,42.50 0 0 1 141.57,119.16" fill="none"/>
+    <path id="tNames" d="M 67.72,121.14 A 33.00,33.00 0 0 1 132.28,121.14" fill="none"/>
+    <path id="tDate" d="M 75.06,122.70 A 25.50,25.50 0 0 1 124.94,122.70" fill="none"/>
+    <text class="script" font-size="10.5" fill="#A15D66"><textPath href="#tScript" startOffset="50%" text-anchor="middle">Nuestra Ceremonia</textPath></text>
+    <text class="caps" font-size="3.9" letter-spacing="1.1" fill="#4A1D2B"><textPath href="#tNames" startOffset="50%" text-anchor="middle">Marjorie Del Cid &#38; André González</textPath></text>
+    <text class="caps" font-size="3" letter-spacing="0.9" fill="#808249"><textPath href="#tDate" startOffset="50%" text-anchor="middle">24 · Octubre · 2026 &#160;&#8226;&#160; El Mayab · Guatemala</textPath></text>
+    <path d="M 12.33,120.33 Q -0.34,97.05 23.25,84.95 Q 21.27,58.52 47.74,57.20 Q 56.81,32.29 81.49,41.97 Q 100.00,23.00 118.51,41.97 Q 143.19,32.29 152.26,57.20 Q 178.73,58.52 176.75,84.95 Q 200.34,97.05 187.67,120.33 L 119.92,126.26 A 20.00,20.00 0 0 0 80.08,126.26 Z" fill="none" stroke="#A15D66" stroke-width="0.25" stroke-dasharray="1.6 1.6"/>
+  </svg>
 </div>
 
-<!-- REVERSO -->
-<div class="page rev">
-  <div class="arch back">
-    <img class="mono-sm" src="/am/logo/mono-dorado.png" alt="">
-    <p class="kick">Itinerario del día</p>
-    <h2 class="tit">Nuestro gran día</h2>
-    <div class="tl">
-      <span class="t">2:30 PM</span><span class="dot"></span><span class="e">Recepción de invitados</span>
-      <span class="t">3:00 PM</span><span class="dot"></span><span class="e">Ceremonia religiosa</span>
-      <span class="t">4:00 PM</span><span class="dot"></span><span class="e">Cocktail &amp; fotos</span>
-      <span class="t">5:00 PM</span><span class="dot"></span><span class="e">Ingreso a recepción</span>
-      <span class="t">6:00 PM</span><span class="dot"></span><span class="e">Cena</span>
-      <span class="t">7:00 PM</span><span class="dot"></span><span class="e">¡A bailar!</span>
-    </div>
-    <div class="foot">
-      <span class="dc">Black tie</span>
-      <span class="thanks">Gracias por ser parte de nuestra historia</span>
-    </div>
-  </div>
-  <div class="cutline"></div>
+
+<div class="page">
+  <svg viewBox="0 0 200 135" xmlns="http://www.w3.org/2000/svg">
+    
+  <defs>
+    <pattern id="lino" patternUnits="userSpaceOnUse" x="0" y="0" width="200" height="135">
+      <image href="/am/tex/lino.webp" x="0" y="0" width="200" height="135" preserveAspectRatio="xMidYMid slice"/>
+    </pattern>
+    <g id="sprig">
+      <path d="M0,0 C0.8,-9 -0.8,-17 0,-25" fill="none" stroke="#808249" stroke-width="0.7"/>
+      <path d="M0,-8 C-4.5,-10 -7,-14 -8,-18.5 C-4,-16.5 -1.4,-12 0,-9 Z" fill="#B9C287"/>
+      <path d="M0,-8 C4.5,-10 7,-14 8,-18.5 C4,-16.5 1.4,-12 0,-9 Z" fill="#B9C287"/>
+      <path d="M0,-14 C-3.6,-15.5 -5.6,-18.5 -6.2,-22 C-3,-20.3 -1.1,-17 0,-14.8 Z" fill="#9A8B4F" opacity="0.85"/>
+      <path d="M0,-14 C3.6,-15.5 5.6,-18.5 6.2,-22 C3,-20.3 1.1,-17 0,-14.8 Z" fill="#9A8B4F" opacity="0.85"/>
+      <path d="M0,-24.5 C-3.4,-26.5 -3.8,-31 -2.2,-34.4 C-1,-31.6 1,-31.6 2.2,-34.4 C3.8,-31 3.4,-26.5 0,-24.5 Z" fill="#A15D66"/>
+      <ellipse cx="0" cy="-30.2" rx="1.35" ry="2.7" fill="#E1B4A1"/>
+      <circle cx="-4.8" cy="-21" r="1.15" fill="#C39B45"/>
+      <circle cx="4.8" cy="-21" r="1.15" fill="#C39B45"/>
+      <circle cx="-2.9" cy="-25.6" r="0.75" fill="#E1B4A1"/>
+      <circle cx="2.9" cy="-25.6" r="0.75" fill="#E1B4A1"/>
+    </g>
+    <g id="bud">
+      <path d="M0,0 C0.4,-4.5 -0.4,-8.5 0,-12" fill="none" stroke="#808249" stroke-width="0.55"/>
+      <path d="M0,-4.5 C-2.6,-5.6 -4,-7.6 -4.5,-10 C-2.2,-9 -0.8,-6.8 0,-5 Z" fill="#B9C287"/>
+      <path d="M0,-4.5 C2.6,-5.6 4,-7.6 4.5,-10 C2.2,-9 0.8,-6.8 0,-5 Z" fill="#B9C287"/>
+      <path d="M0,-11.6 C-2,-12.8 -2.3,-15.5 -1.3,-17.6 C-0.6,-15.9 0.6,-15.9 1.3,-17.6 C2.3,-15.5 2,-12.8 0,-11.6 Z" fill="#E1B4A1"/>
+      <circle cx="0" cy="-14.6" r="0.7" fill="#A15D66"/>
+    </g>
+  </defs>
+
+    <path d="M 9.35,120.07 Q -3.20,96.17 20.63,83.49 Q 19.02,56.54 45.96,54.78 Q 55.58,29.56 80.86,39.04 Q 100.00,20.00 119.14,39.04 Q 144.42,29.56 154.04,54.78 Q 180.98,56.54 179.37,83.49 Q 203.20,96.17 190.65,120.07 L 116.94,126.52 A 17.00,17.00 0 0 0 83.06,126.52 Z" fill="url(#lino)"/>
+    <path d="M 9.35,120.07 Q -3.20,96.17 20.63,83.49 Q 19.02,56.54 45.96,54.78 Q 55.58,29.56 80.86,39.04 Q 100.00,20.00 119.14,39.04 Q 144.42,29.56 154.04,54.78 Q 180.98,56.54 179.37,83.49 Q 203.20,96.17 190.65,120.07 L 116.94,126.52 A 17.00,17.00 0 0 0 83.06,126.52 Z" fill="#F3EED7" opacity="0.6"/>
+    <path d="M 21.30,121.11 Q 10.18,100.29 31.10,89.36 Q 29.52,65.80 53.09,64.44 Q 61.34,42.32 83.38,50.77 Q 100.00,34.00 116.62,50.77 Q 138.66,42.32 146.91,64.44 Q 170.48,65.80 168.90,89.36 Q 189.82,100.29 178.70,121.11 " fill="none" stroke="#808249" stroke-width="0.5" stroke-dasharray="0.2 1.6" stroke-linecap="round"/>
+    <use href="#bud" transform="translate(45.26,98.89) rotate(-62.00)"/>
+    <use href="#bud" transform="translate(154.74,98.89) rotate(62.00)"/>
+    <use href="#sprig" transform="translate(100.00,70.00) scale(0.55)"/>
+    <text class="caps" font-size="3" letter-spacing="1.3" fill="#808249" x="100" y="60" text-anchor="middle">Itinerario del día</text>
+    <text class="script" font-size="9.5" fill="#4A1D2B" x="100" y="70" text-anchor="middle">Nuestro gran día</text>
+    <g>
+      <text class="vg" font-size="3.6" fill="#808249" x="96" y="76.50" text-anchor="end">2:30 PM</text><circle cx="100" cy="75.40" r="0.8" fill="#808249"/><text class="body-it" font-size="4.1" fill="#4A1D2B" x="104" y="76.50">Recepción de invitados</text>
+      <text class="vg" font-size="3.6" fill="#808249" x="96" y="81.90" text-anchor="end">3:00 PM</text><circle cx="100" cy="80.80" r="0.8" fill="#808249"/><text class="body-it" font-size="4.1" fill="#4A1D2B" x="104" y="81.90">Ceremonia religiosa</text>
+      <text class="vg" font-size="3.6" fill="#808249" x="96" y="87.30" text-anchor="end">4:00 PM</text><circle cx="100" cy="86.20" r="0.8" fill="#808249"/><text class="body-it" font-size="4.1" fill="#4A1D2B" x="104" y="87.30">Cocktail &#38; fotos</text>
+      <text class="vg" font-size="3.6" fill="#808249" x="96" y="92.70" text-anchor="end">5:00 PM</text><circle cx="100" cy="91.60" r="0.8" fill="#808249"/><text class="body-it" font-size="4.1" fill="#4A1D2B" x="104" y="92.70">Ingreso a recepción</text>
+      <text class="vg" font-size="3.6" fill="#808249" x="96" y="98.10" text-anchor="end">6:00 PM</text><circle cx="100" cy="97.00" r="0.8" fill="#808249"/><text class="body-it" font-size="4.1" fill="#4A1D2B" x="104" y="98.10">Cena</text>
+      <text class="vg" font-size="3.6" fill="#808249" x="96" y="103.50" text-anchor="end">7:00 PM</text><circle cx="100" cy="102.40" r="0.8" fill="#808249"/><text class="body-it" font-size="4.1" fill="#4A1D2B" x="104" y="103.50">¡A bailar!</text>
+      
+    </g>
+    <path id="tFoot" d="M 74.08,122.49 A 26.50,26.50 0 0 1 125.92,122.49" fill="none"/>
+    <text class="caps" font-size="2.9" letter-spacing="1" fill="#A15D66"><textPath href="#tFoot" startOffset="50%" text-anchor="middle">Black tie &#160;&#8226;&#160; Gracias por ser parte de nuestra historia</textPath></text>
+    <path d="M 12.33,120.33 Q -0.34,97.05 23.25,84.95 Q 21.27,58.52 47.74,57.20 Q 56.81,32.29 81.49,41.97 Q 100.00,23.00 118.51,41.97 Q 143.19,32.29 152.26,57.20 Q 178.73,58.52 176.75,84.95 Q 200.34,97.05 187.67,120.33 L 119.92,126.26 A 20.00,20.00 0 0 0 80.08,126.26 Z" fill="none" stroke="#A15D66" stroke-width="0.25" stroke-dasharray="1.6 1.6"/>
+  </svg>
 </div>
+
 </body>
 </html>
