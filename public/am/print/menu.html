@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Menú · Marjorie & André</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Marcellus+SC&family=Marcellus&family=EB+Garamond:ital@0;1&display=swap">
+<style>
+  /* =====================================================================
+     Menú de cena · formato DL 99 × 210 mm + 3 mm de sangrado por lado.
+     Página física: 105 × 216 mm. Imprimir al 100%, sin márgenes,
+     cartulina 300 g mate o lino. Los platos son PLACEHOLDER: se cambian
+     por el menú real del banquete.
+     ===================================================================== */
+  @font-face{font-family:'Vogue'; src:url('/am/fonts/Vogue.ttf') format('truetype');}
+  @page{size:105mm 216mm; margin:0;}
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:#666;}
+  .page{width:105mm; height:216mm; position:relative; overflow:hidden; margin:0 auto;
+        background:#F3EED7 url('/am/tex/lino.webp') center/cover;}
+  @media screen{ .page{margin:10mm auto; box-shadow:0 6px 30px rgba(0,0,0,.4);} }
+  .page::after{content:""; position:absolute; inset:0; background:rgba(243,238,215,.5);}
+  .inner{position:absolute; inset:3mm; z-index:2; display:flex; flex-direction:column; align-items:center; text-align:center; padding:11mm 9mm 9mm;}
+  .frame{position:absolute; inset:7mm; border:.35mm solid #C39B45; border-radius:1.5mm;
+         box-shadow:inset 0 0 0 1mm #F3EED7, inset 0 0 0 1.2mm rgba(74,29,43,.35); z-index:1; pointer-events:none;}
+  .mono{width:16mm; margin:3mm 0 2.5mm;}
+  .kick{font-family:'Marcellus SC',serif; font-size:8pt; letter-spacing:.3em; text-transform:uppercase; color:#808249; margin:0;}
+  h1{font-family:'Monsieur La Doulaise',cursive; font-weight:400; font-size:38pt; line-height:1; color:#4A1D2B; margin:1mm 0 6mm;}
+  .curso{margin:0 0 5.5mm; max-width:74mm;}
+  .curso .c{font-family:'Marcellus SC',serif; font-size:8.5pt; letter-spacing:.26em; text-transform:uppercase; color:#A15D66; margin:0 0 1.6mm;}
+  .curso .p{font-family:'EB Garamond',serif; font-style:italic; font-size:11.5pt; line-height:1.45; color:#4A1D2B; margin:0;}
+  .curso .d{font-family:'EB Garamond',serif; font-style:italic; font-size:9pt; line-height:1.4; color:#A15D66; margin:.8mm 0 0;}
+  .sep{width:16mm; height:.3mm; background:linear-gradient(90deg,transparent,#C39B45,transparent); margin:0 auto 5.5mm;}
+  .brindis{margin-top:auto; padding-bottom:4mm;}
+  .brindis .c{font-family:'Marcellus SC',serif; font-size:8pt; letter-spacing:.26em; text-transform:uppercase; color:#808249; margin:0 0 1.4mm;}
+  .brindis .p{font-family:'EB Garamond',serif; font-style:italic; font-size:9.5pt; color:#4A1D2B; margin:0;}
+  .foot{padding-bottom:2mm; font-family:'Marcellus SC',serif; font-size:7.5pt; letter-spacing:.24em; text-transform:uppercase; color:#A15D66;}
+  @media print{
+    html,body{background:#fff;}
+    .page{box-shadow:none; margin:0;}
+    .noprint{display:none;}
+  }
+  .noprint{position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#231712; color:#F7F0E5; font:12px/1.5 system-ui; padding:8px 14px; border-radius:10px; z-index:99; max-width:92vw; text-align:center;}
+</style>
+</head>
+<body>
+<div class="noprint">Menú DL 99×210 mm + 3 mm de sangrado · Imprimir al 100%, sin márgenes · Platos placeholder: se cambian por el menú real</div>
+
+<div class="page">
+  <div class="frame"></div>
+  <div class="inner">
+    <img class="mono" src="/am/logo/mono-dorado.png" alt="Monograma A&M">
+    <p class="kick">Marjorie &amp; André · 24.10.2026</p>
+    <h1>Menú</h1>
+
+    <div class="curso">
+      <p class="c">Entrada</p>
+      <p class="p">Ensalada de la casa</p>
+      <p class="d">mix de lechugas, queso de cabra, nuez caramelizada y vinagreta de miel</p>
+    </div>
+    <div class="sep"></div>
+
+    <div class="curso">
+      <p class="c">Plato fuerte</p>
+      <p class="p">Medallón de res en reducción de vino tinto</p>
+      <p class="d">puré trufado y vegetales rostizados</p>
+    </div>
+    <div class="sep"></div>
+
+    <div class="curso">
+      <p class="c">Postre</p>
+      <p class="p">Pastel de bodas</p>
+      <p class="d">con café de altura guatemalteco</p>
+    </div>
+
+    <div class="brindis">
+      <p class="c">Para brindar</p>
+      <p class="p">Vino tinto y blanco · espumante · coctelería de autor</p>
+    </div>
+
+    <div class="foot">El Mayab · Guatemala</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Abanico de ceremonia · Marjorie & André</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Marcellus+SC&family=Marcellus&family=EB+Garamond:ital@0;1&display=swap">
+<style>
+  /* =====================================================================
+     Abanico de mano (paddle fan) · tiro y retiro
+     Forma de arco: 130 × 180 mm + 3 mm de sangrado por lado.
+     Página física: 136 × 186 mm. La línea punteada es la guía de corte.
+     Imprimir: Chrome → Imprimir → Tamaño del papel personalizado o A4 con
+     "Tamaño real" (escala 100%), márgenes: ninguno. Cartulina 300 g mate.
+     ===================================================================== */
+  @font-face{font-family:'Vogue'; src:url('/am/fonts/Vogue.ttf') format('truetype');}
+  @page{size:136mm 186mm; margin:0;}
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:#666;}
+  .page{width:136mm; height:186mm; position:relative; overflow:hidden; page-break-after:always; margin:0 auto;}
+  @media screen{ .page{margin:10mm auto; box-shadow:0 6px 30px rgba(0,0,0,.4);} }
+
+  /* forma de arco: radio superior = mitad del ancho */
+  .arch{position:absolute; inset:0; border-radius:68mm 68mm 6mm 6mm; overflow:hidden;
+        display:flex; flex-direction:column; align-items:center; text-align:center;}
+  .cutline{position:absolute; inset:3mm; border-radius:65mm 65mm 5mm 5mm; border:.3mm dashed rgba(255,255,255,.55); pointer-events:none; z-index:9;}
+  .page.rev .cutline{border-color:rgba(74,29,43,.45);}
+
+  /* ---------- FRENTE · terciopelo vino ---------- */
+  .front{background:#4A1D2B url('/am/tex/terciopelo-tulipanes.jpg') center/cover; color:#F3EED7; justify-content:center; gap:0; padding:16mm 10mm;}
+  .front::after{content:""; position:absolute; inset:0; background:rgba(74,29,43,.42);}
+  .front > *{position:relative; z-index:2;}
+  .mono{width:30mm; height:auto; margin-bottom:7mm; filter:drop-shadow(0 1px 2px rgba(16,4,8,.5));}
+  .bless{font-family:'Marcellus SC',serif; font-size:8.5pt; letter-spacing:.24em; text-transform:uppercase; color:rgba(243,238,215,.85); margin:0 0 5mm;}
+  .names{font-family:'Monsieur La Doulaise',cursive; font-size:34pt; line-height:1.08; margin:0; color:#F3EED7;
+         text-shadow:0 1px 0 rgba(255,255,255,.25), 0 2px 6px rgba(16,4,8,.5);}
+  .amp{font-family:'Monsieur La Doulaise',cursive; font-size:22pt; display:block; line-height:1; margin:1mm 0;}
+  .date-row{display:flex; align-items:center; gap:4mm; margin-top:7mm; font-family:'Marcellus SC',serif; font-size:9pt; letter-spacing:.2em; text-transform:uppercase; color:#DFD6A4;}
+  .date-row i{display:block; width:12mm; height:.3mm; background:linear-gradient(90deg,transparent,#C39B45,transparent);}
+  .venue{margin-top:2.5mm; font-family:'Marcellus',serif; font-size:7.5pt; letter-spacing:.22em; text-transform:uppercase; color:rgba(243,238,215,.7);}
+
+  /* ---------- REVERSO · lino crema con itinerario ---------- */
+  .back{background:#F3EED7 url('/am/tex/lino.webp') center/cover; color:#4A1D2B; justify-content:flex-start; padding:20mm 14mm 14mm;}
+  .back::after{content:""; position:absolute; inset:0; background:rgba(243,238,215,.55);}
+  .back > *{position:relative; z-index:2;}
+  .back .kick{font-family:'Marcellus SC',serif; font-size:8.5pt; letter-spacing:.26em; text-transform:uppercase; color:#808249; margin:4mm 0 1mm;}
+  .back .tit{font-family:'Monsieur La Doulaise',cursive; font-size:27pt; color:#4A1D2B; margin:0 0 6mm; line-height:1;}
+  .tl{display:grid; grid-template-columns:auto auto 1fr; column-gap:4mm; row-gap:3.4mm; align-items:baseline; text-align:left; width:82mm;}
+  .tl .t{font-family:'Vogue','Bodoni Moda',serif; font-size:10.5pt; letter-spacing:.05em; color:#808249; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .tl .dot{width:1.6mm; height:1.6mm; border-radius:50%; background:#808249; align-self:center;}
+  .tl .e{font-family:'EB Garamond',serif; font-style:italic; font-size:11.5pt; color:#4A1D2B;}
+  .back .foot{margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:1.5mm; padding-bottom:6mm;}
+  .back .foot .dc{font-family:'Marcellus SC',serif; font-size:8pt; letter-spacing:.26em; text-transform:uppercase; color:#A15D66;}
+  .back .foot .thanks{font-family:'EB Garamond',serif; font-style:italic; font-size:9.5pt; color:#A15D66;}
+  .mono-sm{width:14mm; opacity:.9; margin-bottom:1mm;}
+
+  @media print{
+    html,body{background:#fff;}
+    .page{box-shadow:none; margin:0;}
+    .noprint{display:none;}
+  }
+  .noprint{position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#231712; color:#F7F0E5; font:12px/1.5 system-ui; padding:8px 14px; border-radius:10px; z-index:99; max-width:92vw; text-align:center;}
+</style>
+</head>
+<body>
+<div class="noprint">Abanico 130×180 mm + 3 mm de sangrado · 2 páginas (frente y reverso) · Imprimir al 100%, sin márgenes, cartulina 300 g · La línea punteada es la guía de corte</div>
+
+<!-- FRENTE -->
+<div class="page">
+  <div class="arch front">
+    <img class="mono" src="/am/logo/mono-dorado.png" alt="Monograma A&M">
+    <p class="bless">Con la bendición de Dios y nuestras familias</p>
+    <h1 class="names">Marjorie Del Cid<span class="amp">&amp;</span>André González</h1>
+    <div class="date-row"><i></i>24 · Octubre · 2026<i></i></div>
+    <div class="venue">El Mayab · Guatemala</div>
+  </div>
+  <div class="cutline"></div>
+</div>
+
+<!-- REVERSO -->
+<div class="page rev">
+  <div class="arch back">
+    <img class="mono-sm" src="/am/logo/mono-dorado.png" alt="">
+    <p class="kick">Itinerario del día</p>
+    <h2 class="tit">Nuestro gran día</h2>
+    <div class="tl">
+      <span class="t">2:30 PM</span><span class="dot"></span><span class="e">Recepción de invitados</span>
+      <span class="t">3:00 PM</span><span class="dot"></span><span class="e">Ceremonia religiosa</span>
+      <span class="t">4:00 PM</span><span class="dot"></span><span class="e">Cocktail &amp; fotos</span>
+      <span class="t">5:00 PM</span><span class="dot"></span><span class="e">Ingreso a recepción</span>
+      <span class="t">6:00 PM</span><span class="dot"></span><span class="e">Cena</span>
+      <span class="t">7:00 PM</span><span class="dot"></span><span class="e">¡A bailar!</span>
+    </div>
+    <div class="foot">
+      <span class="dc">Black tie</span>
+      <span class="thanks">Gracias por ser parte de nuestra historia</span>
+    </div>
+  </div>
+  <div class="cutline"></div>
+</div>
+</body>
+</html>
