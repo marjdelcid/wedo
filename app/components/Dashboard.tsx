@@ -95,7 +95,7 @@ export default function Dashboard() {
   const [host, setHost] = useState("");
   const [copied, setCopied] = useState(false);
   const [esAdminUser, setEsAdminUser] = useState(false);
-  const [rsvpFiltro, setRsvpFiltro] = useState<"todas" | "si" | "no" | "msj" | "pend">("todas");
+  const [rsvpFiltro, setRsvpFiltro] = useState<"todas" | "si" | "parcial" | "no" | "msj" | "pend">("todas");
   const [rsvpBusqueda, setRsvpBusqueda] = useState("");
   const [rsvpAbierto, setRsvpAbierto] = useState<string | null>(null);
 
@@ -242,7 +242,12 @@ export default function Dashboard() {
     (i.nombre || "").toLowerCase().includes(q) ||
     (Array.isArray(i.miembros) && i.miembros.some((m: any) => (m.nombre || "").toLowerCase().includes(q)));
   const sinResponderVisibles = sinResponder.filter(matchInv);
-  const rsvpsFiltradas = (rsvpFiltro === "si" ? rsvpSi : rsvpFiltro === "no" ? rsvpNo : rsvpFiltro === "msj" ? rsvpConMsj : rsvps).filter(matchRsvp);
+  // parciales: confirmaron sí, pero por menos personas que los asientos de su invitación
+  const asientosDe = (r: any) => invitados.find((i) => i.id === r.invitado_id)?.asientos || 0;
+  const esParcial = (r: any) => { const a = asientosDe(r); return a > 0 && personasPax(r) < a; };
+  const rsvpParcial = rsvpSi.filter(esParcial);
+  const lugaresLiberados = rsvpParcial.reduce((s, r) => s + (asientosDe(r) - personasPax(r)), 0);
+  const rsvpsFiltradas = (rsvpFiltro === "si" ? rsvpSi : rsvpFiltro === "parcial" ? rsvpParcial : rsvpFiltro === "no" ? rsvpNo : rsvpFiltro === "msj" ? rsvpConMsj : rsvps).filter(matchRsvp);
 
   const aportes = contribuciones.length;
   const invitadosDistintos = new Set(
@@ -459,7 +464,7 @@ export default function Dashboard() {
             </span>
             <div className="val">{personasConfirmadas}</div>
             <div className="delta">
-              personas confirmadas · {confirmados} {confirmados === 1 ? "invitación" : "invitaciones"} · {pendientes} pendientes
+              personas confirmadas · {confirmados} {confirmados === 1 ? "invitación" : "invitaciones"} · {pendientes} pendientes{lugaresLiberados > 0 ? ` · ${lugaresLiberados} ${lugaresLiberados === 1 ? "lugar liberado" : "lugares liberados"}` : ""}
             </div>
           </div>
           <div className="stat s3">
@@ -511,6 +516,7 @@ export default function Dashboard() {
               {([
                 ["todas", `Todas · ${rsvps.length}`],
                 ["si", `Asisten · ${confirmados}`],
+                ["parcial", `Confirmaron menos · ${rsvpParcial.length}`],
                 ["no", `No podrán · ${rsvpNo.length}`],
                 ["msj", `Con mensaje · ${rsvpConMsj.length}`],
                 ["pend", `Sin responder · ${sinResponder.length}`],
@@ -550,6 +556,8 @@ export default function Dashboard() {
               {rsvpFiltro !== "pend" && rsvpsFiltradas.map((r, i) => {
                 const si = r.asistencia === "si";
                 const pax = personasPax(r);
+                const asientosInv = asientosDe(r);
+                const parcial = si && esParcial(r);
                 // solo listamos nombres cuando hay grupo (2+); en solitario es redundante
                 const quienes = pax > 1 && Array.isArray(r.asistentes) && r.asistentes.length > 1 ? r.asistentes.join(" · ") : null;
                 const tieneMsj = !!(r.mensaje || r.restricciones);
@@ -567,9 +575,9 @@ export default function Dashboard() {
                       <div className="nm">{r.nombre}{tieneMsj && <span style={{ marginLeft: 6, fontSize: 12 }}>💬</span>}</div>
                       <div className="sub">{si ? "Confirmó" : "No podrán ir"} {hace(r.created_at)}{si && quienes ? ` · ${quienes}` : ""}</div>
                     </div>
-                    <span className="pax" style={!si ? { background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" } : undefined}>
-                      <span className="bdot" style={!si ? { background: "var(--coral)" } : undefined} />
-                      {si ? `${pax} ${pax === 1 ? "persona" : "personas"}` : "No asistirán"}
+                    <span className="pax" style={!si ? { background: "rgba(35,23,18,.07)", color: "var(--ink-faint)" } : parcial ? { background: "rgba(238,90,40,.12)", color: "#93401D" } : undefined}>
+                      <span className="bdot" style={!si || parcial ? { background: "var(--coral)" } : undefined} />
+                      {si ? (parcial ? `${pax} de ${asientosInv}` : `${pax} ${pax === 1 ? "persona" : "personas"}`) : "No asistirán"}
                     </span>
                     {abierto && r.mensaje && (
                       <div style={{ width: "100%", paddingLeft: 46, marginTop: 2, fontStyle: "italic", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-soft)" }}>
