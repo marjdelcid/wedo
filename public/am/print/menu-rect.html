@@ -13,7 +13,7 @@
      Imprimir al 100%, sin márgenes, cartulina 300 g. Corte recto.
      ===================================================================== */
   @page{size:105mm 216mm; margin:0;}
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
   html,body{margin:0; padding:0; background:#666;}
   .page{width:105mm; height:216mm; position:relative; overflow:hidden; margin:0 auto; background:#fff;}
   @media screen{ .page{margin:10mm auto; box-shadow:0 6px 30px rgba(0,0,0,.4);} }
