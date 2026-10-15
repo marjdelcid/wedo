@@ -847,7 +847,13 @@ export default function BodaClientAM({ slug }: { slug: string }) {
               return (
                 <div className="rcard">
                   <div className="foil-mono rseal" role="img" aria-label="A&M" />
-                  {rInv.confirmado ? (
+                  {rInv.rsvp_bloqueado && !rInv.confirmado ? (
+                    <>
+                      {rYo?.nombre && <p className="rres-name" style={{ fontSize: 24 }}>{primer(rYo.nombre)}</p>}
+                      <p className="rlead">✦ El periodo para confirmar asistencia ha terminado.</p>
+                      <p className="nmono">Si tienes dudas, escríbeles directo a Marjorie &amp; André</p>
+                    </>
+                  ) : rInv.confirmado ? (
                     yoRespondio ? (
                       <>
                         <p className="rres-name" style={{ fontSize: 24 }}>{primer(rYo?.nombre)}</p>
