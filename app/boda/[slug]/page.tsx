@@ -50,9 +50,10 @@ export async function generateMetadata(
   // link personal (?i=token): la tarjeta de WhatsApp saluda por nombre
   const { i } = await searchParams;
   const paraNombres = i && p.id ? await getNombresInvitacion(p.id, i) : "";
-  const baseTitle = `${n || (evtType.id === "boda" ? "Nuestra boda" : "Nuestro evento")} · ${p.frase_portada || evtType.frasePortada}`;
-  const title = paraNombres ? `Para ${paraNombres} 💌 ${n || "Nuestra celebración"}` : baseTitle;
-  const description = (paraNombres ? "Tu invitación te espera · " : "") + ([fecha, p.lugar].filter(Boolean).join(" · ") || "Te invitamos a celebrar con nosotros.");
+  const plural = !!(p.nombre2 || "").trim();
+  const baseTitle = `${n || (evtType.id === "boda" ? "Nuestra boda" : plural ? "Nuestro evento" : "Mi evento")} · ${p.frase_portada || evtType.frasePortada}`;
+  const title = paraNombres ? `Para ${paraNombres} 💌 ${n || (plural ? "Nuestra celebración" : "Mi celebración")}` : baseTitle;
+  const description = (paraNombres ? "Tu invitación te espera · " : "") + ([fecha, p.lugar].filter(Boolean).join(" · ") || (plural ? "Te invitamos a celebrar con nosotros." : "Te invito a celebrar conmigo."));
   // el template exclusivo A&M comparte su propia tarjeta (portada de terciopelo)
   const images = [{ url: slug === AM_SLUG ? "/og-am.jpg" : ((p.foto_hero as string) || "/og.png") }];
   const url = `https://wedo.gifts/boda/${slug}`;

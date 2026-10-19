@@ -291,7 +291,10 @@ export default function BodaClient({ slug }: { slug: string }) {
     ["--c-font-tit" as string]: `'${fontTitulos}', Georgia, serif`,
   } as React.CSSProperties;
 
-  const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
+  const n1 = (pareja.nombre1 || "").trim(), n2 = (pareja.nombre2 || "").trim();
+  // un solo nombre (cumpleaños, XV, bautizo…) → la página habla en singular ("mi", "me")
+  const plural = !!n2;
+  const pl = (dos: string, uno: string) => (plural ? dos : uno);
   // multi-evento: la ruta sigue siendo /boda/[slug] para no romper links.
   // TODO: evaluar /evento/[slug] con redirect desde /boda en una fase posterior.
   const evtType = getEventType(pareja.tipo_evento);
@@ -407,22 +410,22 @@ export default function BodaClient({ slug }: { slug: string }) {
       <div className="sec">
         <div className="sec-k">{esBoda ? "Nuestra historia" : "Mensaje"}</div>
         <h2 className="sec-h">{esBoda ? "Cómo empezó todo" : "Un mensaje para ti"}</h2>
-        <p className="body" style={{ whiteSpace: "pre-line" }}>{pareja.historia || (esBoda ? "Pronto compartiremos cómo empezó todo." : "Pronto compartiremos un mensaje contigo.")}</p>
-        {pareja.musica && <div className="song"><div className="k">Nuestra canción</div><div className="v">♪ {pareja.musica}</div></div>}
+        <p className="body" style={{ whiteSpace: "pre-line" }}>{pareja.historia || (esBoda ? "Pronto compartiremos cómo empezó todo." : pl("Pronto compartiremos un mensaje contigo.", "Pronto compartiré un mensaje contigo."))}</p>
+        {pareja.musica && <div className="song"><div className="k">{pl("Nuestra canción", "Mi canción")}</div><div className="v">♪ {pareja.musica}</div></div>}
         {galeriaFotos.length > 0 && <Carousel photos={galeriaFotos} />}
       </div>
     );
     if (id === "galeria") return (
       <div className="sec">
         <div className="sec-k">Galería</div>
-        <h2 className="sec-h">Nuestros momentos</h2>
+        <h2 className="sec-h">{pl("Nuestros momentos", "Mis momentos")}</h2>
         <Carousel photos={galeriaFotos} />
       </div>
     );
     if (id === "regalos") return (
       <div className="sec">
         <div className="sec-k">Mesa de regalos</div>
-        <h2 className="sec-h">Tu cariño es nuestro mejor regalo</h2>
+        <h2 className="sec-h">Tu cariño es {pl("nuestro", "mi")} mejor regalo</h2>
         {fondos.length === 0
           ? <p className="body">{esBoda ? "Los novios aún no han agregado regalos." : "Aún no hay regalos agregados."}</p>
           : <div className="gifts-wrap">{fondos.map((g, i) => <GiftCard key={g.id || i} g={g} i={i} />)}</div>}
@@ -432,7 +435,7 @@ export default function BodaClient({ slug }: { slug: string }) {
     if (id === "invitacion") return (
       <div className="sec">
         <div className="sec-k">Invitación</div>
-        <h2 className="sec-h">Nuestra invitación</h2>
+        <h2 className="sec-h">{pl("Nuestra invitación", "Mi invitación")}</h2>
         {pareja.invitacion_url
           ? (pareja.invitacion_url.includes(".pdf")
             ? <div style={{ textAlign: "center" }}><a href={pareja.invitacion_url} target="_blank" rel="noreferrer" style={{ display: "inline-block", padding: "13px 26px", background: "var(--c-accent)", color: "#fff", textDecoration: "none", borderRadius: 100, fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13 }}>Ver invitación (PDF)</a></div>
@@ -518,12 +521,12 @@ export default function BodaClient({ slug }: { slug: string }) {
     if (id === "rsvp") return (
       <div className="sec">
         <div className="sec-k">Confirma tu asistencia</div>
-        <h2 className="sec-h">¿Nos acompañas?</h2>
+        <h2 className="sec-h">{pl("¿Nos acompañas?", "¿Me acompañas?")}</h2>
         {rsvpDone ? (
           <div className="rsvp-box">
-            <div className="rsvp-ico">&amp;</div>
-            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : "Gracias por avisarnos"}</div>
-            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rsvpForm.asistencia === "si" ? "Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!" : "Lamentamos que no puedas acompañarnos, gracias por responder."}</div>
+            <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
+            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
+            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
           </div>
         ) : rsvpCodigoStep ? (
           <div className="rsvp-box" style={{ textAlign: "left" }}>
@@ -536,7 +539,7 @@ export default function BodaClient({ slug }: { slug: string }) {
           </div>
         ) : !rsvpSelected ? (
           <div className="rsvp-box">
-            <div className="rsvp-ico">&amp;</div>
+            <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
             <input value={rsvpQuery} onChange={(e) => setRsvpQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && searchRsvp()} placeholder="Escribe tu nombre…" />
             <button onClick={searchRsvp} className="rbtn">Buscar mi invitación</button>
             <div className="rsvp-note">Tu confirmación llega directo a {nombresTxt}.</div>
@@ -731,7 +734,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                     <div className="state-ico ok">✓</div>
                     <h3>¡Gracias por tu regalo!</h3>
                     <p>Tu aporte de <strong>{fmtQ(gross)}</strong> va en camino a {nombresTxt}.</p>
-                    <div className="gracias" style={{ color: accent, whiteSpace: "pre-line" }}>“{pareja.mensaje_gracias || "Con todo nuestro amor, gracias por ser parte de este momento tan especial."}”</div>
+                    <div className="gracias" style={{ color: accent, whiteSpace: "pre-line" }}>“{pareja.mensaje_gracias || pl("Con todo nuestro amor, gracias por ser parte de este momento tan especial.", "Con todo mi cariño, gracias por ser parte de este momento tan especial.")}”</div>
                     <button className="pay-btn" onClick={closeGift}>Volver a la invitación</button>
                   </div>
                 )}
