@@ -9,6 +9,7 @@
    ===================================================================== */
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
+import { getEventType } from "../../lib/eventTypes";
 import "../../std.css";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -103,7 +104,9 @@ export default function StdClient({ slug }: { slug: string }) {
   // el estilo C (letterpress AMB) ya no es opción pública en el editor;
   // permanece solo para eventos que lo tienen guardado (la boda M&A)
   const estilo = (pareja.std_estilo || "b").toLowerCase();
-  const n1 = pareja.nombre1 || "", n2 = pareja.nombre2 || "";
+  const n1 = (pareja.nombre1 || "").trim(), n2 = (pareja.nombre2 || "").trim();
+  const nombres = n2 ? `${n1} & ${n2}` : n1;
+  const tipoLabel = getEventType(pareja.tipo_evento).label;
   const ciudad = pareja.lugar || "";
 
   // date pieces
@@ -139,7 +142,7 @@ export default function StdClient({ slug }: { slug: string }) {
     const fmt = (dt: Date) => dt.getUTCFullYear() + pad(dt.getUTCMonth() + 1) + pad(dt.getUTCDate()) + "T" + pad(dt.getUTCHours()) + pad(dt.getUTCMinutes()) + "00Z";
     const p = new URLSearchParams({
       action: "TEMPLATE",
-      text: `Boda de ${n1} & ${n2}`,
+      text: `${tipoLabel} de ${nombres}`,
       dates: `${fmt(start)}/${fmt(end)}`,
       details: "¡Reserva la fecha! Save the date — wedo.",
       location: ciudad,
@@ -174,7 +177,7 @@ export default function StdClient({ slug }: { slug: string }) {
           <div className="top"><Mark /><span className="badge">Save the date</span></div>
           <div className="body">
             <div className="kick">Reserva la fecha</div>
-            <div className="names">{n1} &amp; {n2}</div>
+            <div className="names">{nombres}</div>
             <div className="rule" />
             {dateLineA && <div className="date">{dateLineA}</div>}
             {ciudad && <div className="place">{ciudad}</div>}
@@ -205,7 +208,7 @@ export default function StdClient({ slug }: { slug: string }) {
             <div className="kick">Reserva la fecha</div>
             <div className="l1">Save the</div>
             <div className="l2">date<span className="uline" /></div>
-            <div className="names">{n1} &amp; {n2}</div>
+            <div className="names">{nombres}</div>
             <div className="when">
               {dd && <span className="d">{dd}</span>}
               {monthAbbr && <span className="mo">{monthAbbr}</span>}
