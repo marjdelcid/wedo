@@ -168,7 +168,7 @@ export default function Dashboard() {
         .from("contribuciones")
         .select("*")
         .in("fondo_id", fondoIds)
-        .neq("estado", "pendiente")
+        .eq("estado", "pagado")
         .order("created_at", { ascending: false });
       setContribuciones(contribData || []);
     }

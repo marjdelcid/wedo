@@ -395,6 +395,7 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   const [giftCustom, setGiftCustom] = useState(false);
   const [giftPaid, setGiftPaid] = useState(false);
   const [giftPago, setGiftPago] = useState<string | null>(null); // URL del checkout embebido
+  const [giftSending, setGiftSending] = useState(false);
 
   // checkout embebido de Recurrente dentro del modal (sin redirigir)
   useEffect(() => {
@@ -602,18 +603,23 @@ export default function BodaClientAM({ slug }: { slug: string }) {
   async function payGift() {
     const f = giftOpen;
     const monto = f.modo === "completo" ? f.meta : giftMonto;
-    if (monto <= 0) return;
+    if (monto <= 0 || giftSending) return;
     // pago real: el API crea el checkout de Recurrente y redirigimos
+    setGiftSending(true);
+    let j: any = {};
     try {
       const res = await fetch("/api/aportes/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fondo_id: f.id, nombre: giftNombre, mensaje: giftMensaje, monto }),
       });
-      const j = await res.json().catch(() => ({}));
-      if (j?.url) { setGiftPago(j.url); return; } // checkout embebido en el modal
-      if (!j?.simulado && j?.error) { alert(j.error); return; }
-    } catch { /* sin red: cae al modo demo */ }
+      j = await res.json().catch(() => ({}));
+    } catch { j = {}; }
+    setGiftSending(false);
+    if (j?.url) { setGiftPago(j.url); return; } // checkout embebido en el modal
+    // solo el API puede declarar modo demo; cualquier otra respuesta es un fallo
+    // y nunca debe mostrarse como regalo hecho sin cobro
+    if (!j?.simulado) { alert(j?.error || "No pudimos iniciar el pago. Revisa tu conexión e intenta de nuevo."); return; }
     // modo demo (sin llaves de pago configuradas): registro local como antes
     setGiftPaid(true);
     await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: giftNombre || "Anónimo", monto, mensaje: giftMensaje || null });
@@ -1022,13 +1028,13 @@ export default function BodaClientAM({ slug }: { slug: string }) {
                 <textarea className="gov-input" value={giftMensaje} onChange={e => setGiftMensaje(e.target.value)} placeholder="Mensaje para los novios (opcional)…" style={{ resize: "vertical", minHeight: 60 }} />
 
                 {giftOpen.modo === "completo" ? (
-                  <button className="btn" onClick={payGift}>Regalar {fmtQ(giftOpen.meta || 0)} completo</button>
+                  <button className="btn" onClick={payGift} disabled={giftSending}>{giftSending ? "Abriendo pago…" : `Regalar ${fmtQ(giftOpen.meta || 0)} completo`}</button>
                 ) : (
                   <>
                     <p className="gov-libre">El monto es libre: aporta lo que tú desees, cualquier aporte suma y nos llena de gratitud.</p>
                     <input className="gov-input" type="number" min={1} placeholder="Escribe tu aporte en Q…" onChange={e => setGiftMonto(parseInt(e.target.value) || 0)} />
-                    <button className="btn" onClick={payGift} disabled={giftMonto < 25}>
-                      {giftMonto >= 25 ? `Aportar ${fmtQ(giftMonto)}` : giftMonto > 0 ? "El aporte mínimo es Q25" : "Escribe tu aporte"}
+                    <button className="btn" onClick={payGift} disabled={giftMonto < 25 || giftSending}>
+                      {giftSending ? "Abriendo pago…" : giftMonto >= 25 ? `Aportar ${fmtQ(giftMonto)}` : giftMonto > 0 ? "El aporte mínimo es Q25" : "Escribe tu aporte"}
                     </button>
                   </>
                 )}

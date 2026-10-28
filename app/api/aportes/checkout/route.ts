@@ -57,6 +57,8 @@ export async function POST(req: Request) {
     const invUrl = `${SITE}/boda/${pareja.slug}`;
     const res = await fetch("https://app.recurrente.com/api/checkouts", {
       method: "POST",
+      // acotado para responder con error propio antes del límite de la función
+      signal: AbortSignal.timeout(20000),
       headers: { "Content-Type": "application/json", "X-SECRET-KEY": sec, ...(pub ? { "X-PUBLIC-KEY": pub } : {}) },
       body: JSON.stringify({
         items: [{
