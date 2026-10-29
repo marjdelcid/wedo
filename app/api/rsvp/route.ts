@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     // invitación con RSVP cerrado (p. ej. pasada la fecha límite)
     if (inv.rsvp_bloqueado) {
-      return NextResponse.json({ error: "El periodo para confirmar asistencia ha terminado. Si tienes dudas, escríbeles directo a los novios." }, { status: 403 });
+      return NextResponse.json({ error: "El periodo para confirmar asistencia ha terminado. Si tienes dudas, escríbele directo a quien te invitó." }, { status: 403 });
     }
 
     const yo = (inv.miembros || []).find((m: any) => m.token === token);

@@ -108,6 +108,12 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [rsvpCodigoError, setRsvpCodigoError] = useState(false);
   const [rsvpCodigoLoading, setRsvpCodigoLoading] = useState(false);
 
+  // rsvp personalizado por link único (?i=token): invitación, quién abre, nombre del +1
+  const [rInv, setRInv] = useState<any>(null);
+  const [rYo, setRYo] = useState<any>(null);
+  const [rMas1, setRMas1] = useState("");
+  const [rQuienes, setRQuienes] = useState<Record<string, boolean>>({});
+
   useEffect(() => { loadData(); }, [slug]);
 
   async function loadData() {
@@ -116,6 +122,20 @@ export default function BodaClient({ slug }: { slug: string }) {
     setPareja(p);
     const { data: f } = await supabase.from("fondos").select("*").eq("pareja_id", p.id).order("orden");
     setFondos(f || []);
+    // link personalizado: ?i=token identifica a la persona y su invitación
+    try {
+      const token = new URLSearchParams(window.location.search).get("i");
+      if (token && !demo) {
+        const { data: inv } = await supabase.from("invitados")
+          .select("*").eq("pareja_id", p.id)
+          .contains("miembros", JSON.stringify([{ token }]))
+          .single();
+        if (inv) {
+          setRInv(inv);
+          setRYo((inv.miembros || []).find((m: any) => m.token === token) || null);
+        }
+      }
+    } catch { /* sin token o inválido: flujo normal de búsqueda */ }
     setLoading(false);
   }
 
@@ -170,6 +190,40 @@ export default function BodaClient({ slug }: { slug: string }) {
     await supabase.from("invitados").update({ confirmado: true }).eq("id", rsvpSelected.id);
     setRsvpSubmitting(false);
     setRsvpDone(true);
+  }
+
+  /** RSVP por link personalizado: una persona confirma por TODO su grupo
+      (checklist de quiénes asisten, incluido el +1); si nombró a su
+      acompañante, se guarda en el primer slot vacío que haya marcado. */
+  async function handleRsvpLink() {
+    if (!rInv || !rYo || !rsvpForm.asistencia) return;
+    setRsvpSubmitting(true);
+    try {
+      const res = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: rYo.token,
+          asistencia: rsvpForm.asistencia,
+          quienes: Object.keys(rQuienes).filter((t) => rQuienes[t]),
+          acompanante_nombre: rMas1,
+          restricciones: rsvpForm.restricciones,
+          mensaje: rsvpForm.mensaje,
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      setRsvpSubmitting(false);
+      if (j?.ya) {
+        // otro miembro del grupo se adelantó: mostramos su respuesta
+        setRInv({ ...rInv, confirmado: true, respondido_por: j.respondido_por, asistira: j.asistira });
+        return;
+      }
+      if (j?.ok) { setRsvpDone(true); return; }
+      alert(j?.error || "No pudimos enviar tu confirmación. Intenta de nuevo.");
+    } catch {
+      setRsvpSubmitting(false);
+      alert("No pudimos enviar tu confirmación. Intenta de nuevo.");
+    }
   }
 
   function fireConfetti() {
@@ -530,6 +584,106 @@ export default function BodaClient({ slug }: { slug: string }) {
             <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
             <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
             <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
+          </div>
+        ) : rInv ? (() => {
+          // ---- RSVP personalizado por link único ----
+          const primer = (n: string | null) => (n || "").trim().split(" ")[0];
+          const otros = (rInv.miembros || []).filter((m: any) => m.token !== rYo?.token);
+          const conNombre = otros.filter((m: any) => m.nombre).map((m: any) => primer(m.nombre));
+          const sinNombre = otros.length - conNombre.length;
+          const lista = conNombre.length === 0 ? "" : conNombre.length === 1 ? conNombre[0] : conNombre.slice(0, -1).join(", ") + " y " + conNombre[conNombre.length - 1];
+          const compTxt = otros.length === 0 ? "Esta invitación es para ti."
+            : sinNombre === 0 ? `Esta invitación es para ti y ${lista}.`
+            : conNombre.length === 0 ? `Esta invitación es para ti y ${sinNombre === 1 ? "un acompañante" : sinNombre + " acompañantes"}.`
+            : `Esta invitación es para ti, ${lista} y ${sinNombre === 1 ? "un acompañante" : sinNombre + " acompañantes"}.`;
+          const seatsInv = rInv.asientos || 1;
+          const yoRespondio = rInv.respondido_por && rYo?.nombre && rInv.respondido_por === rYo.nombre;
+          const diaTxt = dObj ? ` el ${dObj.toLocaleDateString("es-GT", { day: "numeric", month: "long" })}` : " pronto";
+          const escribe = pl(`Si algo cambia, escríbeles directo a ${nombresTxt}`, `Si algo cambia, escríbele directo a ${nombresTxt}`);
+          const nombreYo = rYo?.nombre && <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 24, color: "var(--c-ink)", marginBottom: 8 }}>{primer(rYo.nombre)}</div>;
+          const lead: React.CSSProperties = { fontFamily: "var(--c-font-tit)", fontSize: 20, color: "var(--c-accent)", marginBottom: 8 };
+          const note: React.CSSProperties = { fontSize: 13, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" };
+          const choice = (on: boolean, fill: boolean): React.CSSProperties => ({ flex: 1, padding: 12, border: `1.5px solid ${on ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: on && fill ? "var(--c-accent)" : "transparent", color: on && fill ? "var(--c-on-accent)" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" });
+          const chip = (on: boolean): React.CSSProperties => ({ padding: "8px 15px", border: `1px solid ${on ? "var(--c-ink)" : "var(--c-line)"}`, borderRadius: 8, background: on ? "var(--c-ink)" : "transparent", color: on ? "#fff" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontSize: 13, cursor: "pointer" });
+          return (
+            <div className="rsvp-box">
+              <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
+              {rInv.rsvp_bloqueado && !rInv.confirmado ? (
+                <>
+                  {nombreYo}
+                  <div style={lead}>El periodo para confirmar asistencia ha terminado.</div>
+                  <div style={note}>{pl(`Si tienes dudas, escríbeles directo a ${nombresTxt}`, `Si tienes dudas, escríbele directo a ${nombresTxt}`)}</div>
+                </>
+              ) : rInv.confirmado ? (
+                yoRespondio ? (
+                  <>
+                    {nombreYo}
+                    <div style={lead}>Ya confirmaste por tu invitación. ¡Gracias!</div>
+                    <div style={note}>{rInv.asistira === "si" ? `Nos vemos${diaTxt}` : "Gracias por avisar"}</div>
+                  </>
+                ) : (
+                  <>
+                    {nombreYo}
+                    <div style={lead}>
+                      {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
+                      {rInv.asistira === "si" ? `. ${pl("¡Los esperamos", "¡Los espero")}${diaTxt}!` : rInv.asistira === "no" ? `. ${pl("Lamentamos que no puedan acompañarnos", "Lamento que no puedan acompañarme")}.` : "."}
+                    </div>
+                    <div style={note}>{escribe}</div>
+                  </>
+                )
+              ) : (
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 23, color: "var(--c-ink)", marginBottom: 4, textAlign: "center" }}>
+                    {rYo?.nombre ? `${primer(rYo.nombre)}, ` : ""}{pl("¿podrás acompañarnos a nuestra celebración?", "¿podrás acompañarme a mi celebración?")}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--c-muted)", marginBottom: 18, textAlign: "center" }}>{compTxt}</div>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                    <button
+                      style={choice(rsvpForm.asistencia === "si", true)}
+                      onClick={() => {
+                        setRsvpForm((p) => ({ ...p, asistencia: "si" }));
+                        // preselección: yo + los que tienen nombre; el +1 lo marcan si lo llevan
+                        if (!Object.keys(rQuienes).length) {
+                          const init: Record<string, boolean> = {};
+                          (rInv.miembros || []).forEach((m: any) => { init[m.token] = m.token === rYo?.token ? true : !!m.nombre; });
+                          setRQuienes(init);
+                        }
+                      }}
+                    >✓ {seatsInv > 1 ? "Confirmar asistencia" : "Sí, asistiré"}</button>
+                    <button style={choice(rsvpForm.asistencia === "no", false)} onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "no" }))}>✕ {seatsInv > 1 ? "No podremos ir" : "No podré ir"}</button>
+                  </div>
+                  {rsvpForm.asistencia === "si" && seatsInv > 1 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 8 }}>Confirma por tu grupo: ¿quiénes asisten?</div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {(rInv.miembros || []).map((m: any) => {
+                          const esYo = m.token === rYo?.token;
+                          const label = m.nombre ? (esYo ? `${primer(m.nombre)} (tú)` : primer(m.nombre)) : "+1";
+                          return (
+                            <button key={m.token} style={chip(!!rQuienes[m.token])} onClick={() => setRQuienes((q) => ({ ...q, [m.token]: !q[m.token] }))}>
+                              {rQuienes[m.token] ? "✓ " : ""}{label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {rsvpForm.asistencia === "si" && (rInv.miembros || []).some((m: any) => !m.nombre && rQuienes[m.token]) && (
+                    <div style={{ marginBottom: 12 }}><input value={rMas1} onChange={(e) => setRMas1(e.target.value)} placeholder="Nombre de tu acompañante (opcional)" style={inpStyle} /></div>
+                  )}
+                  {rsvpForm.asistencia === "si" && <div style={{ marginBottom: 12 }}><input value={rsvpForm.restricciones} onChange={(e) => setRsvpForm((p) => ({ ...p, restricciones: e.target.value }))} placeholder="Restricciones alimentarias (opcional)" style={inpStyle} /></div>}
+                  <textarea value={rsvpForm.mensaje} onChange={(e) => setRsvpForm((p) => ({ ...p, mensaje: e.target.value }))} placeholder={`Mensaje para ${anfitrionTxt} (opcional)`} style={{ ...inpStyle, minHeight: 64, resize: "vertical", marginBottom: 14 }} />
+                  <button onClick={handleRsvpLink} disabled={!rsvpForm.asistencia || rsvpSubmitting} className="rbtn" style={{ opacity: !rsvpForm.asistencia ? 0.5 : 1 }}>{rsvpSubmitting ? "Enviando..." : "Enviar respuesta"}</button>
+                </div>
+              )}
+            </div>
+          );
+        })() : secs.rsvp_solo_link ? (
+          // la confirmación es SOLO por link personal: sin búsqueda por nombre
+          <div className="rsvp-box">
+            <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
+            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 21, color: "var(--c-ink)", marginBottom: 8 }}>Tu confirmación es con tu link personal</div>
+            <div style={{ fontSize: 13, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>Abre el enlace que recibiste con tu invitación.<br />{pl(`¿No lo encuentras? Escríbeles a ${nombresTxt} y te lo reenvían.`, `¿No lo encuentras? Escríbele a ${nombresTxt} y te lo reenvía.`)}</div>
           </div>
         ) : rsvpCodigoStep ? (
           <div className="rsvp-box" style={{ textAlign: "left" }}>
