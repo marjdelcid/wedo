@@ -262,6 +262,11 @@
 .wedo-app .sec-row .sarrows{display:flex; flex-direction:column; gap:2px; flex:none;}
 .wedo-app .sec-row .sarrow{width:22px; height:19px; border:1px solid var(--line); border-radius:3px; background:transparent; color:var(--pink); font-size:8px; line-height:1; cursor:pointer; padding:0;}
 .wedo-app .sec-row.dim{opacity:.5;}
+.wedo-app .sec-row .sfondo{display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.wedo-app .sec-row .sfondo .sdesc{margin:0;}
+.wedo-app .sec-row .sfondo img{width:46px; height:32px; object-fit:cover; border-radius:6px; border:1px solid var(--line);}
+.wedo-app .sec-row .vchip{padding:4px 10px; border:1px solid var(--line); border-radius:100px; background:#fffdf8; color:var(--ink-soft); font-family:'Archivo',sans-serif; font-size:11.5px; cursor:pointer;}
+.wedo-app .sec-row .vchip.on{background:var(--ink); border-color:var(--ink); color:#fff;}
 .wedo-app .sec-row .sdot{width:11px; height:11px; border-radius:50%; flex:none;}
 .wedo-app .sec-count{display:inline-flex; align-items:center; gap:9px; font-size:12px; color:var(--ink-soft); margin-bottom:14px;}
 

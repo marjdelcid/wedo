@@ -52,6 +52,9 @@ const SECCIONES_META: Record<string, { label: string; desc: string }> = {
   rsvp: { label: "Confirmación de asistencia", desc: "Los invitados buscan su nombre y confirman" },
   countdown: { label: "Cuenta regresiva", desc: "Días que faltan para el evento" },
 };
+// secciones que pueden llevar foto de fondo (con velo para que el texto se lea)
+const FONDO_SECS = ["historia", "galeria", "regalos", "detalles", "invitacion", "rsvp"];
+const VELOS = [{ v: 40, label: "Ligero" }, { v: 65, label: "Medio" }, { v: 85, label: "Fuerte" }];
 const DEFAULT_ORDER = ["galeria", "regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
 
 const COVER_STYLES = [
@@ -142,7 +145,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const removeAgenda = (i: number) => setF((p: any) => ({ ...p, agenda: (p.agenda || []).filter((_: any, j: number) => j !== i) }));
 
   // secciones
-  const [secciones, setSecciones] = useState<Record<string, boolean>>({ galeria: true, regalos: true, historia: true, detalles: true, invitacion: true, rsvp: true, countdown: true });
+  const [secciones, setSecciones] = useState<Record<string, any>>({ galeria: true, regalos: true, historia: true, detalles: true, invitacion: true, rsvp: true, countdown: true });
   const [orden, setOrden] = useState<string[]>(DEFAULT_ORDER);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -312,6 +315,27 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     const url = await upload("bodas", file, "inv");
     if (url) setField("invitacion_url", url);
     e.target.value = "";
+  }
+  // fondo por sección: secciones.fondos[id] = { url, velo }; se guarda con "Guardar secciones"
+  const fondoTarget = useRef<string | null>(null);
+  const [subiendoFondo, setSubiendoFondo] = useState<string | null>(null);
+  function setFondoSec(id: string, val: { url: string; velo: number } | null) {
+    setSecciones((s) => {
+      const fondos = { ...(s.fondos || {}) };
+      if (val) fondos[id] = val; else delete fondos[id];
+      return { ...s, fondos };
+    });
+  }
+  function pickFondo(id: string) { fondoTarget.current = id; fileRefs.current.secfondo?.click(); }
+  async function onFondoSec(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; const id = fondoTarget.current;
+    e.target.value = "";
+    if (!file || !id) return;
+    setSubiendoFondo(id);
+    const url = await upload("bodas", file, "fondo-sec");
+    setSubiendoFondo(null);
+    if (url) setFondoSec(id, { url, velo: secciones.fondos?.[id]?.velo ?? 65 });
+    else alert("No pudimos subir la imagen. Intenta de nuevo.");
   }
   const pick = (id: string) => fileRefs.current[id]?.click();
 
@@ -1455,7 +1479,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
             {/* SECCIONES */}
             {pane === "secciones" && (
-              <Pane num="vi" title="Secciones de tu página" desc="Activa o desactiva secciones y reorganízalas. ⠿ Arrastra para reordenar o usa las flechas.">
+              <Pane num="vi" title="Secciones de tu página" desc="Activa o desactiva secciones, reorganízalas y, si quieres, ponles una foto de fondo. ⠿ Arrastra para reordenar o usa las flechas.">
+                <input ref={(el) => { fileRefs.current.secfondo = el; }} type="file" accept="image/*" onChange={onFondoSec} style={{ display: "none" }} />
                 <div className="sec-count"><span className="bdot" />{seccActivas} de {Object.keys(SECCIONES_META).length} secciones activas</div>
                 {orden.map((id, i) => {
                   const meta = SECCIONES_META[id]; if (!meta) return null;
@@ -1466,7 +1491,25 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       onDrop={() => { if (dragIndex !== null && dragIndex !== i) moveSec(dragIndex, i); setDragIndex(null); }} onDragEnd={() => setDragIndex(null)}>
                       <span className="grip">⠿</span>
                       <span className="sdot" style={{ background: "var(--pink)" }} />
-                      <div className="sbody"><div className="stitle">{meta.label}</div><div className="sdesc">{meta.desc}</div></div>
+                      <div className="sbody"><div className="stitle">{meta.label}</div><div className="sdesc">{meta.desc}</div>
+                        {FONDO_SECS.includes(id) && (() => {
+                          const fd = secciones.fondos?.[id];
+                          if (subiendoFondo === id) return <div className="sfondo"><span className="sdesc">Subiendo fondo…</span></div>;
+                          return fd?.url ? (
+                            <div className="sfondo">
+                              <img src={fd.url} alt="" />
+                              <span className="sdesc">Velo:</span>
+                              {VELOS.map((o) => (
+                                <button key={o.v} type="button" className={"vchip" + ((fd.velo ?? 65) === o.v ? " on" : "")} onClick={() => setFondoSec(id, { ...fd, velo: o.v })}>{o.label}</button>
+                              ))}
+                              <button type="button" className="vchip" onClick={() => pickFondo(id)}>Cambiar</button>
+                              <button type="button" className="vchip" onClick={() => setFondoSec(id, null)}>Quitar</button>
+                            </div>
+                          ) : (
+                            <div className="sfondo"><button type="button" className="vchip" onClick={() => pickFondo(id)}>+ Foto de fondo</button></div>
+                          );
+                        })()}
+                      </div>
                       <div className="sarrows"><button className="sarrow" onClick={() => moveSec(i, i - 1)}>▲</button><button className="sarrow" onClick={() => moveSec(i, i + 1)}>▼</button></div>
                       <button className={"switch" + (active ? "" : " off")} onClick={() => setSecciones((s) => ({ ...s, [id]: !s[id] }))} />
                     </div>

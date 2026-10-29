@@ -376,6 +376,16 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   const secs: any = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
   const galeriaFotos: string[] = Array.isArray(pareja.galeria_fotos) ? pareja.galeria_fotos : [];
+  // foto de fondo opcional por sección (secciones.fondos[id] = { url, velo }); el velo
+  // crema encima mantiene el texto legible sobre cualquier foto
+  const fondosSec: Record<string, any> = (pareja.secciones && pareja.secciones.fondos) || {};
+  const fondoStyle = (id: string): React.CSSProperties => {
+    const fd = fondosSec[id];
+    if (!fd?.url) return {};
+    const a = Math.min(Math.max(Number(fd.velo ?? 65), 0), 95) / 100;
+    const velo = `rgba(247,240,229,${a})`;
+    return { backgroundImage: `linear-gradient(${velo}, ${velo}), url("${String(fd.url).replace(/"/g, "%22")}")`, backgroundSize: "cover", backgroundPosition: "center" };
+  };
   const savedOrder: string[] = Array.isArray(pareja.secciones_orden) && pareja.secciones_orden.length > 0 ? pareja.secciones_orden : [];
 
   // date pieces
@@ -806,7 +816,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                 </div>
               </section>
             ) : (
-              <section className="isection on" data-sec={activeSection} style={secAnim}>{renderSection(activeSection)}</section>
+              <section className="isection on" data-sec={activeSection} style={{ ...secAnim, ...fondoStyle(activeSection) }}>{renderSection(activeSection)}</section>
             )}
           </div>
 
