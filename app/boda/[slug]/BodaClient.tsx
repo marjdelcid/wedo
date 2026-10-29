@@ -376,11 +376,13 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   const secs: any = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
   const galeriaFotos: string[] = Array.isArray(pareja.galeria_fotos) ? pareja.galeria_fotos : [];
-  // foto de fondo opcional por sección (secciones.fondos[id] = { url, velo }); el velo
+  // fondo opcional por sección: foto (secciones.fondos[id] = { url, velo }) o color ({ color }); el velo
   // crema encima mantiene el texto legible sobre cualquier foto
   const fondosSec: Record<string, any> = (pareja.secciones && pareja.secciones.fondos) || {};
   const fondoStyle = (id: string): React.CSSProperties => {
     const fd = fondosSec[id];
+    // solo color: reemplaza el degradado de la sección
+    if (!fd?.url && /^#[0-9a-f]{3,8}$/i.test(fd?.color || "")) return { backgroundImage: "none", backgroundColor: fd.color };
     if (!fd?.url) return {};
     const a = Math.min(Math.max(Number(fd.velo ?? 65), 0), 95) / 100;
     const velo = `rgba(247,240,229,${a})`;

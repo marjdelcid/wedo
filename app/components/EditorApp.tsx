@@ -316,10 +316,11 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     if (url) setField("invitacion_url", url);
     e.target.value = "";
   }
-  // fondo por sección: secciones.fondos[id] = { url, velo }; se guarda con "Guardar secciones"
+  // fondo por sección: secciones.fondos[id] = { url, velo } (foto) o { color } (color sólido);
+  // se guarda con "Guardar secciones"
   const fondoTarget = useRef<string | null>(null);
   const [subiendoFondo, setSubiendoFondo] = useState<string | null>(null);
-  function setFondoSec(id: string, val: { url: string; velo: number } | null) {
+  function setFondoSec(id: string, val: { url: string; velo: number } | { color: string } | null) {
     setSecciones((s) => {
       const fondos = { ...(s.fondos || {}) };
       if (val) fondos[id] = val; else delete fondos[id];
@@ -1495,6 +1496,23 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                         {FONDO_SECS.includes(id) && (() => {
                           const fd = secciones.fondos?.[id];
                           if (subiendoFondo === id) return <div className="sfondo"><span className="sdesc">Subiendo fondo…</span></div>;
+                          // color oscuro: los títulos van en tinta oscura y podrían no leerse
+                          const oscuro = (hex: string) => {
+                            const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return false;
+                            const n = parseInt(m[1], 16);
+                            return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 140;
+                          };
+                          if (fd?.color && !fd?.url) return (
+                            <div className="sfondo">
+                              <label className="vswatch" style={{ background: fd.color }}>
+                                <input type="color" value={fd.color} onChange={(e) => setFondoSec(id, { color: e.target.value })} />
+                              </label>
+                              <span className="sdesc">{fd.color.toUpperCase()}</span>
+                              <button type="button" className="vchip" onClick={() => pickFondo(id)}>Usar foto</button>
+                              <button type="button" className="vchip" onClick={() => setFondoSec(id, null)}>Quitar</button>
+                              {oscuro(fd.color) && <span className="sdesc" style={{ color: "#b23a1c", flexBasis: "100%" }}>Color oscuro: los títulos podrían no leerse bien. Mejor un tono claro.</span>}
+                            </div>
+                          );
                           return fd?.url ? (
                             <div className="sfondo">
                               <img src={fd.url} alt="" />
@@ -1506,7 +1524,10 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                               <button type="button" className="vchip" onClick={() => setFondoSec(id, null)}>Quitar</button>
                             </div>
                           ) : (
-                            <div className="sfondo"><button type="button" className="vchip" onClick={() => pickFondo(id)}>+ Foto de fondo</button></div>
+                            <div className="sfondo">
+                              <button type="button" className="vchip" onClick={() => pickFondo(id)}>+ Foto de fondo</button>
+                              <button type="button" className="vchip" onClick={() => setFondoSec(id, { color: "#F3E6DA" })}>+ Color de fondo</button>
+                            </div>
                           );
                         })()}
                       </div>
