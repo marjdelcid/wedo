@@ -569,6 +569,15 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     setRsvpCodigo(nv);
     await supabase.from("parejas").update({ rsvp_codigo_requerido: nv }).eq("id", pareja.id);
   }
+  /** RSVP solo por link personal (sin búsqueda por nombre). Vive en
+      secciones.rsvp_solo_link; se guarda solo esa llave para no llevarse
+      de paso cambios pendientes del panel Secciones. */
+  async function toggleBusquedaNombre() {
+    const nv = !secciones.rsvp_solo_link;
+    setSecciones((s) => ({ ...s, rsvp_solo_link: nv }));
+    const { data } = await supabase.from("parejas").select("secciones").eq("id", pareja.id).single();
+    await supabase.from("parejas").update({ secciones: { ...(data?.secciones || {}), rsvp_solo_link: nv } }).eq("id", pareja.id);
+  }
   async function saveCode(id: string) {
     const code = codeVal.trim().toUpperCase() || null;
     await supabase.from("invitados").update({ codigo: code }).eq("id", id);
@@ -1240,6 +1249,16 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                     ))}
                   </div>
                 )}
+
+                <div className="ecard" style={{ padding: "16px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>Búsqueda por nombre en el RSVP</div>
+                      <div className="hint" style={{ margin: "2px 0 0" }}>{secciones.rsvp_solo_link ? "Desactivada · Solo confirman con su link personal; una persona responde por todo su grupo." : "Activa · Pueden buscar su nombre en la invitación o usar su link personal."}</div>
+                    </div>
+                    <button className={"switch" + (secciones.rsvp_solo_link ? " off" : "")} onClick={toggleBusquedaNombre} />
+                  </div>
+                </div>
 
                 <div className="ecard" style={{ padding: "16px 20px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
