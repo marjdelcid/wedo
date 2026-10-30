@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { elegirPareja } from "../lib/eventoActivo";
+import { rutaInvitacion } from "../lib/eventTypes";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
     // filas y mandaba cuentas con eventos al onboarding). Redirigimos a
     // onboarding SOLO si la consulta fue exitosa y de verdad no hay eventos.
     const { data: rows, error } = await supabase.from("parejas")
-      .select("id, nombre1, nombre2, slug")
+      .select("id, nombre1, nombre2, slug, tipo_evento")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
     if (error) { setLoading(false); return; }
@@ -69,7 +70,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 </a>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            <a href={`/boda/${pareja?.slug}`} target="_blank" style={{ padding: "6px 14px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid #8C6D4F", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#8C6D4F", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
+            <a href={rutaInvitacion(pareja?.slug || "", pareja?.tipo_evento)} target="_blank" style={{ padding: "6px 14px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid #8C6D4F", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#8C6D4F", fontFamily: "'Jost', sans-serif", textDecoration: "none" }}>
               Ver página
             </a>
             <button onClick={handleLogout} style={{ padding: "6px 14px", fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" as const, border: "1px solid rgba(26,23,20,0.14)", background: "transparent", cursor: "pointer", borderRadius: 3, color: "#A89C90", fontFamily: "'Jost', sans-serif" }}>

@@ -234,7 +234,7 @@ export default function Homepage() {
             </div>
             <div className="dgrid">
               {demoCards.map((d, i) => (
-                <a key={d.slug} className={`demo-card anim d${i + 2}`} href={`/boda/${d.slug}`} target="_blank" rel="noopener">
+                <a key={d.slug} className={`demo-card anim d${i + 2}`} href={`/${d.slug === "demo" ? "boda" : "evento"}/${d.slug}`} target="_blank" rel="noopener">
                   <img src={d.foto} alt="" loading="lazy" />
                   <span className="dc-scrim" aria-hidden="true" />
                   <span className="dc-tag">{d.emoji} {d.tipo}</span>

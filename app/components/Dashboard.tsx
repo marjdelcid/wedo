@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getEventType } from "../lib/eventTypes";
+import { getEventType, rutaInvitacion } from "../lib/eventTypes";
 import { elegirPareja, setEventoActivoId } from "../lib/eventoActivo";
 import "../app-ui.css";
 
@@ -204,11 +204,11 @@ export default function Dashboard() {
 
   const slug = pareja?.slug || "";
   const inviteUrl =
-    (host ? `https://${host}` : "") + (slug ? `/boda/${slug}` : "");
+    (host ? `https://${host}` : "") + (slug ? rutaInvitacion(slug, pareja?.tipo_evento) : "");
 
   function copyLink() {
     if (!slug) return;
-    const url = inviteUrl || `${window.location.origin}/boda/${slug}`;
+    const url = inviteUrl || `${window.location.origin}${rutaInvitacion(slug, pareja?.tipo_evento)}`;
     navigator.clipboard?.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
@@ -348,7 +348,7 @@ export default function Dashboard() {
             {slug && (
               <a
                 className="btn btn-ghost btn-sm"
-                href={`/boda/${slug}`}
+                href={rutaInvitacion(slug, pareja?.tipo_evento)}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -422,14 +422,14 @@ export default function Dashboard() {
               <span style={{ color: "var(--pink)" }}>.</span>
             </div>
             <div className="preview-url" onClick={copyLink}>
-              {(host || "wedo.gifts")}/boda/{slug}{" "}
+              {(host || "wedo.gifts")}{rutaInvitacion(slug, pareja?.tipo_evento)}{" "}
               <span className="cp">· {copied ? "¡copiado!" : "copiar link"}</span>
             </div>
             <div className="preview-actions">
               {slug && (
                 <a
                   className="btn btn-pink"
-                  href={`/boda/${slug}`}
+                  href={rutaInvitacion(slug, pareja?.tipo_evento)}
                   target="_blank"
                   rel="noreferrer"
                 >

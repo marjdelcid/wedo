@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../lib/supabaseServer";
 import { APORTE_MINIMO, comisionServicio } from "../../../lib/aportes";
 import { esDemo } from "../../../lib/demo";
+import { rutaInvitacion } from "../../../lib/eventTypes";
 
 export const runtime = "nodejs";
 
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     const admin = supabaseAdmin();
     const { data: fondo } = await admin.from("fondos").select("id,nombre,pareja_id,foto").eq("id", fondo_id).single();
     if (!fondo) return NextResponse.json({ error: "Regalo no encontrado." }, { status: 404 });
-    const { data: pareja } = await admin.from("parejas").select("slug,nombre1,nombre2").eq("id", fondo.pareja_id).single();
+    const { data: pareja } = await admin.from("parejas").select("slug,nombre1,nombre2,tipo_evento").eq("id", fondo.pareja_id).single();
     if (!pareja) return NextResponse.json({ error: "Evento no encontrado." }, { status: 404 });
     // las invitaciones de muestra del home nunca generan cobros reales
     if (esDemo(pareja.slug)) return NextResponse.json({ simulado: true });
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     if (e1 || !contrib) throw e1 || new Error("No se pudo crear la contribución");
 
     const nombres = [pareja.nombre1, pareja.nombre2].filter(Boolean).map((n: string) => n.split(" ")[0]).join(" & ");
-    const invUrl = `${SITE}/boda/${pareja.slug}`;
+    const invUrl = `${SITE}${rutaInvitacion(pareja.slug, pareja.tipo_evento)}`;
     const res = await fetch("https://app.recurrente.com/api/checkouts", {
       method: "POST",
       // acotado para responder con error propio antes del límite de la función

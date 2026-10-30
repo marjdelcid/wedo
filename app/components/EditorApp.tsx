@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getEventType, getCampo, campoLabel } from "../lib/eventTypes";
+import { getEventType, getCampo, campoLabel, rutaInvitacion } from "../lib/eventTypes";
 import { elegirPareja, setEventoActivoId } from "../lib/eventoActivo";
 import { TIPOGRAFIAS } from "../lib/tipografias";
 import { generarDisenoIA, DisenoIAError, type DisenoIA } from "../lib/disenoIA";
@@ -500,7 +500,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     for (const inv of invitados) {
       for (const m of inv.miembros || []) {
         if (!m.nombre) continue; // los +1 no tienen link: los confirma el principal
-        const link = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}`;
+        const link = `https://wedo.gifts${rutaInvitacion(pareja?.slug, pareja?.tipo_evento)}?i=${m.token}`;
         const primer = m.nombre.split(" ")[0];
         const msg = `¡Llegó el momento! 🤍\n\nNos hace muchísima ilusión compartir contigo, ${primer}, la invitación a *${evento}*.\nEn el siguiente link encontrarás todos los detalles y podrás confirmar tu asistencia.\n\n${link}\n\n${limite ? `Te pedimos realizar tu *RSVP antes del ${limite}.*\n\n` : ""}¡No podemos esperar para celebrar juntos! ✨\n\n*_${nombres}${fechaTxt ? ` · ${fechaTxt}` : ""}_*`;
         filas.push([inv.nombre, m.nombre, link, msg]);
@@ -814,7 +814,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
               <span className="bdot" style={{ background: savedPane ? "var(--lime)" : "var(--ink-faint)" }} />
               {savingPane ? "Guardando…" : savedPane ? "Guardado" : "Listo"}
             </span>
-            {slug && <a className="btn btn-ghost btn-sm" href={`/boda/${slug}`} target="_blank" rel="noreferrer">Vista previa</a>}
+            {slug && <a className="btn btn-ghost btn-sm" href={rutaInvitacion(slug, f.tipo_evento)} target="_blank" rel="noreferrer">Vista previa</a>}
             <button className="btn btn-pink btn-sm" onClick={publishAll} disabled={savingPane === "all"}>{savingPane === "all" ? "Publicando…" : savedPane === "all" ? "¡Publicado!" : "Publicar cambios"}</button>
             <button className="avatar" onClick={logout} title="Cerrar sesión">{(f.nombre1 || "M").charAt(0).toUpperCase()}</button>
           </div>
@@ -832,7 +832,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
           ))}
           <div className="rail-foot">
             <p className="progress-note">Tu invitación está <strong>{completeness}%</strong> lista.</p>
-            {slug && <a className="btn btn-ghost btn-sm" href={`/boda/${slug}`} target="_blank" rel="noreferrer" style={{ width: "100%" }}>Ver invitación</a>}
+            {slug && <a className="btn btn-ghost btn-sm" href={rutaInvitacion(slug, f.tipo_evento)} target="_blank" rel="noreferrer" style={{ width: "100%" }}>Ver invitación</a>}
           </div>
         </aside>
 
@@ -1433,7 +1433,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                                     style={{ padding: "4px 10px", textTransform: "none", letterSpacing: 0 }}
                                     title="Copiar link personalizado"
                                     onClick={() => {
-                                      const url = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}`;
+                                      const url = `https://wedo.gifts${rutaInvitacion(pareja?.slug, pareja?.tipo_evento)}?i=${m.token}`;
                                       navigator.clipboard?.writeText(url).then(() => {
                                         setCopiadoToken(m.token);
                                         setTimeout(() => setCopiadoToken(""), 1600);
