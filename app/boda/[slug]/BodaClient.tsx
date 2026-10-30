@@ -458,7 +458,8 @@ export default function BodaClient({ slug }: { slug: string }) {
     return (
       <div className={"gift" + (agotado ? " done" : "")}>
         {g.foto && <div className="gthumb"><img src={g.foto} alt={g.nombre} /></div>}
-        <div className="gh"><span className="gn">{g.nombre}</span><span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}${cant > 1 ? ` × ${cant}` : ""}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}${cant > 1 ? ` × ${cant}` : ""}` : "Aporte libre"}</span></div>
+        <div className="gh"><span className="gn">{g.nombre}</span>{/* sin "× cantidad": completo muestra el precio por unidad; libre, la meta total */}
+        <span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}` : meta > 0 ? `Meta Q ${metaTotal.toLocaleString()}` : "Aporte libre"}</span></div>
         {g.descripcion && <p className="gd">{g.descripcion}</p>}
         {showBar && (<>
           <div className="bar"><span style={{ width: `${pct}%` }} /></div>
