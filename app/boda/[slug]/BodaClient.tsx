@@ -458,16 +458,14 @@ export default function BodaClient({ slug }: { slug: string }) {
     return (
       <div className={"gift" + (agotado ? " done" : "")}>
         {g.foto && <div className="gthumb"><img src={g.foto} alt={g.nombre} /></div>}
-        <div className="gh"><span className="gn">{g.nombre}</span>{/* sin "× cantidad": completo muestra el precio por unidad; libre, la meta total */}
-        <span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}` : meta > 0 ? `Meta Q ${metaTotal.toLocaleString()}` : "Aporte libre"}</span></div>
+        <div className="gh"><span className="gn">{g.nombre}</span>{/* la cantidad de unidades es solo del anfitrión: nunca se muestra ni el
+            "× n" ni el total; el invitado ve el precio/meta por unidad */}
+        <span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}` : "Aporte libre"}</span></div>
         {g.descripcion && <p className="gd">{g.descripcion}</p>}
         {showBar && (<>
           <div className="bar"><span style={{ width: `${pct}%` }} /></div>
           <div className="gp"><span>{pct}% recaudado</span><span>Q {(g.recaudado || 0).toLocaleString()}</span></div>
         </>)}
-        {g.modo === "completo" && cant > 1 && !agotado && (
-          <p className="gd" style={{ marginTop: 0 }}>{cant - dadas} de {cant} disponibles</p>
-        )}
         {agotado
           ? <button className="gbtn done" disabled>Ya regalado</button>
           : <button className="gbtn" onClick={() => openGift(i)}>Aportar</button>}
