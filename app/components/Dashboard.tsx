@@ -280,7 +280,7 @@ export default function Dashboard() {
       ? "¡Hoy es el gran día!"
       : "Su celebración ya pasó. ¡Felicidades!";
 
-  const recentActivity = contribuciones.slice(0, 6);
+  const recentActivity = contribuciones;
 
   if (cargaError)
     return (
@@ -693,7 +693,7 @@ export default function Dashboard() {
           <div>
             <div className="panel">
               <div className="panel-h">
-                <h3>Actividad reciente</h3>
+                <h3>Regalos recibidos{recentActivity.length > 0 ? ` (${recentActivity.length})` : ""}</h3>
               </div>
               <div className="panel-b">
                 {recentActivity.length === 0 ? (
