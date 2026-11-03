@@ -254,6 +254,44 @@ export default function BodaClient({ slug }: { slug: string }) {
     }
   }
 
+  /** Desglose del grupo según la respuesta registrada: quiénes quedaron
+      confirmados y quiénes siguen pendientes (los slots sin nombre cuentan
+      como "acompañante"). Solo tiene sentido si respondieron que sí. */
+  function resumenGrupo(): { confirmados: string[]; pendientes: string[] } | null {
+    if (!rInv || rInv.asistira !== "si" || !rActual || !Array.isArray(rActual.asistentes)) return null;
+    const nombres: string[] = rActual.asistentes.slice();
+    const confirmados: string[] = [];
+    const pendientes: string[] = [];
+    let sinNombrePend = 0;
+    (rInv.miembros || []).forEach((m: any) => {
+      if (m.nombre) {
+        const k = nombres.indexOf(m.nombre);
+        if (k >= 0) { nombres.splice(k, 1); confirmados.push(String(m.nombre).trim()); } else pendientes.push(String(m.nombre).trim());
+      }
+    });
+    // "Acompañante" en la lista = slot sin nombre confirmado; el resto de slots vacíos quedan pendientes
+    const slotsVacios = (rInv.miembros || []).filter((m: any) => !m.nombre).length;
+    const acompConfirmados = Math.min(slotsVacios, nombres.length);
+    sinNombrePend = slotsVacios - acompConfirmados;
+    if (acompConfirmados > 0) confirmados.push(acompConfirmados === 1 ? "un acompañante" : `${acompConfirmados} acompañantes`);
+    if (sinNombrePend > 0) pendientes.push(sinNombrePend === 1 ? "un acompañante" : `${sinNombrePend} acompañantes`);
+    return { confirmados, pendientes };
+  }
+  const unir = (xs: string[]) => xs.length <= 1 ? xs.join("") : xs.slice(0, -1).join(", ") + " y " + xs[xs.length - 1];
+  /** Bloque "Confirmaste por… / Pendientes de confirmar…" para la caja RSVP. */
+  function bloqueResumen(yo: boolean) {
+    const r = resumenGrupo();
+    if (!r || (rInv.miembros || []).length <= 1) return null;
+    const k: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 3 };
+    const v: React.CSSProperties = { fontSize: 13.5, color: "var(--c-ink)", fontFamily: "'Archivo',sans-serif" };
+    return (
+      <div style={{ marginTop: 14, padding: "12px 16px", border: "1px solid var(--c-line)", borderRadius: 10, textAlign: "left", display: "grid", gap: 10 }}>
+        {r.confirmados.length > 0 && <div><div style={k}>{yo ? "Confirmaste por" : "Confirmados"}</div><div style={v}>{unir(r.confirmados)}</div></div>}
+        {r.pendientes.length > 0 && <div><div style={k}>Pendientes de confirmar</div><div style={v}>{unir(r.pendientes)}</div></div>}
+      </div>
+    );
+  }
+
   /** Abre el formulario precargado con la respuesta actual del grupo. */
   function empezarEdicion() {
     if (!rInv) return;
@@ -652,6 +690,7 @@ export default function BodaClient({ slug }: { slug: string }) {
             <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
             <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rEditado ? "Respuesta actualizada" : rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
             <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rEditado ? (rsvpForm.asistencia === "si" ? pl("Tu respuesta quedó actualizada. ¡Te esperamos!", "Tu respuesta quedó actualizada. ¡Te espero!") : "Tu respuesta quedó actualizada. Gracias por avisar.") : rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
+            {rInv && rsvpForm.asistencia === "si" && bloqueResumen(true)}
             {rInv && rEditable && <button onClick={empezarEdicion} style={linkBtn}>¿Cambió algo? Cambiar mi respuesta</button>}
           </div>
         ) : rInv ? (() => {
@@ -692,6 +731,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                     {nombreYo}
                     <div style={lead}>Ya confirmaste por tu invitación. ¡Gracias!</div>
                     <div style={note}>{rInv.asistira === "si" ? `Nos vemos${diaTxt}` : "Gracias por avisar"}</div>
+                    {bloqueResumen(true)}
                     {cambiar}
                   </>
                 ) : (
@@ -701,6 +741,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                       {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
                       {rInv.asistira === "si" ? `. ${pl("¡Los esperamos", "¡Los espero")}${diaTxt}!` : rInv.asistira === "no" ? `. ${pl("Lamentamos que no puedan acompañarnos", "Lamento que no puedan acompañarme")}.` : "."}
                     </div>
+                    {bloqueResumen(false)}
                     {cambiar || <div style={note}>{escribe}</div>}
                   </>
                 )
