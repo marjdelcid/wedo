@@ -292,8 +292,9 @@ export default function BodaClient({ slug }: { slug: string }) {
   function bloqueResumen(yo: boolean) {
     const r = resumenGrupo();
     if (!r || (rInv.miembros || []).length <= 1) return null;
-    const k: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 3 };
-    const v: React.CSSProperties = { fontSize: 13.5, color: "var(--c-ink)", fontFamily: "'Archivo',sans-serif" };
+    // rótulos en sans (la caja hereda la tipografía decorativa del evento y se leía mal)
+    const k: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--c-soft)", marginBottom: 4, fontFamily: "'Archivo',sans-serif" };
+    const v: React.CSSProperties = { fontSize: 14.5, color: "var(--c-ink)", fontFamily: "'Archivo',sans-serif", fontWeight: 500 };
     return (
       <div style={{ marginTop: 14, padding: "12px 16px", border: "1px solid var(--c-line)", borderRadius: 10, textAlign: "left", display: "grid", gap: 10 }}>
         {r.confirmados.length > 0 && <div><div style={k}>{yo ? "Confirmaste por" : "Confirmados"}</div><div style={v}>{unir(r.confirmados)}</div></div>}
