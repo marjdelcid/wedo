@@ -238,22 +238,10 @@ export default function BodaClient({ slug }: { slug: string }) {
     // solo el API puede declarar modo demo; cualquier otra respuesta es un fallo
     // y nunca debe mostrarse como regalo hecho sin cobro
     if (!j?.simulado) { setPayState("err"); return; }
-    // modo demo (sin llaves de pago configuradas): registro local como antes
-    try {
-      const { error: e1 } = await supabase.from("contribuciones").insert({ fondo_id: g.id, nombre_invitado: nombre || "Anónimo", monto: montoFinal, mensaje: mensajeRegalo || null });
-      if (e1) throw e1;
-      // modo completo con cantidad: "tomado" solo cuando se regalan TODAS las unidades
-      const totalCompleto = (g.meta || 0) * (g.cantidad || 1);
-      await supabase.from("fondos").update({
-        recaudado: (g.recaudado || 0) + montoFinal,
-        ...(g.modo === "completo" && (g.recaudado || 0) + montoFinal >= totalCompleto ? { tomado: true } : {})
-      }).eq("id", g.id);
-      setPayState("ok");
-      if (pareja?.confeti_regalo) fireConfetti();
-      loadData();
-    } catch {
-      setPayState("err");
-    }
+    // modo demo (sin llaves de pago configuradas): el API ya registró el aporte
+    setPayState("ok");
+    if (pareja?.confeti_regalo) fireConfetti();
+    loadData();
   }
 
   if (loading) return (

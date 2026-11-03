@@ -620,14 +620,8 @@ export default function BodaClientAM({ slug }: { slug: string }) {
     // solo el API puede declarar modo demo; cualquier otra respuesta es un fallo
     // y nunca debe mostrarse como regalo hecho sin cobro
     if (!j?.simulado) { alert(j?.error || "No pudimos iniciar el pago. Revisa tu conexión e intenta de nuevo."); return; }
-    // modo demo (sin llaves de pago configuradas): registro local como antes
+    // modo demo (sin llaves de pago configuradas): el API ya registró el aporte
     setGiftPaid(true);
-    await supabase.from("contribuciones").insert({ fondo_id: f.id, nombre_invitado: giftNombre || "Anónimo", monto, mensaje: giftMensaje || null });
-    const totalCompleto = (f.meta || 0) * (f.cantidad || 1);
-    await supabase.from("fondos").update({
-      recaudado: (f.recaudado || 0) + monto,
-      ...(f.modo === "completo" && (f.recaudado || 0) + monto >= totalCompleto ? { tomado: true } : {}),
-    }).eq("id", f.id);
     load();
   }
 

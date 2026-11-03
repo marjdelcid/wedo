@@ -4,8 +4,8 @@
    El invitado paga aporte + comisión de servicio (Recurrente ~4.5% + Q2 +
    wedo. 3.5%); la pareja recibe el aporte completo. La contribución nace
    'pendiente' y el webhook intent.succeeded la confirma.
-   Sin llaves configuradas responde { simulado: true } y el cliente usa el
-   flujo local de siempre (modo demo).
+   Sin llaves configuradas registra el aporte aquí mismo (service role) y
+   responde { simulado: true }; en los slugs demo solo responde simulado.
    ===================================================================== */
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../lib/supabaseServer";
@@ -28,15 +28,35 @@ export async function POST(req: Request) {
     // Recurrente ya solo requiere la llave secreta (la pública quedó opcional)
     const pub = process.env.RECURRENTE_PUBLIC_KEY;
     const sec = process.env.RECURRENTE_SECRET_KEY;
-    if (!sec) return NextResponse.json({ simulado: true });
 
     const admin = supabaseAdmin();
-    const { data: fondo } = await admin.from("fondos").select("id,nombre,pareja_id,foto").eq("id", fondo_id).single();
+    const { data: fondo } = await admin.from("fondos").select("id,nombre,pareja_id,foto,modo,meta,cantidad,recaudado").eq("id", fondo_id).single();
     if (!fondo) return NextResponse.json({ error: "Regalo no encontrado." }, { status: 404 });
     const { data: pareja } = await admin.from("parejas").select("slug,nombre1,nombre2").eq("id", fondo.pareja_id).single();
     if (!pareja) return NextResponse.json({ error: "Evento no encontrado." }, { status: 404 });
-    // las invitaciones de muestra del home nunca generan cobros reales
+    // las invitaciones de muestra del home nunca generan cobros reales ni se guardan
     if (esDemo(pareja.slug)) return NextResponse.json({ simulado: true });
+
+    // modo demo (sin llaves de pago): el registro lo hace el servidor, no el
+    // cliente — la anon key ya no puede insertar contribuciones ni tocar fondos
+    if (!sec) {
+      const { error: e0 } = await admin.from("contribuciones").insert({
+        fondo_id: fondo.id,
+        nombre_invitado: (nombre || "").trim() || "Anónimo",
+        monto: aporte,
+        mensaje: (mensaje || "").trim() || null,
+        estado: "pagado",
+      });
+      if (e0) throw e0;
+      // modo completo con cantidad: "tomado" solo cuando se regalan TODAS las unidades
+      const recaudado = (Number(fondo.recaudado) || 0) + aporte;
+      const totalCompleto = (Number(fondo.meta) || 0) * (fondo.cantidad || 1);
+      await admin.from("fondos").update({
+        recaudado,
+        ...(fondo.modo === "completo" && recaudado >= totalCompleto ? { tomado: true } : {}),
+      }).eq("id", fondo.id);
+      return NextResponse.json({ simulado: true });
+    }
 
     // comisión escalonada al invitado; la pareja recibe el aporte íntegro
     const servicio = comisionServicio(aporte);
