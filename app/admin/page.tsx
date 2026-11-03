@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../lib/supabase";
-import { getEventType } from "../lib/eventTypes";
+import { getEventType, rutaInvitacion } from "../lib/eventTypes";
 import "../app-ui.css";
 
 const fmtQ = (n: number) => "Q " + (n || 0).toLocaleString("en-US");
@@ -249,7 +249,7 @@ export default function AdminPage() {
                 <tr key={e.id}>
                   <td style={td}>
                     <div style={{ fontWeight: 600 }}>{e.nombre2 ? `${e.nombre1} & ${e.nombre2}` : e.nombre1 || "—"}</div>
-                    <a href={`/boda/${e.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: 11.5, color: "var(--pink)", fontFamily: "'Archivo',sans-serif" }}>/boda/{e.slug} ↗</a>
+                    <a href={rutaInvitacion(e.slug, e.tipo_evento)} target="_blank" rel="noreferrer" style={{ fontSize: 11.5, color: "var(--pink)", fontFamily: "'Archivo',sans-serif" }}>{rutaInvitacion(e.slug, e.tipo_evento)} ↗</a>
                   </td>
                   <td style={td}>{getEventType(e.tipo_evento).emoji} {getEventType(e.tipo_evento).label}</td>
                   <td style={{ ...td, fontSize: 12.5, color: "var(--ink-soft)" }}>{e.email || "—"}</td>

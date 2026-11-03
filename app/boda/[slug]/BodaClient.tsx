@@ -108,6 +108,17 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [rsvpCodigoError, setRsvpCodigoError] = useState(false);
   const [rsvpCodigoLoading, setRsvpCodigoLoading] = useState(false);
 
+  // rsvp personalizado por link único (?i=token): invitación, quién abre, nombre del +1
+  const [rInv, setRInv] = useState<any>(null);
+  const [rYo, setRYo] = useState<any>(null);
+  const [rMas1, setRMas1] = useState("");
+  const [rQuienes, setRQuienes] = useState<Record<string, boolean>>({});
+  // edición de una respuesta ya enviada (si el anfitrión lo permite)
+  const [rEditable, setREditable] = useState(false);
+  const [rActual, setRActual] = useState<any>(null);
+  const [rEditando, setREditando] = useState(false);
+  const [rEditado, setREditado] = useState(false);
+
   useEffect(() => { loadData(); }, [slug]);
 
   async function loadData() {
@@ -116,6 +127,24 @@ export default function BodaClient({ slug }: { slug: string }) {
     setPareja(p);
     const { data: f } = await supabase.from("fondos").select("*").eq("pareja_id", p.id).order("orden");
     setFondos(f || []);
+    // link personalizado: ?i=token identifica a la persona y su invitación
+    try {
+      const token = new URLSearchParams(window.location.search).get("i");
+      if (token && !demo) {
+        const { data: inv } = await supabase.from("invitados")
+          .select("*").eq("pareja_id", p.id)
+          .contains("miembros", JSON.stringify([{ token }]))
+          .single();
+        if (inv) {
+          setRInv(inv);
+          setRYo((inv.miembros || []).find((m: any) => m.token === token) || null);
+          // ¿puede cambiar su respuesta? y, si ya respondió, qué dijo (para precargar)
+          fetch(`/api/rsvp?i=${encodeURIComponent(token)}`)
+            .then((r) => r.json()).then((j) => { setREditable(!!j?.editable); setRActual(j || null); })
+            .catch(() => {});
+        }
+      }
+    } catch { /* sin token o inválido: flujo normal de búsqueda */ }
     setLoading(false);
   }
 
@@ -170,6 +199,135 @@ export default function BodaClient({ slug }: { slug: string }) {
     await supabase.from("invitados").update({ confirmado: true }).eq("id", rsvpSelected.id);
     setRsvpSubmitting(false);
     setRsvpDone(true);
+  }
+
+  /** RSVP por link personalizado: una persona confirma por TODO su grupo
+      (checklist de quiénes asisten, incluido el +1); si nombró a su
+      acompañante, se guarda en el primer slot vacío que haya marcado. */
+  async function handleRsvpLink() {
+    if (!rInv || !rYo || !rsvpForm.asistencia) return;
+    const asistencia = rsvpForm.asistencia;
+    setRsvpSubmitting(true);
+    try {
+      const res = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: rYo.token,
+          asistencia: rsvpForm.asistencia,
+          quienes: Object.keys(rQuienes).filter((t) => rQuienes[t]),
+          acompanante_nombre: rMas1,
+          restricciones: rsvpForm.restricciones,
+          mensaje: rsvpForm.mensaje,
+          editar: rEditando,
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      setRsvpSubmitting(false);
+      if (j?.ya) {
+        // otro miembro del grupo se adelantó: mostramos su respuesta
+        setRInv({ ...rInv, confirmado: true, respondido_por: j.respondido_por, asistira: j.asistira });
+        return;
+      }
+      if (j?.ok) {
+        // dejamos la invitación como quedó (igual que el servidor) por si vuelve a "Cambiar respuesta"
+        const grupal = (rInv.miembros || []).length > 1;
+        let mas1 = rMas1.trim();
+        const miembros = (rInv.miembros || []).map((m: any) => {
+          if (!m.nombre && mas1 && (!grupal || rQuienes[m.token])) { const n = mas1; mas1 = ""; return { ...m, nombre: n }; }
+          return m;
+        });
+        const asistentes = asistencia === "si"
+          ? miembros.filter((m: any) => !grupal || rQuienes[m.token]).map((m: any) => m.nombre || "Acompañante")
+          : [];
+        setRActual((a: any) => ({ ...(a || {}), confirmado: true, asistira: asistencia, asistentes, restricciones: rsvpForm.restricciones, mensaje: rsvpForm.mensaje }));
+        setRInv({ ...rInv, miembros, confirmado: true, respondido_por: rYo.nombre || rInv.nombre, asistira: asistencia });
+        setREditado(!!j.editado);
+        setREditando(false);
+        setRsvpDone(true);
+        return;
+      }
+      alert(j?.error || "No pudimos enviar tu confirmación. Intenta de nuevo.");
+    } catch {
+      setRsvpSubmitting(false);
+      alert("No pudimos enviar tu confirmación. Intenta de nuevo.");
+    }
+  }
+
+  /** Desglose del grupo según la respuesta registrada: quiénes quedaron
+      confirmados y quiénes siguen pendientes (los slots sin nombre cuentan
+      como "acompañante"). Solo tiene sentido si respondieron que sí. */
+  function resumenGrupo(): { confirmados: string[]; pendientes: string[] } | null {
+    if (!rInv || rInv.asistira !== "si" || !rActual || !Array.isArray(rActual.asistentes)) return null;
+    const nombres: string[] = rActual.asistentes.slice();
+    const confirmados: string[] = [];
+    const pendientes: string[] = [];
+    let sinNombrePend = 0;
+    // el primer miembro suele llevar el nombre completo de la invitación
+    // ("Marji y André"); en el desglose se muestra solo la persona principal ("Marji")
+    const etiqueta = (m: any) => {
+      const n = String(m.nombre || "").trim();
+      if (n && n === String(rInv.nombre || "").trim() && (rInv.miembros || []).length > 1) {
+        const lead = n.split(/\s*,\s*|\s+y\s+|\s+e\s+|\s+&\s+|\s*\+\s*/)[0].trim();
+        return lead || n;
+      }
+      return n;
+    };
+    (rInv.miembros || []).forEach((m: any) => {
+      if (m.nombre) {
+        const k = nombres.indexOf(m.nombre);
+        if (k >= 0) { nombres.splice(k, 1); confirmados.push(etiqueta(m)); } else pendientes.push(etiqueta(m));
+      }
+    });
+    // "Acompañante" en la lista = slot sin nombre confirmado; el resto de slots vacíos quedan pendientes
+    const slotsVacios = (rInv.miembros || []).filter((m: any) => !m.nombre).length;
+    const acompConfirmados = Math.min(slotsVacios, nombres.length);
+    sinNombrePend = slotsVacios - acompConfirmados;
+    if (acompConfirmados > 0) confirmados.push(acompConfirmados === 1 ? "un acompañante" : `${acompConfirmados} acompañantes`);
+    if (sinNombrePend > 0) pendientes.push(sinNombrePend === 1 ? "un acompañante" : `${sinNombrePend} acompañantes`);
+    return { confirmados, pendientes };
+  }
+  const unir = (xs: string[]) => xs.length <= 1 ? xs.join("") : xs.slice(0, -1).join(", ") + " y " + xs[xs.length - 1];
+  /** Bloque "Confirmaste por… / Pendientes de confirmar…" para la caja RSVP. */
+  function bloqueResumen(yo: boolean) {
+    const r = resumenGrupo();
+    if (!r || (rInv.miembros || []).length <= 1) return null;
+    // rótulos en sans (la caja hereda la tipografía decorativa del evento y se leía mal)
+    const k: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--c-soft)", marginBottom: 4, fontFamily: "'Archivo',sans-serif" };
+    const v: React.CSSProperties = { fontSize: 14.5, color: "var(--c-ink)", fontFamily: "'Archivo',sans-serif", fontWeight: 500 };
+    return (
+      <div style={{ marginTop: 14, padding: "12px 16px", border: "1px solid var(--c-line)", borderRadius: 10, textAlign: "left", display: "grid", gap: 10 }}>
+        {r.confirmados.length > 0 && <div><div style={k}>{yo ? "Confirmaste por" : "Confirmados"}</div><div style={v}>{unir(r.confirmados)}</div></div>}
+        {r.pendientes.length > 0 && <div><div style={k}>Pendientes de confirmar</div><div style={v}>{unir(r.pendientes)}</div></div>}
+      </div>
+    );
+  }
+
+  /** Abre el formulario precargado con la respuesta actual del grupo. */
+  function empezarEdicion() {
+    if (!rInv) return;
+    const a = rActual || {};
+    const nombres: string[] = Array.isArray(a.asistentes) ? a.asistentes.slice() : [];
+    const q: Record<string, boolean> = {};
+    if (rInv.asistira === "si" && nombres.length) {
+      // marca a los que ya estaban en la lista de asistentes
+      (rInv.miembros || []).forEach((m: any) => {
+        if (!m.nombre) return;
+        const k = nombres.indexOf(m.nombre);
+        q[m.token] = k >= 0; if (k >= 0) nombres.splice(k, 1);
+      });
+      // slots sin nombre: tantos como "Acompañante" quedaron en la lista
+      let libres = nombres.length;
+      (rInv.miembros || []).forEach((m: any) => { if (!m.nombre) { q[m.token] = libres > 0; libres--; } });
+    } else {
+      // sin detalle (o dijo que no): yo + los que tienen nombre
+      (rInv.miembros || []).forEach((m: any) => { q[m.token] = m.token === rYo?.token ? true : !!m.nombre; });
+    }
+    setRQuienes(q);
+    setRMas1("");
+    setRsvpForm({ telefono: "", asistencia: rInv.asistira === "no" ? "no" : "si", acompanantes: "0", restricciones: a.restricciones || "", mensaje: a.mensaje || "" });
+    setRsvpDone(false);
+    setREditando(true);
   }
 
   function fireConfetti() {
@@ -310,6 +468,18 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   const secs: any = { historia: true, detalles: true, invitacion: true, regalos: true, rsvp: true, countdown: true, galeria: true, ...(pareja.secciones || {}) };
   const galeriaFotos: string[] = Array.isArray(pareja.galeria_fotos) ? pareja.galeria_fotos : [];
+  // fondo opcional por sección: foto (secciones.fondos[id] = { url, velo }) o color ({ color }); el velo
+  // crema encima mantiene el texto legible sobre cualquier foto
+  const fondosSec: Record<string, any> = (pareja.secciones && pareja.secciones.fondos) || {};
+  const fondoStyle = (id: string): React.CSSProperties => {
+    const fd = fondosSec[id];
+    // solo color: reemplaza el degradado de la sección
+    if (!fd?.url && /^#[0-9a-f]{3,8}$/i.test(fd?.color || "")) return { backgroundImage: "none", backgroundColor: fd.color };
+    if (!fd?.url) return {};
+    const a = Math.min(Math.max(Number(fd.velo ?? 65), 0), 95) / 100;
+    const velo = `rgba(247,240,229,${a})`;
+    return { backgroundImage: `linear-gradient(${velo}, ${velo}), url("${String(fd.url).replace(/"/g, "%22")}")`, backgroundSize: "cover", backgroundPosition: "center" };
+  };
   const savedOrder: string[] = Array.isArray(pareja.secciones_orden) && pareja.secciones_orden.length > 0 ? pareja.secciones_orden : [];
 
   // date pieces
@@ -359,6 +529,8 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   const f = fondos[selected];
   const inpStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", border: "1px solid var(--c-line)", borderRadius: 10, fontSize: 14, fontFamily: "'Archivo', sans-serif", background: "#fff", color: "var(--c-ink)", outline: "none", boxSizing: "border-box" };
+  // enlace discreto "Cambiar respuesta" dentro de la caja RSVP
+  const linkBtn: React.CSSProperties = { marginTop: 14, background: "none", border: "none", color: "var(--c-accent)", textDecoration: "underline", textUnderlineOffset: 3, cursor: "pointer", fontFamily: "'Archivo',sans-serif", fontSize: 13, fontWeight: 600, padding: 0 };
 
   const Countdown = () => cd ? (
     <div className="cd">
@@ -380,15 +552,14 @@ export default function BodaClient({ slug }: { slug: string }) {
     return (
       <div className={"gift" + (agotado ? " done" : "")}>
         {g.foto && <div className="gthumb"><img src={g.foto} alt={g.nombre} /></div>}
-        <div className="gh"><span className="gn">{g.nombre}</span><span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}${cant > 1 ? ` × ${cant}` : ""}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}${cant > 1 ? ` × ${cant}` : ""}` : "Aporte libre"}</span></div>
+        <div className="gh"><span className="gn">{g.nombre}</span>{/* la cantidad de unidades es solo del anfitrión: nunca se muestra ni el
+            "× n" ni el total; el invitado ve el precio/meta por unidad */}
+        <span className="gg">{g.modo === "completo" ? `Q ${meta.toLocaleString()}` : meta > 0 ? `Meta Q ${meta.toLocaleString()}` : "Aporte libre"}</span></div>
         {g.descripcion && <p className="gd">{g.descripcion}</p>}
         {showBar && (<>
           <div className="bar"><span style={{ width: `${pct}%` }} /></div>
           <div className="gp"><span>{pct}% recaudado</span><span>Q {(g.recaudado || 0).toLocaleString()}</span></div>
         </>)}
-        {g.modo === "completo" && cant > 1 && !agotado && (
-          <p className="gd" style={{ marginTop: 0 }}>{cant - dadas} de {cant} disponibles</p>
-        )}
         {agotado
           ? <button className="gbtn done" disabled>Ya regalado</button>
           : <button className="gbtn" onClick={() => openGift(i)}>Aportar</button>}
@@ -516,8 +687,119 @@ export default function BodaClient({ slug }: { slug: string }) {
         {rsvpDone ? (
           <div className="rsvp-box">
             <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
-            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
-            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
+            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rEditado ? "Respuesta actualizada" : rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
+            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rEditado ? (rsvpForm.asistencia === "si" ? pl("Tu respuesta quedó actualizada. ¡Te esperamos!", "Tu respuesta quedó actualizada. ¡Te espero!") : "Tu respuesta quedó actualizada. Gracias por avisar.") : rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
+            {rInv && rsvpForm.asistencia === "si" && bloqueResumen(true)}
+            {rInv && rEditable && <button onClick={empezarEdicion} style={linkBtn}>¿Cambió algo? Cambiar mi respuesta</button>}
+          </div>
+        ) : rInv ? (() => {
+          // ---- RSVP personalizado por link único ----
+          const primer = (n: string | null) => (n || "").trim().split(" ")[0];
+          const otros = (rInv.miembros || []).filter((m: any) => m.token !== rYo?.token);
+          const conNombre = otros.filter((m: any) => m.nombre).map((m: any) => primer(m.nombre));
+          const sinNombre = otros.length - conNombre.length;
+          const lista = conNombre.length === 0 ? "" : conNombre.length === 1 ? conNombre[0] : conNombre.slice(0, -1).join(", ") + " y " + conNombre[conNombre.length - 1];
+          const compTxt = otros.length === 0 ? "Esta invitación es para ti."
+            : sinNombre === 0 ? `Esta invitación es para ti y ${lista}.`
+            : conNombre.length === 0 ? `Esta invitación es para ti y ${sinNombre === 1 ? "un acompañante" : sinNombre + " acompañantes"}.`
+            : `Esta invitación es para ti, ${lista} y ${sinNombre === 1 ? "un acompañante" : sinNombre + " acompañantes"}.`;
+          const seatsInv = rInv.asientos || 1;
+          const yoRespondio = rInv.respondido_por && rYo?.nombre && rInv.respondido_por === rYo.nombre;
+          const diaTxt = dObj ? ` el ${dObj.toLocaleDateString("es-GT", { day: "numeric", month: "long" })}` : " pronto";
+          const escribe = pl(`Si algo cambia, escríbeles directo a ${nombresTxt}`, `Si algo cambia, escríbele directo a ${nombresTxt}`);
+          const nombreYo = rYo?.nombre && <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 24, color: "var(--c-ink)", marginBottom: 8 }}>{primer(rYo.nombre)}</div>;
+          const lead: React.CSSProperties = { fontFamily: "var(--c-font-tit)", fontSize: 20, color: "var(--c-accent)", marginBottom: 8 };
+          const note: React.CSSProperties = { fontSize: 13, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" };
+          const choice = (on: boolean, fill: boolean): React.CSSProperties => ({ flex: 1, padding: 12, border: `1.5px solid ${on ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: on && fill ? "var(--c-accent)" : "transparent", color: on && fill ? "var(--c-on-accent)" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" });
+          const chip = (on: boolean): React.CSSProperties => ({ padding: "8px 15px", border: `1px solid ${on ? "var(--c-ink)" : "var(--c-line)"}`, borderRadius: 8, background: on ? "var(--c-ink)" : "transparent", color: on ? "#fff" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontSize: 13, cursor: "pointer" });
+          const cambiar = rEditable && !rInv.rsvp_bloqueado && (
+            <button onClick={empezarEdicion} style={linkBtn}>Cambiar {seatsInv > 1 ? "nuestra" : "mi"} respuesta</button>
+          );
+          return (
+            <div className="rsvp-box">
+              <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
+              {rInv.rsvp_bloqueado && !rInv.confirmado ? (
+                <>
+                  {nombreYo}
+                  <div style={lead}>El periodo para confirmar asistencia ha terminado.</div>
+                  <div style={note}>{pl(`Si tienes dudas, escríbeles directo a ${nombresTxt}`, `Si tienes dudas, escríbele directo a ${nombresTxt}`)}</div>
+                </>
+              ) : rInv.confirmado && !rEditando ? (
+                yoRespondio ? (
+                  <>
+                    {nombreYo}
+                    <div style={lead}>Ya confirmaste por tu invitación. ¡Gracias!</div>
+                    <div style={note}>{rInv.asistira === "si" ? `Nos vemos${diaTxt}` : "Gracias por avisar"}</div>
+                    {bloqueResumen(true)}
+                    {cambiar}
+                  </>
+                ) : (
+                  <>
+                    {nombreYo}
+                    <div style={lead}>
+                      {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
+                      {rInv.asistira === "si" ? `. ${pl("¡Los esperamos", "¡Los espero")}${diaTxt}!` : rInv.asistira === "no" ? `. ${pl("Lamentamos que no puedan acompañarnos", "Lamento que no puedan acompañarme")}.` : "."}
+                    </div>
+                    {bloqueResumen(false)}
+                    {cambiar || <div style={note}>{escribe}</div>}
+                  </>
+                )
+              ) : (
+                <div style={{ textAlign: "left" }}>
+                  {rEditando && (
+                    <button onClick={() => setREditando(false)} style={{ background: "none", border: "none", color: "var(--c-muted)", cursor: "pointer", fontFamily: "'Archivo',sans-serif", fontSize: 12, marginBottom: 10, padding: 0 }}>← Cancelar</button>
+                  )}
+                  <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 23, color: "var(--c-ink)", marginBottom: 4, textAlign: "center" }}>
+                    {rYo?.nombre ? `${primer(rYo.nombre)}, ` : ""}{rEditando ? (seatsInv > 1 ? "actualiza la respuesta de tu grupo" : "actualiza tu respuesta") : pl("¿podrás acompañarnos a nuestra celebración?", "¿podrás acompañarme a mi celebración?")}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--c-muted)", marginBottom: 18, textAlign: "center" }}>{rEditando ? "Puedes cambiar tu respuesta las veces que necesites." : compTxt}</div>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                    <button
+                      style={choice(rsvpForm.asistencia === "si", true)}
+                      onClick={() => {
+                        setRsvpForm((p) => ({ ...p, asistencia: "si" }));
+                        // preselección: yo + los que tienen nombre; el +1 lo marcan si lo llevan
+                        if (!Object.keys(rQuienes).length) {
+                          const init: Record<string, boolean> = {};
+                          (rInv.miembros || []).forEach((m: any) => { init[m.token] = m.token === rYo?.token ? true : !!m.nombre; });
+                          setRQuienes(init);
+                        }
+                      }}
+                    >✓ {seatsInv > 1 ? "Confirmar asistencia" : "Sí, asistiré"}</button>
+                    <button style={choice(rsvpForm.asistencia === "no", false)} onClick={() => setRsvpForm((p) => ({ ...p, asistencia: "no" }))}>✕ {seatsInv > 1 ? "No podremos ir" : "No podré ir"}</button>
+                  </div>
+                  {rsvpForm.asistencia === "si" && seatsInv > 1 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 8 }}>Confirma por tu grupo: ¿quiénes asisten?</div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {(rInv.miembros || []).map((m: any) => {
+                          const esYo = m.token === rYo?.token;
+                          const label = m.nombre ? (esYo ? `${primer(m.nombre)} (tú)` : primer(m.nombre)) : "+1";
+                          return (
+                            <button key={m.token} style={chip(!!rQuienes[m.token])} onClick={() => setRQuienes((q) => ({ ...q, [m.token]: !q[m.token] }))}>
+                              {rQuienes[m.token] ? "✓ " : ""}{label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {rsvpForm.asistencia === "si" && (rInv.miembros || []).some((m: any) => !m.nombre && rQuienes[m.token]) && (
+                    <div style={{ marginBottom: 12 }}><input value={rMas1} onChange={(e) => setRMas1(e.target.value)} placeholder="Nombre de tu acompañante (opcional)" style={inpStyle} /></div>
+                  )}
+                  {rsvpForm.asistencia === "si" && <div style={{ marginBottom: 12 }}><input value={rsvpForm.restricciones} onChange={(e) => setRsvpForm((p) => ({ ...p, restricciones: e.target.value }))} placeholder="Restricciones alimentarias (opcional)" style={inpStyle} /></div>}
+                  <textarea value={rsvpForm.mensaje} onChange={(e) => setRsvpForm((p) => ({ ...p, mensaje: e.target.value }))} placeholder={`Mensaje para ${anfitrionTxt} (opcional)`} style={{ ...inpStyle, minHeight: 64, resize: "vertical", marginBottom: 14 }} />
+                  <button onClick={handleRsvpLink} disabled={!rsvpForm.asistencia || rsvpSubmitting} className="rbtn" style={{ opacity: !rsvpForm.asistencia ? 0.5 : 1 }}>{rsvpSubmitting ? (rEditando ? "Guardando..." : "Enviando...") : rEditando ? "Guardar cambios" : "Enviar respuesta"}</button>
+                </div>
+              )}
+            </div>
+          );
+        })() : secs.rsvp_solo_link ? (
+          // la confirmación es SOLO por link personal: sin búsqueda por nombre
+          <div className="rsvp-box">
+            <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
+            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 21, color: "var(--c-ink)", marginBottom: 8 }}>Tu confirmación es con tu link personal</div>
+            <div style={{ fontSize: 13, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>Abre el enlace que recibiste con tu invitación.<br />{pl(`¿No lo encuentras? Escríbeles a ${nombresTxt} y te lo reenvían.`, `¿No lo encuentras? Escríbele a ${nombresTxt} y te lo reenvía.`)}</div>
           </div>
         ) : rsvpCodigoStep ? (
           <div className="rsvp-box" style={{ textAlign: "left" }}>
@@ -640,7 +922,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                 </div>
               </section>
             ) : (
-              <section className="isection on" data-sec={activeSection} style={secAnim}>{renderSection(activeSection)}</section>
+              <section className="isection on" data-sec={activeSection} style={{ ...secAnim, ...fondoStyle(activeSection) }}>{renderSection(activeSection)}</section>
             )}
           </div>
 

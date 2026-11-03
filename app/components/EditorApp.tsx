@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getEventType, getCampo, campoLabel } from "../lib/eventTypes";
+import { getEventType, getCampo, campoLabel, rutaInvitacion } from "../lib/eventTypes";
 import { elegirPareja, setEventoActivoId } from "../lib/eventoActivo";
 import { TIPOGRAFIAS } from "../lib/tipografias";
 import { generarDisenoIA, DisenoIAError, type DisenoIA } from "../lib/disenoIA";
@@ -52,6 +52,9 @@ const SECCIONES_META: Record<string, { label: string; desc: string }> = {
   rsvp: { label: "Confirmación de asistencia", desc: "Los invitados buscan su nombre y confirman" },
   countdown: { label: "Cuenta regresiva", desc: "Días que faltan para el evento" },
 };
+// secciones que pueden llevar foto de fondo (con velo para que el texto se lea)
+const FONDO_SECS = ["historia", "galeria", "regalos", "detalles", "invitacion", "rsvp"];
+const VELOS = [{ v: 40, label: "Ligero" }, { v: 65, label: "Medio" }, { v: 85, label: "Fuerte" }];
 const DEFAULT_ORDER = ["galeria", "regalos", "historia", "detalles", "invitacion", "rsvp", "countdown"];
 
 const COVER_STYLES = [
@@ -142,7 +145,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
   const removeAgenda = (i: number) => setF((p: any) => ({ ...p, agenda: (p.agenda || []).filter((_: any, j: number) => j !== i) }));
 
   // secciones
-  const [secciones, setSecciones] = useState<Record<string, boolean>>({ galeria: true, regalos: true, historia: true, detalles: true, invitacion: true, rsvp: true, countdown: true });
+  const [secciones, setSecciones] = useState<Record<string, any>>({ galeria: true, regalos: true, historia: true, detalles: true, invitacion: true, rsvp: true, countdown: true });
   const [orden, setOrden] = useState<string[]>(DEFAULT_ORDER);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -313,6 +316,28 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     if (url) setField("invitacion_url", url);
     e.target.value = "";
   }
+  // fondo por sección: secciones.fondos[id] = { url, velo } (foto) o { color } (color sólido);
+  // se guarda con "Guardar secciones"
+  const fondoTarget = useRef<string | null>(null);
+  const [subiendoFondo, setSubiendoFondo] = useState<string | null>(null);
+  function setFondoSec(id: string, val: { url: string; velo: number } | { color: string } | null) {
+    setSecciones((s) => {
+      const fondos = { ...(s.fondos || {}) };
+      if (val) fondos[id] = val; else delete fondos[id];
+      return { ...s, fondos };
+    });
+  }
+  function pickFondo(id: string) { fondoTarget.current = id; fileRefs.current.secfondo?.click(); }
+  async function onFondoSec(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; const id = fondoTarget.current;
+    e.target.value = "";
+    if (!file || !id) return;
+    setSubiendoFondo(id);
+    const url = await upload("bodas", file, "fondo-sec");
+    setSubiendoFondo(null);
+    if (url) setFondoSec(id, { url, velo: secciones.fondos?.[id]?.velo ?? 65 });
+    else alert("No pudimos subir la imagen. Intenta de nuevo.");
+  }
   const pick = (id: string) => fileRefs.current[id]?.click();
 
   // ---- gifts ----
@@ -475,7 +500,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     for (const inv of invitados) {
       for (const m of inv.miembros || []) {
         if (!m.nombre) continue; // los +1 no tienen link: los confirma el principal
-        const link = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}`;
+        const link = `https://wedo.gifts${rutaInvitacion(pareja?.slug, pareja?.tipo_evento)}?i=${m.token}`;
         const primer = m.nombre.split(" ")[0];
         const msg = `¡Llegó el momento! 🤍\n\nNos hace muchísima ilusión compartir contigo, ${primer}, la invitación a *${evento}*.\nEn el siguiente link encontrarás todos los detalles y podrás confirmar tu asistencia.\n\n${link}\n\n${limite ? `Te pedimos realizar tu *RSVP antes del ${limite}.*\n\n` : ""}¡No podemos esperar para celebrar juntos! ✨\n\n*_${nombres}${fechaTxt ? ` · ${fechaTxt}` : ""}_*`;
         filas.push([inv.nombre, m.nombre, link, msg]);
@@ -568,6 +593,23 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     const nv = !rsvpCodigo;
     setRsvpCodigo(nv);
     await supabase.from("parejas").update({ rsvp_codigo_requerido: nv }).eq("id", pareja.id);
+  }
+  /** RSVP solo por link personal (sin búsqueda por nombre). Vive en
+      secciones.rsvp_solo_link; se guarda solo esa llave para no llevarse
+      de paso cambios pendientes del panel Secciones. */
+  async function toggleBusquedaNombre() {
+    const nv = !secciones.rsvp_solo_link;
+    setSecciones((s) => ({ ...s, rsvp_solo_link: nv }));
+    const { data } = await supabase.from("parejas").select("secciones").eq("id", pareja.id).single();
+    await supabase.from("parejas").update({ secciones: { ...(data?.secciones || {}), rsvp_solo_link: nv } }).eq("id", pareja.id);
+  }
+  /** Los invitados pueden cambiar su respuesta después de enviarla (por su
+      link personal, hasta la fecha límite). Vive en secciones.rsvp_editable. */
+  async function toggleRsvpEditable() {
+    const nv = !secciones.rsvp_editable;
+    setSecciones((s) => ({ ...s, rsvp_editable: nv }));
+    const { data } = await supabase.from("parejas").select("secciones").eq("id", pareja.id).single();
+    await supabase.from("parejas").update({ secciones: { ...(data?.secciones || {}), rsvp_editable: nv } }).eq("id", pareja.id);
   }
   async function saveCode(id: string) {
     const code = codeVal.trim().toUpperCase() || null;
@@ -780,7 +822,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
               <span className="bdot" style={{ background: savedPane ? "var(--lime)" : "var(--ink-faint)" }} />
               {savingPane ? "Guardando…" : savedPane ? "Guardado" : "Listo"}
             </span>
-            {slug && <a className="btn btn-ghost btn-sm" href={`/boda/${slug}`} target="_blank" rel="noreferrer">Vista previa</a>}
+            {slug && <a className="btn btn-ghost btn-sm" href={rutaInvitacion(slug, f.tipo_evento)} target="_blank" rel="noreferrer">Vista previa</a>}
             <button className="btn btn-pink btn-sm" onClick={publishAll} disabled={savingPane === "all"}>{savingPane === "all" ? "Publicando…" : savedPane === "all" ? "¡Publicado!" : "Publicar cambios"}</button>
             <button className="avatar" onClick={logout} title="Cerrar sesión">{(f.nombre1 || "M").charAt(0).toUpperCase()}</button>
           </div>
@@ -798,7 +840,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
           ))}
           <div className="rail-foot">
             <p className="progress-note">Tu invitación está <strong>{completeness}%</strong> lista.</p>
-            {slug && <a className="btn btn-ghost btn-sm" href={`/boda/${slug}`} target="_blank" rel="noreferrer" style={{ width: "100%" }}>Ver invitación</a>}
+            {slug && <a className="btn btn-ghost btn-sm" href={rutaInvitacion(slug, f.tipo_evento)} target="_blank" rel="noreferrer" style={{ width: "100%" }}>Ver invitación</a>}
           </div>
         </aside>
 
@@ -1244,6 +1286,26 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                 <div className="ecard" style={{ padding: "16px 20px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                     <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>Búsqueda por nombre en el RSVP</div>
+                      <div className="hint" style={{ margin: "2px 0 0" }}>{secciones.rsvp_solo_link ? "Desactivada · Solo confirman con su link personal; una persona responde por todo su grupo." : "Activa · Pueden buscar su nombre en la invitación o usar su link personal."}</div>
+                    </div>
+                    <button className={"switch" + (secciones.rsvp_solo_link ? " off" : "")} onClick={toggleBusquedaNombre} />
+                  </div>
+                </div>
+
+                <div className="ecard" style={{ padding: "16px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>Permitir cambiar la respuesta</div>
+                      <div className="hint" style={{ margin: "2px 0 0" }}>{secciones.rsvp_editable ? "Activo · Quien ya respondió puede cambiar su respuesta desde su link personal" + (pareja?.rsvp_fecha_limite ? " hasta la fecha límite." : ".") : "Desactivado · La primera respuesta del grupo es definitiva."}</div>
+                    </div>
+                    <button className={"switch" + (secciones.rsvp_editable ? "" : " off")} onClick={toggleRsvpEditable} />
+                  </div>
+                </div>
+
+                <div className="ecard" style={{ padding: "16px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                    <div>
                       <div style={{ fontSize: 13.5, fontWeight: 600 }}>Código de acceso para RSVP</div>
                       <div className="hint" style={{ margin: "2px 0 0" }}>{rsvpCodigo ? "Activo · Los invitados necesitarán su código para confirmar." : "Opcional · Los invitados confirman sin código."}</div>
                     </div>
@@ -1389,7 +1451,7 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                                     style={{ padding: "4px 10px", textTransform: "none", letterSpacing: 0 }}
                                     title="Copiar link personalizado"
                                     onClick={() => {
-                                      const url = `https://wedo.gifts/boda/${pareja?.slug}?i=${m.token}`;
+                                      const url = `https://wedo.gifts${rutaInvitacion(pareja?.slug, pareja?.tipo_evento)}?i=${m.token}`;
                                       navigator.clipboard?.writeText(url).then(() => {
                                         setCopiadoToken(m.token);
                                         setTimeout(() => setCopiadoToken(""), 1600);
@@ -1436,7 +1498,8 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
 
             {/* SECCIONES */}
             {pane === "secciones" && (
-              <Pane num="vi" title="Secciones de tu página" desc="Activa o desactiva secciones y reorganízalas. ⠿ Arrastra para reordenar o usa las flechas.">
+              <Pane num="vi" title="Secciones de tu página" desc="Activa o desactiva secciones, reorganízalas y, si quieres, ponles una foto de fondo. ⠿ Arrastra para reordenar o usa las flechas.">
+                <input ref={(el) => { fileRefs.current.secfondo = el; }} type="file" accept="image/*" onChange={onFondoSec} style={{ display: "none" }} />
                 <div className="sec-count"><span className="bdot" />{seccActivas} de {Object.keys(SECCIONES_META).length} secciones activas</div>
                 {orden.map((id, i) => {
                   const meta = SECCIONES_META[id]; if (!meta) return null;
@@ -1447,7 +1510,45 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       onDrop={() => { if (dragIndex !== null && dragIndex !== i) moveSec(dragIndex, i); setDragIndex(null); }} onDragEnd={() => setDragIndex(null)}>
                       <span className="grip">⠿</span>
                       <span className="sdot" style={{ background: "var(--pink)" }} />
-                      <div className="sbody"><div className="stitle">{meta.label}</div><div className="sdesc">{meta.desc}</div></div>
+                      <div className="sbody"><div className="stitle">{meta.label}</div><div className="sdesc">{meta.desc}</div>
+                        {FONDO_SECS.includes(id) && (() => {
+                          const fd = secciones.fondos?.[id];
+                          if (subiendoFondo === id) return <div className="sfondo"><span className="sdesc">Subiendo fondo…</span></div>;
+                          // color oscuro: los títulos van en tinta oscura y podrían no leerse
+                          const oscuro = (hex: string) => {
+                            const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return false;
+                            const n = parseInt(m[1], 16);
+                            return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 140;
+                          };
+                          if (fd?.color && !fd?.url) return (
+                            <div className="sfondo">
+                              <label className="vswatch" style={{ background: fd.color }}>
+                                <input type="color" value={fd.color} onChange={(e) => setFondoSec(id, { color: e.target.value })} />
+                              </label>
+                              <span className="sdesc">{fd.color.toUpperCase()}</span>
+                              <button type="button" className="vchip" onClick={() => pickFondo(id)}>Usar foto</button>
+                              <button type="button" className="vchip" onClick={() => setFondoSec(id, null)}>Quitar</button>
+                              {oscuro(fd.color) && <span className="sdesc" style={{ color: "#b23a1c", flexBasis: "100%" }}>Color oscuro: los títulos podrían no leerse bien. Mejor un tono claro.</span>}
+                            </div>
+                          );
+                          return fd?.url ? (
+                            <div className="sfondo">
+                              <img src={fd.url} alt="" />
+                              <span className="sdesc">Velo:</span>
+                              {VELOS.map((o) => (
+                                <button key={o.v} type="button" className={"vchip" + ((fd.velo ?? 65) === o.v ? " on" : "")} onClick={() => setFondoSec(id, { ...fd, velo: o.v })}>{o.label}</button>
+                              ))}
+                              <button type="button" className="vchip" onClick={() => pickFondo(id)}>Cambiar</button>
+                              <button type="button" className="vchip" onClick={() => setFondoSec(id, null)}>Quitar</button>
+                            </div>
+                          ) : (
+                            <div className="sfondo">
+                              <button type="button" className="vchip" onClick={() => pickFondo(id)}>+ Foto de fondo</button>
+                              <button type="button" className="vchip" onClick={() => setFondoSec(id, { color: "#F3E6DA" })}>+ Color de fondo</button>
+                            </div>
+                          );
+                        })()}
+                      </div>
                       <div className="sarrows"><button className="sarrow" onClick={() => moveSec(i, i - 1)}>▲</button><button className="sarrow" onClick={() => moveSec(i, i + 1)}>▼</button></div>
                       <button className={"switch" + (active ? "" : " off")} onClick={() => setSecciones((s) => ({ ...s, [id]: !s[id] }))} />
                     </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { getEventType } from "../../lib/eventTypes";
+import { getEventType, rutaInvitacion } from "../../lib/eventTypes";
 import BodaClient from "./BodaClient";
 import BodaClientAM from "./BodaClientAM";
 
@@ -56,7 +56,7 @@ export async function generateMetadata(
   const description = (paraNombres ? "Tu invitación te espera · " : "") + ([fecha, p.lugar].filter(Boolean).join(" · ") || (plural ? "Te invitamos a celebrar con nosotros." : "Te invito a celebrar conmigo."));
   // el template exclusivo A&M comparte su propia tarjeta (portada de terciopelo)
   const images = [{ url: slug === AM_SLUG ? "/og-am.jpg" : ((p.foto_hero as string) || "/og.png") }];
-  const url = `https://wedo.gifts/boda/${slug}`;
+  const url = `https://wedo.gifts${rutaInvitacion(slug, p.tipo_evento)}`;
   return {
     title,
     description,

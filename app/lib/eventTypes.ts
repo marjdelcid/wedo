@@ -357,6 +357,12 @@ export function getEventType(id?: string | null): EventType {
   return EVENT_TYPES.find((t) => t.id === id) || EVENT_TYPES[0];
 }
 
+/** Ruta pública de la invitación: las bodas usan /boda/; los demás eventos,
+ *  /evento/. Ambas rutas sirven cualquier slug (los links ya enviados siguen vivos). */
+export function rutaInvitacion(slug: string, tipo?: string | null): string {
+  return `/${getEventType(tipo).id === "boda" ? "boda" : "evento"}/${slug}`;
+}
+
 /** Busca un campo del tipo por key. Es la fuente de verdad para saber si un
  *  campo aplica al tipo (p. ej. nombre2 o ceremonia) y con qué etiqueta —
  *  el editor la usa para ocultar/re-etiquetar sin condicionales por tipo. */
