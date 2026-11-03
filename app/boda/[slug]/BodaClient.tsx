@@ -113,6 +113,11 @@ export default function BodaClient({ slug }: { slug: string }) {
   const [rYo, setRYo] = useState<any>(null);
   const [rMas1, setRMas1] = useState("");
   const [rQuienes, setRQuienes] = useState<Record<string, boolean>>({});
+  // edición de una respuesta ya enviada (si el anfitrión lo permite)
+  const [rEditable, setREditable] = useState(false);
+  const [rActual, setRActual] = useState<any>(null);
+  const [rEditando, setREditando] = useState(false);
+  const [rEditado, setREditado] = useState(false);
 
   useEffect(() => { loadData(); }, [slug]);
 
@@ -133,6 +138,10 @@ export default function BodaClient({ slug }: { slug: string }) {
         if (inv) {
           setRInv(inv);
           setRYo((inv.miembros || []).find((m: any) => m.token === token) || null);
+          // ¿puede cambiar su respuesta? y, si ya respondió, qué dijo (para precargar)
+          fetch(`/api/rsvp?i=${encodeURIComponent(token)}`)
+            .then((r) => r.json()).then((j) => { setREditable(!!j?.editable); setRActual(j || null); })
+            .catch(() => {});
         }
       }
     } catch { /* sin token o inválido: flujo normal de búsqueda */ }
@@ -197,6 +206,7 @@ export default function BodaClient({ slug }: { slug: string }) {
       acompañante, se guarda en el primer slot vacío que haya marcado. */
   async function handleRsvpLink() {
     if (!rInv || !rYo || !rsvpForm.asistencia) return;
+    const asistencia = rsvpForm.asistencia;
     setRsvpSubmitting(true);
     try {
       const res = await fetch("/api/rsvp", {
@@ -209,6 +219,7 @@ export default function BodaClient({ slug }: { slug: string }) {
           acompanante_nombre: rMas1,
           restricciones: rsvpForm.restricciones,
           mensaje: rsvpForm.mensaje,
+          editar: rEditando,
         }),
       });
       const j = await res.json().catch(() => ({}));
@@ -218,12 +229,56 @@ export default function BodaClient({ slug }: { slug: string }) {
         setRInv({ ...rInv, confirmado: true, respondido_por: j.respondido_por, asistira: j.asistira });
         return;
       }
-      if (j?.ok) { setRsvpDone(true); return; }
+      if (j?.ok) {
+        // dejamos la invitación como quedó (igual que el servidor) por si vuelve a "Cambiar respuesta"
+        const grupal = (rInv.miembros || []).length > 1;
+        let mas1 = rMas1.trim();
+        const miembros = (rInv.miembros || []).map((m: any) => {
+          if (!m.nombre && mas1 && (!grupal || rQuienes[m.token])) { const n = mas1; mas1 = ""; return { ...m, nombre: n }; }
+          return m;
+        });
+        const asistentes = asistencia === "si"
+          ? miembros.filter((m: any) => !grupal || rQuienes[m.token]).map((m: any) => m.nombre || "Acompañante")
+          : [];
+        setRActual((a: any) => ({ ...(a || {}), confirmado: true, asistira: asistencia, asistentes, restricciones: rsvpForm.restricciones, mensaje: rsvpForm.mensaje }));
+        setRInv({ ...rInv, miembros, confirmado: true, respondido_por: rYo.nombre || rInv.nombre, asistira: asistencia });
+        setREditado(!!j.editado);
+        setREditando(false);
+        setRsvpDone(true);
+        return;
+      }
       alert(j?.error || "No pudimos enviar tu confirmación. Intenta de nuevo.");
     } catch {
       setRsvpSubmitting(false);
       alert("No pudimos enviar tu confirmación. Intenta de nuevo.");
     }
+  }
+
+  /** Abre el formulario precargado con la respuesta actual del grupo. */
+  function empezarEdicion() {
+    if (!rInv) return;
+    const a = rActual || {};
+    const nombres: string[] = Array.isArray(a.asistentes) ? a.asistentes.slice() : [];
+    const q: Record<string, boolean> = {};
+    if (rInv.asistira === "si" && nombres.length) {
+      // marca a los que ya estaban en la lista de asistentes
+      (rInv.miembros || []).forEach((m: any) => {
+        if (!m.nombre) return;
+        const k = nombres.indexOf(m.nombre);
+        q[m.token] = k >= 0; if (k >= 0) nombres.splice(k, 1);
+      });
+      // slots sin nombre: tantos como "Acompañante" quedaron en la lista
+      let libres = nombres.length;
+      (rInv.miembros || []).forEach((m: any) => { if (!m.nombre) { q[m.token] = libres > 0; libres--; } });
+    } else {
+      // sin detalle (o dijo que no): yo + los que tienen nombre
+      (rInv.miembros || []).forEach((m: any) => { q[m.token] = m.token === rYo?.token ? true : !!m.nombre; });
+    }
+    setRQuienes(q);
+    setRMas1("");
+    setRsvpForm({ telefono: "", asistencia: rInv.asistira === "no" ? "no" : "si", acompanantes: "0", restricciones: a.restricciones || "", mensaje: a.mensaje || "" });
+    setRsvpDone(false);
+    setREditando(true);
   }
 
   function fireConfetti() {
@@ -437,6 +492,8 @@ export default function BodaClient({ slug }: { slug: string }) {
 
   const f = fondos[selected];
   const inpStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", border: "1px solid var(--c-line)", borderRadius: 10, fontSize: 14, fontFamily: "'Archivo', sans-serif", background: "#fff", color: "var(--c-ink)", outline: "none", boxSizing: "border-box" };
+  // enlace discreto "Cambiar respuesta" dentro de la caja RSVP
+  const linkBtn: React.CSSProperties = { marginTop: 14, background: "none", border: "none", color: "var(--c-accent)", textDecoration: "underline", textUnderlineOffset: 3, cursor: "pointer", fontFamily: "'Archivo',sans-serif", fontSize: 13, fontWeight: 600, padding: 0 };
 
   const Countdown = () => cd ? (
     <div className="cd">
@@ -593,8 +650,9 @@ export default function BodaClient({ slug }: { slug: string }) {
         {rsvpDone ? (
           <div className="rsvp-box">
             <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
-            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
-            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
+            <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 26, color: "var(--c-accent)", marginBottom: 8 }}>{rEditado ? "Respuesta actualizada" : rsvpForm.asistencia === "si" ? "¡Nos vemos pronto!" : pl("Gracias por avisarnos", "Gracias por avisarme")}</div>
+            <div style={{ fontSize: 13.5, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" }}>{rEditado ? (rsvpForm.asistencia === "si" ? pl("Tu respuesta quedó actualizada. ¡Te esperamos!", "Tu respuesta quedó actualizada. ¡Te espero!") : "Tu respuesta quedó actualizada. Gracias por avisar.") : rsvpForm.asistencia === "si" ? pl("Tu asistencia quedó confirmada. ¡Te esperamos con mucho amor!", "Tu asistencia quedó confirmada. ¡Te espero con mucho cariño!") : pl("Lamentamos que no puedas acompañarnos, gracias por responder.", "Lamento que no puedas acompañarme, gracias por responder.")}</div>
+            {rInv && rEditable && <button onClick={empezarEdicion} style={linkBtn}>¿Cambió algo? Cambiar mi respuesta</button>}
           </div>
         ) : rInv ? (() => {
           // ---- RSVP personalizado por link único ----
@@ -616,6 +674,9 @@ export default function BodaClient({ slug }: { slug: string }) {
           const note: React.CSSProperties = { fontSize: 13, color: "var(--c-soft)", fontFamily: "'Archivo',sans-serif" };
           const choice = (on: boolean, fill: boolean): React.CSSProperties => ({ flex: 1, padding: 12, border: `1.5px solid ${on ? "var(--c-accent)" : "var(--c-line)"}`, borderRadius: 10, background: on && fill ? "var(--c-accent)" : "transparent", color: on && fill ? "var(--c-on-accent)" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" });
           const chip = (on: boolean): React.CSSProperties => ({ padding: "8px 15px", border: `1px solid ${on ? "var(--c-ink)" : "var(--c-line)"}`, borderRadius: 8, background: on ? "var(--c-ink)" : "transparent", color: on ? "#fff" : "var(--c-soft)", fontFamily: "'Archivo',sans-serif", fontSize: 13, cursor: "pointer" });
+          const cambiar = rEditable && !rInv.rsvp_bloqueado && (
+            <button onClick={empezarEdicion} style={linkBtn}>Cambiar {seatsInv > 1 ? "nuestra" : "mi"} respuesta</button>
+          );
           return (
             <div className="rsvp-box">
               <div className="rsvp-ico">{pl("&", n1.charAt(0))}</div>
@@ -625,12 +686,13 @@ export default function BodaClient({ slug }: { slug: string }) {
                   <div style={lead}>El periodo para confirmar asistencia ha terminado.</div>
                   <div style={note}>{pl(`Si tienes dudas, escríbeles directo a ${nombresTxt}`, `Si tienes dudas, escríbele directo a ${nombresTxt}`)}</div>
                 </>
-              ) : rInv.confirmado ? (
+              ) : rInv.confirmado && !rEditando ? (
                 yoRespondio ? (
                   <>
                     {nombreYo}
                     <div style={lead}>Ya confirmaste por tu invitación. ¡Gracias!</div>
                     <div style={note}>{rInv.asistira === "si" ? `Nos vemos${diaTxt}` : "Gracias por avisar"}</div>
+                    {cambiar}
                   </>
                 ) : (
                   <>
@@ -639,15 +701,18 @@ export default function BodaClient({ slug }: { slug: string }) {
                       {rInv.respondido_por ? `${primer(rInv.respondido_por)} ya respondió por ustedes` : "Tu invitación ya fue confirmada"}
                       {rInv.asistira === "si" ? `. ${pl("¡Los esperamos", "¡Los espero")}${diaTxt}!` : rInv.asistira === "no" ? `. ${pl("Lamentamos que no puedan acompañarnos", "Lamento que no puedan acompañarme")}.` : "."}
                     </div>
-                    <div style={note}>{escribe}</div>
+                    {cambiar || <div style={note}>{escribe}</div>}
                   </>
                 )
               ) : (
                 <div style={{ textAlign: "left" }}>
+                  {rEditando && (
+                    <button onClick={() => setREditando(false)} style={{ background: "none", border: "none", color: "var(--c-muted)", cursor: "pointer", fontFamily: "'Archivo',sans-serif", fontSize: 12, marginBottom: 10, padding: 0 }}>← Cancelar</button>
+                  )}
                   <div style={{ fontFamily: "var(--c-font-tit)", fontSize: 23, color: "var(--c-ink)", marginBottom: 4, textAlign: "center" }}>
-                    {rYo?.nombre ? `${primer(rYo.nombre)}, ` : ""}{pl("¿podrás acompañarnos a nuestra celebración?", "¿podrás acompañarme a mi celebración?")}
+                    {rYo?.nombre ? `${primer(rYo.nombre)}, ` : ""}{rEditando ? (seatsInv > 1 ? "actualiza la respuesta de tu grupo" : "actualiza tu respuesta") : pl("¿podrás acompañarnos a nuestra celebración?", "¿podrás acompañarme a mi celebración?")}
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--c-muted)", marginBottom: 18, textAlign: "center" }}>{compTxt}</div>
+                  <div style={{ fontSize: 12, color: "var(--c-muted)", marginBottom: 18, textAlign: "center" }}>{rEditando ? "Puedes cambiar tu respuesta las veces que necesites." : compTxt}</div>
                   <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
                     <button
                       style={choice(rsvpForm.asistencia === "si", true)}
@@ -684,7 +749,7 @@ export default function BodaClient({ slug }: { slug: string }) {
                   )}
                   {rsvpForm.asistencia === "si" && <div style={{ marginBottom: 12 }}><input value={rsvpForm.restricciones} onChange={(e) => setRsvpForm((p) => ({ ...p, restricciones: e.target.value }))} placeholder="Restricciones alimentarias (opcional)" style={inpStyle} /></div>}
                   <textarea value={rsvpForm.mensaje} onChange={(e) => setRsvpForm((p) => ({ ...p, mensaje: e.target.value }))} placeholder={`Mensaje para ${anfitrionTxt} (opcional)`} style={{ ...inpStyle, minHeight: 64, resize: "vertical", marginBottom: 14 }} />
-                  <button onClick={handleRsvpLink} disabled={!rsvpForm.asistencia || rsvpSubmitting} className="rbtn" style={{ opacity: !rsvpForm.asistencia ? 0.5 : 1 }}>{rsvpSubmitting ? "Enviando..." : "Enviar respuesta"}</button>
+                  <button onClick={handleRsvpLink} disabled={!rsvpForm.asistencia || rsvpSubmitting} className="rbtn" style={{ opacity: !rsvpForm.asistencia ? 0.5 : 1 }}>{rsvpSubmitting ? (rEditando ? "Guardando..." : "Enviando...") : rEditando ? "Guardar cambios" : "Enviar respuesta"}</button>
                 </div>
               )}
             </div>
