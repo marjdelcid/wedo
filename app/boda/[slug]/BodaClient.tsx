@@ -263,10 +263,20 @@ export default function BodaClient({ slug }: { slug: string }) {
     const confirmados: string[] = [];
     const pendientes: string[] = [];
     let sinNombrePend = 0;
+    // el primer miembro suele llevar el nombre completo de la invitación
+    // ("Marji y André"); en el desglose se muestra solo la persona principal ("Marji")
+    const etiqueta = (m: any) => {
+      const n = String(m.nombre || "").trim();
+      if (n && n === String(rInv.nombre || "").trim() && (rInv.miembros || []).length > 1) {
+        const lead = n.split(/\s*,\s*|\s+y\s+|\s+e\s+|\s+&\s+|\s*\+\s*/)[0].trim();
+        return lead || n;
+      }
+      return n;
+    };
     (rInv.miembros || []).forEach((m: any) => {
       if (m.nombre) {
         const k = nombres.indexOf(m.nombre);
-        if (k >= 0) { nombres.splice(k, 1); confirmados.push(String(m.nombre).trim()); } else pendientes.push(String(m.nombre).trim());
+        if (k >= 0) { nombres.splice(k, 1); confirmados.push(etiqueta(m)); } else pendientes.push(etiqueta(m));
       }
     });
     // "Acompañante" en la lista = slot sin nombre confirmado; el resto de slots vacíos quedan pendientes
