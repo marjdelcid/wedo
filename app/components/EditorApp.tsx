@@ -603,6 +603,14 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
     const { data } = await supabase.from("parejas").select("secciones").eq("id", pareja.id).single();
     await supabase.from("parejas").update({ secciones: { ...(data?.secciones || {}), rsvp_solo_link: nv } }).eq("id", pareja.id);
   }
+  /** Los invitados pueden cambiar su respuesta después de enviarla (por su
+      link personal, hasta la fecha límite). Vive en secciones.rsvp_editable. */
+  async function toggleRsvpEditable() {
+    const nv = !secciones.rsvp_editable;
+    setSecciones((s) => ({ ...s, rsvp_editable: nv }));
+    const { data } = await supabase.from("parejas").select("secciones").eq("id", pareja.id).single();
+    await supabase.from("parejas").update({ secciones: { ...(data?.secciones || {}), rsvp_editable: nv } }).eq("id", pareja.id);
+  }
   async function saveCode(id: string) {
     const code = codeVal.trim().toUpperCase() || null;
     await supabase.from("invitados").update({ codigo: code }).eq("id", id);
@@ -1282,6 +1290,16 @@ export default function EditorApp({ initialPane = "diseno" }: { initialPane?: Pa
                       <div className="hint" style={{ margin: "2px 0 0" }}>{secciones.rsvp_solo_link ? "Desactivada · Solo confirman con su link personal; una persona responde por todo su grupo." : "Activa · Pueden buscar su nombre en la invitación o usar su link personal."}</div>
                     </div>
                     <button className={"switch" + (secciones.rsvp_solo_link ? " off" : "")} onClick={toggleBusquedaNombre} />
+                  </div>
+                </div>
+
+                <div className="ecard" style={{ padding: "16px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>Permitir cambiar la respuesta</div>
+                      <div className="hint" style={{ margin: "2px 0 0" }}>{secciones.rsvp_editable ? "Activo · Quien ya respondió puede cambiar su respuesta desde su link personal" + (pareja?.rsvp_fecha_limite ? " hasta la fecha límite." : ".") : "Desactivado · La primera respuesta del grupo es definitiva."}</div>
+                    </div>
+                    <button className={"switch" + (secciones.rsvp_editable ? "" : " off")} onClick={toggleRsvpEditable} />
                   </div>
                 </div>
 
